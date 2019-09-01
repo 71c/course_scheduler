@@ -3,8 +3,8 @@ from datetime import datetime
 import re
 
 day_or_time = re.compile('Mo|Tu|We|Th|Fr|\d?\d:\d\d[AP]M')
-find_times = re.compile('(?:(?:(?:Mo|Tu|We|Th|Fr), )*(?:Mo|Tu|We|Th|Fr) \d?\d:\d\d[AP]M - \d?\d:\d\d[AP]M\n)+')
-find_time = re.compile('(?:(?:Mo|Tu|We|Th|Fr), )*(?:Mo|Tu|We|Th|Fr) \d?\d:\d\d[AP]M - \d?\d:\d\d[AP]M')
+find_time = re.compile(
+    '(?:(?:Mo|Tu|We|Th|Fr), )*(?:Mo|Tu|We|Th|Fr) \d?\d:\d\d[AP]M - \d?\d:\d\d[AP]M')
 
 
 def remove_duplicates(a_list):
@@ -15,11 +15,31 @@ def remove_duplicates(a_list):
     return new_list
 
 
+class CourseArrangement:
+    def __init__(self, name, lecture_times, recitation_times, lab_times):
+        self.name = name
+        self.lecture_times = lecture_times
+        self.recitation_times = recitation_times
+        self.lab_times = lab_times
+
+    def __repr__(self):
+        return f'{self.name} {self.lecture_times} {self.recitation_times} {self.lab_times}'
+
+    def intersects(self, other):
+        for a in [self.lecture_times, self.recitation_times, self.lab_times]:
+            for b in [other.lecture_times, other.recitation_times, other.lab_times]:
+                if a is None:
+                    continue
+                if a.intersects(b):
+                    return True
+        return False
+
+
 class Course:
     # allowed_recitation_by_lecture:
     # list of lists
     # length: number of lectures
-    def __init__(self, name, lecture_times, recitation_times, lab_times, allowed_recitation_by_lecture):
+    def __init__(self, name, lecture_times, recitation_times, lab_times, allowed_recitation_by_lecture=None):
         self.name = name
         self.lecture_times = remove_duplicates(lecture_times)
         self.lab_times = remove_duplicates(lab_times)
@@ -28,10 +48,33 @@ class Course:
             self.lab_times = [None]
         if self.recitation_times == []:
             self.recitation_times = [None]
-        self.allowed_recitation_by_lecture = allowed_recitation_by_lecture
+        if allowed_recitation_by_lecture is None:
+            self.allowed_recitation_by_lecture = [
+                list(range(len(self.recitation_times)))
+                ] * len(self.lecture_times)
+        else:
+            self.allowed_recitation_by_lecture = allowed_recitation_by_lecture
 
     def __repr__(self):
         return self.name
+
+    def all_possible_arrangements(self):
+        arrangements = []
+        for lecs_index, lecs in enumerate(self.lecture_times):
+            for labs in self.lab_times:
+                if labs is not None and lecs.intersects(labs):
+                    continue
+                for rcts_index, rcts in enumerate(self.recitation_times):
+                    if rcts is not None:
+                        if lecs is not None and lecs.intersects(rcts):
+                            continue
+                        if labs is not None and labs.intersects(rcts):
+                            continue
+                    if rcts_index in self.allowed_recitation_by_lecture[lecs_index]:
+                        # arrangements.append([lecs, labs, rcts])
+                        arrangements.append(CourseArrangement(
+                            self.name, lecs, rcts, labs))
+        return arrangements
 
 
 class ClassTimes:
@@ -63,6 +106,25 @@ class ClassTimes:
                 return True
         return False
 
+    def intersects(self, other):
+        if self is None or other is None:
+            return False
+        for period_1 in self.periods:
+            for period_2 in other.periods:
+                if period_1.intersects(period_2):
+                    return True
+        return False
+
+    # @staticmethod
+    # def intersects(a, b):
+    #     if a is None or b is None:
+    #         return False
+    #     for period_1 in a.periods:
+    #         for period_2 in b.periods:
+    #             if period_1.intersects(period_2):
+    #                 return True
+    #     return False
+
 
 class ClassTime:
     def __init__(self, start_time, end_time, day, kind):
@@ -77,9 +139,11 @@ class ClassTime:
     def __eq__(self, value):
         return self.start_time == value.start_time and self.end_time == value.end_time and self.day == value.day and self.kind == value.kind
 
+    def intersects(self, other):
+        return not (self.end_time < other.start_time or self.start_time > other.end_time)
 
 
-def text_to_course(data, name, allowed_recitation_by_lecture):
+def text_to_course(data, name, allowed_recitation_by_lecture=None):
     infos = []
     lines = data.splitlines()
     for line in lines:
@@ -113,34 +177,26 @@ math_course = text_to_course(data, 'MATH-0042', allowed_recitation_by_lecture)
 
 with open('bio13.txt') as f:
     data = f.read()
-allowed_recitation_by_lecture = [list(range(17))]
-bio_course = text_to_course(data, 'BIO-0013', allowed_recitation_by_lecture)
+bio_course = text_to_course(data, 'BIO-0013')
+# no bio recitation (recitation is optional)
+bio_course.recitation_times = [None]
 
-# for lecs in bio_course.lecture_times:
-#     for labs in bio_course.lab_times:
-#         for rcts in bio_course.recitation_times:
-#             print(lecs, labs, rcts)
+bio_arrangements = bio_course.all_possible_arrangements()
+math_arrangements = math_course.all_possible_arrangements()
 
-n = 0
-# for lecs_bio in bio_course.lecture_times:
-#     for labs_bio in bio_course.lab_times:
-#         for rcts_bio in bio_course.recitation_times:
-#             for lecs_calc in math_course.lecture_times:
-#                 for labs_calc in math_course.lab_times:
-#                     for rcts_calc in math_course.recitation_times:
-#                         print(labs_bio, lecs_calc, rcts_calc)
-#                         n += 1
+for a in bio_arrangements:
+    print(a)
+print(len(bio_arrangements))
+print()
+for a in math_arrangements:
+    print(a)
+print(len(math_arrangements))
 
-for lecs_bio in bio_course.lecture_times:
-    for labs_bio in bio_course.lab_times:
-        for rcts_bio in bio_course.recitation_times:
-            for lecs_index, lecs_calc in enumerate(math_course.lecture_times):
-                for labs_calc in math_course.lab_times:
-                    for rcts_index, rcts_calc in enumerate(math_course.recitation_times):
-                        if rcts_index in math_course.allowed_recitation_by_lecture[lecs_index]:
-                            print(labs_bio, lecs_calc, rcts_calc)
-                            n += 1
+'''TODO: make method to find all possible arrangements of combining any number
+of classes together'''
 
-print(n)
+for x in bio_arrangements:
+    for y in math_arrangements:
+        print(x.intersects(y))
 
 # 62 powderhouse 209 college
