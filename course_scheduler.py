@@ -28,9 +28,7 @@ class CourseArrangement:
     def intersects(self, other):
         for a in [self.lecture_times, self.recitation_times, self.lab_times]:
             for b in [other.lecture_times, other.recitation_times, other.lab_times]:
-                if a is None:
-                    continue
-                if a.intersects(b):
+                if ClassTimes.intersects(a, b):
                     return True
         return False
 
@@ -62,19 +60,18 @@ class Course:
         arrangements = []
         for lecs_index, lecs in enumerate(self.lecture_times):
             for labs in self.lab_times:
-                if labs is not None and lecs.intersects(labs):
+                if ClassTimes.intersects(lecs, labs):
                     continue
                 for rcts_index, rcts in enumerate(self.recitation_times):
-                    if rcts is not None:
-                        if lecs is not None and lecs.intersects(rcts):
-                            continue
-                        if labs is not None and labs.intersects(rcts):
-                            continue
+                    if ClassTimes.intersects(lecs, rcts) or ClassTimes.intersects(labs, rcts):
+                        continue
                     if rcts_index in self.allowed_recitation_by_lecture[lecs_index]:
-                        # arrangements.append([lecs, labs, rcts])
                         arrangements.append(CourseArrangement(
                             self.name, lecs, rcts, labs))
         return arrangements
+
+    # def filter_classes(self, f):
+        # for lecs in
 
 
 class ClassTimes:
@@ -106,24 +103,15 @@ class ClassTimes:
                 return True
         return False
 
-    def intersects(self, other):
-        if self is None or other is None:
+    @staticmethod
+    def intersects(a, b):
+        if a is None or b is None:
             return False
-        for period_1 in self.periods:
-            for period_2 in other.periods:
+        for period_1 in a.periods:
+            for period_2 in b.periods:
                 if period_1.intersects(period_2):
                     return True
         return False
-
-    # @staticmethod
-    # def intersects(a, b):
-    #     if a is None or b is None:
-    #         return False
-    #     for period_1 in a.periods:
-    #         for period_2 in b.periods:
-    #             if period_1.intersects(period_2):
-    #                 return True
-    #     return False
 
 
 class ClassTime:
@@ -140,7 +128,7 @@ class ClassTime:
         return self.start_time == value.start_time and self.end_time == value.end_time and self.day == value.day and self.kind == value.kind
 
     def intersects(self, other):
-        return not (self.end_time < other.start_time or self.start_time > other.end_time)
+        return self.day == other.day and not (self.end_time < other.start_time or self.start_time > other.end_time)
 
 
 def text_to_course(data, name, allowed_recitation_by_lecture=None):
@@ -170,6 +158,29 @@ def text_to_course(data, name, allowed_recitation_by_lecture=None):
     return Course(name, lecture_times, recitation_times, lab_times, allowed_recitation_by_lecture)
 
 
+def combine_course_arrangements(combinations, arrangements):
+    new_combinations = []
+    for c in combinations:
+        for a_new in arrangements:
+            # check that a_new does not intersect any of a in c
+            new_combo_works = True
+            for a in c:
+                if a_new.intersects(a):
+                    new_combo_works = False
+                    break
+            if new_combo_works:
+                new_combinations.append(c + [a_new])
+    return new_combinations
+
+
+def class_combinations(classes):
+    combinations = [[]]
+    for c in classes:
+        a = c.all_possible_arrangements()
+        combinations = combine_course_arrangements(combinations, a)
+    return combinations
+
+
 with open('math42.txt') as f:
     data = f.read()
 allowed_recitation_by_lecture = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
@@ -181,22 +192,18 @@ bio_course = text_to_course(data, 'BIO-0013')
 # no bio recitation (recitation is optional)
 bio_course.recitation_times = [None]
 
-bio_arrangements = bio_course.all_possible_arrangements()
-math_arrangements = math_course.all_possible_arrangements()
+with open('en1.txt') as f:
+    data = f.read()
+en_course = text_to_course(data, 'EN-0001')
 
-for a in bio_arrangements:
-    print(a)
-print(len(bio_arrangements))
-print()
-for a in math_arrangements:
-    print(a)
-print(len(math_arrangements))
+with open('eng1.txt') as f:
+    data = f.read()
+eng_course = text_to_course(data, 'ENG-0001')
 
-'''TODO: make method to find all possible arrangements of combining any number
-of classes together'''
 
-for x in bio_arrangements:
-    for y in math_arrangements:
-        print(x.intersects(y))
+
+combinations = class_combinations([math_course, bio_course, en_course, eng_course])
+print(len(combinations))
+
 
 # 62 powderhouse 209 college
