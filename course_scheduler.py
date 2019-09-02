@@ -18,16 +18,6 @@ def remove_duplicates(a_list):
     return new_list
 
 
-# class CourseArrangementCombination:
-#     def __init__(self, course_arrangements):
-#         self.course_arrangements = course_arrangements
-#
-#     def score_by_gap_times(self, start_time, end_time, f):
-#         print((self.lecture_times))
-#         # for day in weekdays:
-#         #     lectures = [l for l in self.lecture_times if l]
-
-
 class CourseArrangement:
     def __init__(self, name, lecture_times, recitation_times, lab_times):
         self.name = name
@@ -70,6 +60,8 @@ class Course:
         return self.name
 
     def all_possible_arrangements(self):
+        """returns all possible arrangements of class times as a list of
+        CourseArrangements"""
         arrangements = []
         for lecs_index, lecs in enumerate(self.lecture_times):
             for labs in self.lab_times:
@@ -83,11 +75,13 @@ class Course:
                             self.name, lecs, rcts, labs))
         return arrangements
 
-    def filter_classes(self, f):
+    def filter_classes(self, f, **options):
+        """Remove any ClassTimess in which all not all periods satisfy the
+        condition specified by f"""
         i = 0
         while i < len(self.lecture_times):
             lecs = self.lecture_times[i]
-            if not ClassTimes.periods_satisfy_condition(lecs, f):
+            if not ClassTimes.periods_satisfy_condition(lecs, f, **options):
                 self.lecture_times.pop(i)
                 self.allowed_recitation_by_lecture.pop(i)
                 continue
@@ -95,7 +89,7 @@ class Course:
         i = 0
         while i < len(self.recitation_times):
             rcts = self.recitation_times[i]
-            if not ClassTimes.periods_satisfy_condition(rcts, f):
+            if not ClassTimes.periods_satisfy_condition(rcts, f, **options):
                 self.recitation_times.pop(i)
                 for row in self.allowed_recitation_by_lecture:
                     row.pop(i)
@@ -104,7 +98,7 @@ class Course:
         i = 0
         while i < len(self.lab_times):
             labs = self.lab_times[i]
-            if not ClassTimes.periods_satisfy_condition(labs, f):
+            if not ClassTimes.periods_satisfy_condition(labs, f, **options):
                 self.lab_times.pop(i)
                 continue
             i += 1
@@ -116,6 +110,8 @@ class ClassTimes:
 
     @classmethod
     def class_times(cls, times_string, kind):
+        """constructs a ClassTimes from strings copy-pasted from SIS
+        containing times block occurs and kind of block"""
         times_strings = times_string.splitlines()
         times_strings = [s.strip() for s in times_strings]
         times_strings = [day_or_time.findall(s) for s in times_strings]
@@ -149,20 +145,21 @@ class ClassTimes:
                     return True
         return False
 
+    @staticmethod
+    def periods_satisfy_condition(periods, f, **options):
+        """return whether all periods satisfy condition specified by f"""
+        if periods is None:
+            return True
+        for period in periods.periods:
+            if not f(period, **options):
+                return False
+        return True
+
     # def periods_satisfy_condition(self, f):
     #     for period in self.periods:
     #         if not f(period):
     #             return False
     #     return True
-
-    @staticmethod
-    def periods_satisfy_condition(periods, f):
-        if periods is None:
-            return True
-        for period in periods.periods:
-            if not f(period):
-                return False
-        return True
 
 
 class ClassTime:
@@ -183,6 +180,7 @@ class ClassTime:
 
 
 def text_to_course(data, name, allowed_recitation_by_lecture=None):
+    """converts text copy-pasted from SIS to a course"""
     infos = []
     lines = data.splitlines()
     for line in lines:
@@ -210,6 +208,7 @@ def text_to_course(data, name, allowed_recitation_by_lecture=None):
 
 
 def combine_course_arrangements(combinations, arrangements):
+    """adds new class to existing combinations"""
     new_combinations = []
     for c in combinations:
         for a_new in arrangements:
@@ -225,6 +224,8 @@ def combine_course_arrangements(combinations, arrangements):
 
 
 def class_combinations(classes):
+    """finds all possible combinations of when to take each block of each
+    class"""
     combinations = [[]]
     for c in classes:
         a = c.all_possible_arrangements()
@@ -233,6 +234,7 @@ def class_combinations(classes):
 
 
 def score_by_gap_times(arrangements, start_time, end_time, f_between, f_begin, f_end):
+    """Scores schedule by sum of functions of gaps between classes"""
     total_minutes = 0
     for day in weekdays:
         day_blocks = []
@@ -243,7 +245,6 @@ def score_by_gap_times(arrangements, start_time, end_time, f_between, f_begin, f
                         if period.day == day:
                             day_blocks.append(period)
         day_blocks.sort(key=lambda block: block.start_time)
-
         gaps_minutes = []
         last_time = start_time
         for block in day_blocks:
@@ -252,18 +253,14 @@ def score_by_gap_times(arrangements, start_time, end_time, f_between, f_begin, f
             last_time = block.end_time
         gap_duration = datetime.combine(date.today(), end_time) - datetime.combine(date.today(), last_time)
         gaps_minutes.append(gap_duration.total_seconds() / 60)
-
-        total_classtime = sum([(datetime.combine(date.today(), block.end_time) - datetime.combine(date.today(), block.start_time)).total_seconds()/60 for block in day_blocks])
-
-        # print(gaps_minutes)
         a = [f_begin(gaps_minutes[0])] + [f_between(gap_minutes) for gap_minutes in gaps_minutes[1:-1]] + [f_end(gaps_minutes[-1])]
-        # print(a)
-        # print()
         total_minutes += sum(a)
     return total_minutes
 
 
-def get_day_class_lengths(arrangements):
+def get_day_class_lengths(arrangements, normalize=True):
+    """returns total number of minutes of class time each day from a schedule,
+    optionally normalized to sum to 1"""
     minute_counts = []
     for day in weekdays:
         day_blocks = []
@@ -276,7 +273,10 @@ def get_day_class_lengths(arrangements):
         day_blocks.sort(key=lambda block: block.start_time)
         total_classtime = sum([(datetime.combine(date.today(), block.end_time) - datetime.combine(date.today(), block.start_time)).total_seconds()/60 for block in day_blocks])
         minute_counts.append(total_classtime)
-    return np.array(minute_counts)# / sum(minute_counts)
+    minute_counts = np.array(minute_counts)
+    if normalize:
+        minute_counts /= sum(minute_counts)
+    return minute_counts
 
 
 def course_from_file(file_name, course_name, allowed_recitation_by_lecture=None):
@@ -308,16 +308,16 @@ def period_is_between_hours(period, start, end):
 courses = [math42, bio13, en1_1, eng1]
 # courses = [math42, chem1, en1_9, eng1]
 # courses = [math42, bio13, en1_9, eng1]
+
+# courses = [math42, chem1, en1_9, eng1, bio13]
+
+
 # start, stop = time(10), time(19)
 start, stop = time(10), time(21)
 # start, stop = time(12), time(18)
 
-
-def filter_function(p): return period_is_between_hours(p, start, stop)
-
-
 for course in courses:
-    course.filter_classes(filter_function)
+    course.filter_classes(period_is_between_hours, start=start, end=stop)
 
 combinations = class_combinations(courses)
 
@@ -328,12 +328,19 @@ def S(x):
         return 1
     return 6*x**5 - 15*x**4 + 10*x**3
 # a, b = 20, 40
-a, b = 25, 55
+# a, b = 25, 55
 # a, b = 40, 90
-f_between = lambda m: m * S((m - a)/(b - a)) - 120 * math.exp(-m/7) - 100000 * math.exp(-m/2)
-f_begin = lambda m: m * S((m - a)/(b - a)) # - 120 * math.exp(-m/7) - 100000 * math.exp(-m/2)
-f_end = lambda m: m * S((m - a)/(b - a))
+
+# a, b = 18, 58
+a, b = 8, 48
+# f_between = lambda m: m * S((m - a)/(b - a)) # - 120 * math.exp(-m/7) - 100000 * math.exp(-m/2)
+# f_begin = lambda m: m * S((m - a)/(b - a)) # - 120 * math.exp(-m/7) - 100000 * math.exp(-m/2)
 # f_end = lambda m: m
+
+f_between = lambda m: (m - 7.714) * S((m - a)/(b - a))
+f_begin = lambda m: (m - 3.857) * S((m - a)/(b - a))
+f_end = lambda m: m - 3.857
+
 
 # f = lambda m: 1 if m < 15 else 0
 
@@ -343,62 +350,24 @@ for combination in combinations:
     scores.append(score_by_gap_times(combination, time(10), time(21), f_between, f_begin, f_end))
 print(scores)
 
+print(max(scores), min(scores))
+
 
 # combinations.sort(key=lambda x: -score_by_gap_times(x, time(10), time(21), f_between, f_begin, f_end))
 # get_day_class_lengths(arrangements)
 
 
-combinations.sort(key=lambda x: -(score_by_gap_times(x, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1) + max(get_day_class_lengths(x))/sum(get_day_class_lengths(x)))
+combinations.sort(key=lambda x: -(score_by_gap_times(x, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1) + max(get_day_class_lengths(x)))
 
 # combinations.sort(key=lambda x: -(score_by_gap_times(x, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1) + np.std(get_day_class_lengths(x)/sum(get_day_class_lengths(x))))
 
 
 print(len(combinations), 'combinations')
 for c in combinations:
-    # for aa in c:
-    #     print(aa)
-    # print(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end))
-
-    # print(-(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1) + max(get_day_class_lengths(c)))
-
-    print(-(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1), max(get_day_class_lengths(c))/sum(get_day_class_lengths(c)))
-    # print(-(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1) + max(get_day_class_lengths(c))/sum(get_day_class_lengths(c)))
-
-    # print((score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end)) , max(get_day_class_lengths(c)))
-
-    print(get_day_class_lengths(c) / sum(get_day_class_lengths(c)))
-
-    print(np.std(get_day_class_lengths(c)/sum(get_day_class_lengths(c))))
-
-
+    print(-(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1), max(get_day_class_lengths(c)))
+    print(-(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1) + max(get_day_class_lengths(c)))
     for aa in c:
         print(aa)
-
-
-# for c in combinations:
-#     # for aa in c:
-#     #     print(aa)
-#     # print(max(get_day_class_lengths(c)))
-#
-#     lengths = get_day_class_lengths(c)
-#     a = max(lengths) - np.mean(lengths)
-#     print(f'{a}\t{b}')
-    # print()
-
-# c = combinations[0]
-# print(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end))
-# c[3].lecture_times.periods[0].start_time = time(10, 30)
-# c[3].lecture_times.periods[0].end_time = time(11, 45)
-# c[3].lecture_times.periods[1].start_time = time(10, 30)
-# c[3].lecture_times.periods[1].end_time = time(11, 45)
-# print(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end))
-# c[0].recitation_times.periods[0].start_time = time(16, 30)
-# c[0].recitation_times.periods[0].end_time = time(17, 25)
-# print(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end))
-# for aa in c:
-#     print(aa)
-
-
 
 
 # 62 powderhouse 209 college
