@@ -3,6 +3,7 @@ from datetime import datetime, time, date
 import re
 import math
 import numpy as np
+from ics import Calendar, Event
 
 day_or_time = re.compile('Mo|Tu|We|Th|Fr|\d?\d:\d\d[AP]M')
 find_time = re.compile(
@@ -330,44 +331,38 @@ def S(x):
 # a, b = 20, 40
 # a, b = 25, 55
 # a, b = 40, 90
-
 # a, b = 18, 58
 a, b = 8, 48
-# f_between = lambda m: m * S((m - a)/(b - a)) # - 120 * math.exp(-m/7) - 100000 * math.exp(-m/2)
-# f_begin = lambda m: m * S((m - a)/(b - a)) # - 120 * math.exp(-m/7) - 100000 * math.exp(-m/2)
-# f_end = lambda m: m
-
 f_between = lambda m: (m - 7.714) * S((m - a)/(b - a))
 f_begin = lambda m: (m - 3.857) * S((m - a)/(b - a))
-f_end = lambda m: m - 3.857
-
-
-# f = lambda m: 1 if m < 15 else 0
+f_end = lambda m: (m - 3.857) * S((m - a)/(b - a))
 
 
 scores = []
 for combination in combinations:
     scores.append(score_by_gap_times(combination, time(10), time(21), f_between, f_begin, f_end))
 print(scores)
-
 print(max(scores), min(scores))
 
-
-# combinations.sort(key=lambda x: -score_by_gap_times(x, time(10), time(21), f_between, f_begin, f_end))
-# get_day_class_lengths(arrangements)
-
-
 combinations.sort(key=lambda x: -(score_by_gap_times(x, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1) + max(get_day_class_lengths(x)))
-
-# combinations.sort(key=lambda x: -(score_by_gap_times(x, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1) + np.std(get_day_class_lengths(x)/sum(get_day_class_lengths(x))))
-
 
 print(len(combinations), 'combinations')
 for c in combinations:
     print(-(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1), max(get_day_class_lengths(c)))
     print(-(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1) + max(get_day_class_lengths(c)))
+
+    print(-(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end)), max(get_day_class_lengths(c)))
     for aa in c:
         print(aa)
+    print()
 
+best_schedule = combinations[0]
+for aa in best_schedule:
+    print(aa)
+
+c = Calendar()
+for arrangement in best_schedule:
+    events = arrangement.lecture_times.periods + arrangement.recitation_times.periods + arrangement.lab_times.periods
+    print(events)
 
 # 62 powderhouse 209 college
