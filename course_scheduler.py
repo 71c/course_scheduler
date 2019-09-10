@@ -1,7 +1,5 @@
-# import datetime
-from datetime import datetime, time, date
+from datetime import datetime, time, date, timedelta
 import re
-import math
 import numpy as np
 from ics import Calendar, Event
 
@@ -27,12 +25,18 @@ class CourseArrangement:
         self.lab_times = lab_times
 
     def __repr__(self):
-        return f'{self.name} {self.lecture_times} {self.recitation_times} {self.lab_times}'
+        classtimess = [
+            self.lecture_times, self.recitation_times, self.lab_times]
+        return self.name + ' ' + ' '.join(
+            [str(ct) for ct in classtimess if len(ct.periods) != 0])
+
+    def __eq__(self, other):
+        return self.name == other.name and self.lecture_times == other.lecture_times and self.recitation_times == other.recitation_times and self.lab_times == other.lab_times
 
     def intersects(self, other):
         for a in [self.lecture_times, self.recitation_times, self.lab_times]:
             for b in [other.lecture_times, other.recitation_times, other.lab_times]:
-                if ClassTimes.intersects(a, b):
+                if a.intersects(b):
                     return True
         return False
 
@@ -47,9 +51,9 @@ class Course:
         self.lab_times = remove_duplicates(lab_times)
         self.recitation_times = (recitation_times)
         if self.lab_times == []:
-            self.lab_times = [None]
+            self.lab_times = [ClassTimes.no_classes()]
         if self.recitation_times == []:
-            self.recitation_times = [None]
+            self.recitation_times = [ClassTimes.no_classes()]
         if allowed_recitation_by_lecture is None:
             self.allowed_recitation_by_lecture = [
                 [True] * len(self.recitation_times)
@@ -66,10 +70,10 @@ class Course:
         arrangements = []
         for lecs_index, lecs in enumerate(self.lecture_times):
             for labs in self.lab_times:
-                if ClassTimes.intersects(lecs, labs):
+                if lecs.intersects(labs):
                     continue
                 for rcts_index, rcts in enumerate(self.recitation_times):
-                    if ClassTimes.intersects(lecs, rcts) or ClassTimes.intersects(labs, rcts):
+                    if lecs.intersects(rcts) or labs.intersects(rcts):
                         continue
                     if self.allowed_recitation_by_lecture[lecs_index][rcts_index]:
                         arrangements.append(CourseArrangement(
@@ -82,7 +86,7 @@ class Course:
         i = 0
         while i < len(self.lecture_times):
             lecs = self.lecture_times[i]
-            if not ClassTimes.periods_satisfy_condition(lecs, f, **options):
+            if not lecs.periods_satisfy_condition(f, **options):
                 self.lecture_times.pop(i)
                 self.allowed_recitation_by_lecture.pop(i)
                 continue
@@ -90,7 +94,7 @@ class Course:
         i = 0
         while i < len(self.recitation_times):
             rcts = self.recitation_times[i]
-            if not ClassTimes.periods_satisfy_condition(rcts, f, **options):
+            if not rcts.periods_satisfy_condition(f, **options):
                 self.recitation_times.pop(i)
                 for row in self.allowed_recitation_by_lecture:
                     row.pop(i)
@@ -99,7 +103,7 @@ class Course:
         i = 0
         while i < len(self.lab_times):
             labs = self.lab_times[i]
-            if not ClassTimes.periods_satisfy_condition(labs, f, **options):
+            if not labs.periods_satisfy_condition(f, **options):
                 self.lab_times.pop(i)
                 continue
             i += 1
@@ -125,6 +129,10 @@ class ClassTimes:
                 periods.append(ClassTime(start_time, end_time, day, kind))
         return cls(periods)
 
+    @classmethod
+    def no_classes(cls):
+        return cls([])
+
     def __repr__(self):
         return str(self.periods)
 
@@ -133,34 +141,22 @@ class ClassTimes:
             for me_period in self.periods:
                 if me_period not in value.periods:
                     return False
-                return True
+            return True
         return False
 
-    @staticmethod
-    def intersects(a, b):
-        if a is None or b is None:
-            return False
-        for period_1 in a.periods:
-            for period_2 in b.periods:
+    def intersects(self, other):
+        for period_1 in self.periods:
+            for period_2 in other.periods:
                 if period_1.intersects(period_2):
                     return True
         return False
 
-    @staticmethod
-    def periods_satisfy_condition(periods, f, **options):
+    def periods_satisfy_condition(self, f, **options):
         """return whether all periods satisfy condition specified by f"""
-        if periods is None:
-            return True
-        for period in periods.periods:
+        for period in self.periods:
             if not f(period, **options):
                 return False
         return True
-
-    # def periods_satisfy_condition(self, f):
-    #     for period in self.periods:
-    #         if not f(period):
-    #             return False
-    #     return True
 
 
 class ClassTime:
@@ -241,10 +237,9 @@ def score_by_gap_times(arrangements, start_time, end_time, f_between, f_begin, f
         day_blocks = []
         for arrangement in arrangements:
             for times in [arrangement.lecture_times, arrangement.recitation_times, arrangement.lab_times]:
-                if times is not None:
-                    for period in times.periods:
-                        if period.day == day:
-                            day_blocks.append(period)
+                for period in times.periods:
+                    if period.day == day:
+                        day_blocks.append(period)
         day_blocks.sort(key=lambda block: block.start_time)
         gaps_minutes = []
         last_time = start_time
@@ -267,10 +262,9 @@ def get_day_class_lengths(arrangements, normalize=True):
         day_blocks = []
         for arrangement in arrangements:
             for times in [arrangement.lecture_times, arrangement.recitation_times, arrangement.lab_times]:
-                if times is not None:
-                    for period in times.periods:
-                        if period.day == day:
-                            day_blocks.append(period)
+                for period in times.periods:
+                    if period.day == day:
+                        day_blocks.append(period)
         day_blocks.sort(key=lambda block: block.start_time)
         total_classtime = sum([(datetime.combine(date.today(), block.end_time) - datetime.combine(date.today(), block.start_time)).total_seconds()/60 for block in day_blocks])
         minute_counts.append(total_classtime)
@@ -295,7 +289,7 @@ math42 = course_from_file('math42.txt', 'MATH-0042',
                           allowed_recitation_by_lecture)
 bio13 = course_from_file('bio13.txt', 'BIO-0013')
 # no bio recitation (recitation is optional)
-bio13.recitation_times = [None]
+bio13.recitation_times = [ClassTimes.no_classes()]
 chem1 = course_from_file('chem1.txt', 'CHEM-0001')
 en1_1 = course_from_file('en1-1.txt', 'EN-0001')
 en1_9 = course_from_file('en1-9.txt', 'EN-0001')
@@ -322,6 +316,7 @@ for course in courses:
 
 combinations = class_combinations(courses)
 
+
 def S(x):
     if x < 0:
         return 0
@@ -333,36 +328,58 @@ def S(x):
 # a, b = 40, 90
 # a, b = 18, 58
 a, b = 8, 48
+# These functions are arbitrary.
 f_between = lambda m: (m - 7.714) * S((m - a)/(b - a))
 f_begin = lambda m: (m - 3.857) * S((m - a)/(b - a))
 f_end = lambda m: (m - 3.857) * S((m - a)/(b - a))
 
+# f_between = lambda m: (m - 7.714) if (m - 7.714) > 15 else 0
+# f_begin = lambda m: (m - 3.857) if (m - 3.857) > 15 else 0
+# f_end = lambda m: (m - 3.857) if (m - 3.857) > 15 else 0
 
 scores = []
 for combination in combinations:
-    scores.append(score_by_gap_times(combination, time(10), time(21), f_between, f_begin, f_end))
-print(scores)
-print(max(scores), min(scores))
+    scores.append(score_by_gap_times(combination, start, stop, f_between, f_begin, f_end))
 
-combinations.sort(key=lambda x: -(score_by_gap_times(x, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1) + max(get_day_class_lengths(x)))
+
+def objective_function(course_arrangement):
+    gap_score = score_by_gap_times(course_arrangement, start, stop, f_between, f_begin, f_end)
+    max_classtime_proportion = max(get_day_class_lengths(course_arrangement))
+    return (-gap_score, max_classtime_proportion)
+
+
+combinations.sort(key=objective_function)
 
 print(len(combinations), 'combinations')
+print("Found classses with highest gap score and then lowest max class time proportion")
 for c in combinations:
-    print(-(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1), max(get_day_class_lengths(c)))
-    print(-(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end) - np.mean(scores)) / np.std(scores, ddof=1) + max(get_day_class_lengths(c)))
-
-    print(-(score_by_gap_times(c, time(10), time(21), f_between, f_begin, f_end)), max(get_day_class_lengths(c)))
+    gap_score = score_by_gap_times(c, start, stop, f_between, f_begin, f_end)
+    max_classtime_proportion = max(get_day_class_lengths(c))
+    print(f"""gap score: {gap_score}
+max class time proportion: {max_classtime_proportion}""")
     for aa in c:
         print(aa)
     print()
 
+
+def to_ics(schedule):
+    monday = date.today() - timedelta(date.today().weekday()) + timedelta(7)
+    days = [monday + timedelta(i) for i in range(5)]
+    c = Calendar()
+    for arrangement in schedule:
+        events = arrangement.lecture_times.periods + arrangement.recitation_times.periods + arrangement.lab_times.periods
+        for event in events:
+            e = Event()
+            e.name = arrangement.name + ' ' + event.kind
+            start = datetime.combine(days[weekdays.index(event.day)], event.start_time)
+            end = datetime.combine(days[weekdays.index(event.day)], event.end_time)
+            e.begin = start + timedelta(hours=4)
+            e.end = end + timedelta(hours=4)
+            c.events.add(e)
+
+
 best_schedule = combinations[0]
-for aa in best_schedule:
-    print(aa)
+c = to_ics(best_schedule)
 
-c = Calendar()
-for arrangement in best_schedule:
-    events = arrangement.lecture_times.periods + arrangement.recitation_times.periods + arrangement.lab_times.periods
-    print(events)
-
-# 62 powderhouse 209 college
+with open('my.ics', 'w') as f:
+    f.writelines(c)
