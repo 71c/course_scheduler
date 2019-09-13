@@ -337,6 +337,31 @@ f_end = lambda m: (m - 3.857) * S((m - a)/(b - a))
 # f_begin = lambda m: (m - 3.857) if (m - 3.857) > 15 else 0
 # f_end = lambda m: (m - 3.857) if (m - 3.857) > 15 else 0
 
+# '''
+# between:
+# x-18
+#
+# begin:
+# x-14
+#
+# end:
+# x-4
+#
+#
+# c=x-b
+# x=c+b
+#
+# '''
+
+# c = 23
+# b_between = 18
+# b_begin = 14
+# b_end = 4
+# f_between = lambda m: m - b_between if m - b_between > c else 0
+# f_begin = lambda m: m - b_begin if m - b_begin > c else 0
+# f_end = lambda m: m - b_end if m - b_end > c else 0
+
+
 scores = []
 for combination in combinations:
     scores.append(score_by_gap_times(combination, start, stop, f_between, f_begin, f_end))
@@ -376,6 +401,7 @@ def to_ics(schedule):
             e.begin = start + timedelta(hours=4)
             e.end = end + timedelta(hours=4)
             c.events.add(e)
+    return c
 
 
 best_schedule = combinations[0]
