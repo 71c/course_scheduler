@@ -1,0 +1,336 @@
+01-LEC
+Details
+80662	Regular
+Mo, We 8:05AM - 9:20AM
+Olin Language Arts Ctr, Rm 001
+Medford/Somerville
+David V. Greenwood
+3	closed status image
+02-LEC
+Details
+80667	Regular
+Mo, We 8:05AM - 9:20AM
+Eaton Hall, 201 - Birch Rm
+Medford/Somerville
+Emmaley R. Silva
+3	waitlist status image
+03-LEC
+Details
+80666	Regular
+Mo, We 8:05AM - 9:20AM
+Barnum Hall, Room 034
+Medford/Somerville
+Rebekah J. Waalkes
+3	waitlist status image
+04-LEC
+Details
+81937	Regular
+Tu, Th 8:05AM - 9:20AM
+Braker Hall, Room 118
+Medford/Somerville
+Rebecca L. Aberle
+3	closed status image
+05-LEC
+Details
+80665	Regular
+Tu, Th 8:05AM - 9:20AM
+Eaton Hall, Room 202
+Medford/Somerville
+Kara M. McCabe
+3	closed status image
+09-LEC
+Details
+81938	Regular
+Tu, We, Fr 9:30AM - 10:20AM
+Aidekman Arts Center, Room 009
+Medford/Somerville
+Allison C. Hanna
+3	waitlist status image
+12-LEC
+Details
+80728	Regular
+Tu, Th 10:30AM - 11:45AM
+Tisch Library, Room 310
+Medford/Somerville
+Ricky D. Crano
+3	closed status image
+13-LEC
+Details
+82033	Regular
+Tu, Th 10:30AM - 11:45AM
+East Hall, Room 015
+Medford/Somerville
+Tanya Larkin
+3	closed status image
+14-LEC
+Details
+82034	Regular
+Tu, Th 10:30AM - 11:45AM
+Barnum Hall, Room 208
+Medford/Somerville
+Brandon M. Wernette
+3	waitlist status image
+15-LEC
+Details
+80730	Regular
+Tu, Th 10:30AM - 11:45AM
+Miner Hall, Room 112
+Medford/Somerville
+David V. Greenwood
+3	closed status image
+16-LEC
+Details
+80731	Regular
+Mo, We 10:30AM - 11:45AM
+Jackson Hall, 004 Photo Lab
+Medford/Somerville
+Dale E. Smith
+3	closed status image	Enrolled
+17-LEC
+Details
+80732	Regular
+Mo, We 10:30AM - 11:45AM
+Tisch Library, Room 310
+Medford/Somerville
+David V. Greenwood
+3	closed status image
+18-LEC
+Details
+80733	Regular
+Mo, We 10:30AM - 11:45AM
+Aidekman Arts Center, Room 1
+Medford/Somerville
+Gayathri Goel
+3	closed status image
+19-LEC
+Details
+80734	Regular
+Mo, We 10:30AM - 11:45AM
+Eaton Hall, Room 204
+Medford/Somerville
+Michael Lawrence Don
+3	closed status image
+20-LEC
+Details
+80735	Regular
+Tu, Th 12:00PM - 1:15PM
+East Hall Lounge
+Medford/Somerville
+Ricky D. Crano
+3	waitlist status image
+21-LEC
+Details
+82035	Regular
+Tu, Th 12:00PM - 1:15PM
+Packard Hall Conference Room
+Medford/Somerville
+Hannah O. Herndon
+3	closed status image
+22-LEC
+Details
+82036	Regular
+Tu, Th 12:00PM - 1:15PM
+Miner Hall, Room 224
+Medford/Somerville
+Tanya Larkin
+3	waitlist status image
+23-LEC
+Details
+80738	Regular
+Tu, Th 12:00PM - 1:15PM
+East Hall, Room 016
+Medford/Somerville
+Courtney Maloney
+3	waitlist status image
+25-LEC
+Details
+80739	Regular
+Mo, We 1:30PM - 2:45PM
+Barnum Hall, Room 232A
+Medford/Somerville
+Ashley E. Wilcox
+3	closed status image
+26-LEC
+Details
+80740	Regular
+Mo, We 1:30PM - 2:45PM
+Paige Hall, Conference Rm 201
+Medford/Somerville
+Dale E. Smith
+3	waitlist status image
+27-LEC
+Details
+80741	Regular
+Tu, Th 1:30PM - 2:45PM
+Miner Hall, Room 110
+Medford/Somerville
+Randall Stiffler
+3	closed status image
+28-LEC
+Details
+80742	Regular
+Tu, Th 1:30PM - 2:45PM
+Anderson Wing SEC, Room 211
+Medford/Somerville
+Carol Wilkinson
+3	closed status image
+30-LEC
+Details
+80744	Regular
+Mo, We 3:00PM - 4:15PM
+Eaton Hall, Room 124
+Medford/Somerville
+Dale A Peterson
+3	closed status image
+31-LEC
+Details
+82038	Regular
+Mo, We 3:00PM - 4:15PM
+Olin Language Arts Ctr, Rm 001
+Medford/Somerville
+Courtney Maloney
+3	closed status image
+32-LEC
+Details
+82039	Regular
+Mo, We 3:00PM - 4:15PM
+Eaton Hall, 201 - Birch Rm
+Medford/Somerville
+Michael Lawrence Don
+3	closed status image
+33-LEC
+Details
+82040	Regular
+Tu, Th 3:00PM - 4:15PM
+Eaton Hall, Room 202
+Medford/Somerville
+Randall Stiffler
+3	closed status image
+34-LEC
+Details
+80748	Regular
+Tu, Th 3:00PM - 4:15PM
+Eaton Hall, 201 - Birch Rm
+Medford/Somerville
+Carol Wilkinson
+3	closed status image
+35-LEC
+Details
+80749	Regular
+Tu, Th 3:00PM - 4:15PM
+Braker Hall, Room 118
+Medford/Somerville
+Dan Graham
+3	closed status image
+36-LEC
+Details
+80750	Regular
+Mo, We 4:30PM - 5:45PM
+East Hall Lounge
+Medford/Somerville
+Dale A Peterson
+3	closed status image
+38-LEC
+Details
+80752	Regular
+Tu, Th 4:30PM - 5:45PM
+Tisch Library, Room 310
+Medford/Somerville
+Neela A. Cathelain
+3	waitlist status image
+39-LEC
+Details
+80753	Regular
+Tu, Th 4:30PM - 5:45PM
+Eaton Hall, Room 123
+Medford/Somerville
+Charles A. Clements
+3	closed status image
+40-LEC
+Details
+80754	Regular
+Tu, Th 4:30PM - 5:45PM
+East Hall, Room 015
+Medford/Somerville
+Paul D. Driskill
+3	waitlist status image
+41-LEC
+Details
+82041	Regular
+Tu, Th 4:30PM - 5:45PM
+East Hall Lounge
+Medford/Somerville
+Taylor L. Parrish
+3	closed status image
+42-LEC
+Details
+82042	Regular
+Mo, We 6:00PM - 7:15PM
+Braker Hall, Room 226
+Medford/Somerville
+Lee R. Nevitt
+3	waitlist status image
+43-LEC
+Details
+82043	Regular
+Mo, We 6:00PM - 7:15PM
+East Hall Lounge
+Medford/Somerville
+Dale A Peterson
+3	closed status image
+44-LEC
+Details
+80758	Regular
+Tu, Th 6:00PM - 7:15PM
+Olin Language Arts Ctr, Rm 001
+Medford/Somerville
+Dan Graham
+3	closed status image
+47-LEC
+Details
+80761	Regular
+Mo, We 9:00AM - 10:15AM
+Eaton Hall, Room 203
+Medford/Somerville
+Graeme L. Calloway
+3	waitlist status image
+48-LEC
+Details
+80762	Regular
+Mo, We 9:00AM - 10:15AM
+Miner Hall, Room 110
+Medford/Somerville
+Dale E. Smith
+3	waitlist status image
+51-LEC
+Details
+82045	Regular
+Tu, Th 9:00AM - 10:15AM
+Eaton Hall, Room 123
+Medford/Somerville
+Matthew R. Messer
+3	closed status image
+53-LEC
+Details
+80767	Regular
+Tu, Th 9:00AM - 10:15AM
+Braker Hall, Room 223
+Medford/Somerville
+Courtney Maloney
+3	waitlist status image
+56-LEC
+Details
+84257	Regular
+Tu, Th 1:30PM - 2:45PM
+Olin Language Arts Ctr, Rm 101
+Medford/Somerville
+Dan Graham
+3	closed status image
+57-LEC
+Details
+84258	Regular
+Mo, We 1:30PM - 2:45PM
+26 Winthrop St, Room 101
+Medford/Somerville
+Michael Lawrence Don
+3	closed status image	

@@ -2,10 +2,11 @@ from datetime import datetime, time, date, timedelta
 import re
 import numpy as np
 from ics import Calendar, Event
+import random
 
-day_or_time = re.compile('Mo|Tu|We|Th|Fr|\d?\d:\d\d[AP]M')
+day_or_time = re.compile(r'Mo|Tu|We|Th|Fr|\d?\d:\d\d[AP]M')
 find_time = re.compile(
-    '(?:(?:Mo|Tu|We|Th|Fr), )*(?:Mo|Tu|We|Th|Fr) \d?\d:\d\d[AP]M - \d?\d:\d\d[AP]M')
+    r'(?:(?:Mo|Tu|We|Th|Fr), )*(?:Mo|Tu|We|Th|Fr) \d?\d:\d\d[AP]M - \d?\d:\d\d[AP]M')
 weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr']
 
 
@@ -285,31 +286,32 @@ allowed_recitation_by_lecture = [
     [0, 0, 0, 1, 1, 1, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 1, 1, 1]
 ]
-math42 = course_from_file('math42.txt', 'MATH-0042',
+math42 = course_from_file('courses/math42.txt', 'MATH-0042',
                           allowed_recitation_by_lecture)
-bio13 = course_from_file('bio13.txt', 'BIO-0013')
+bio13 = course_from_file('courses/bio13.txt', 'BIO-0013')
 # no bio recitation (recitation is optional)
 bio13.recitation_times = [ClassTimes.no_classes()]
-chem1 = course_from_file('chem1.txt', 'CHEM-0001')
-en1_1 = course_from_file('en1-1.txt', 'EN-0001')
-en1_9 = course_from_file('en1-9.txt', 'EN-0001')
-eng1 = course_from_file('eng1.txt', 'ENG-0001')
+chem1 = course_from_file('courses/chem1.txt', 'CHEM-0001')
+en1_1 = course_from_file('courses/en1-1.txt', 'EN-0001')
+en1_9 = course_from_file('courses/en1-9.txt', 'EN-0001')
+eng1 = course_from_file('courses/eng1.txt', 'ENG-0001')
 
+comp15 = course_from_file('courses/comp15.txt', 'COMP-0015')
+math70 = course_from_file('courses/math70.txt', 'MATH-0070')
+psy1 = course_from_file('courses/psy1.txt', 'PSY-0001')
 
 def period_is_between_hours(period, start, end):
     return period.start_time >= start and period.end_time <= end
 
-
-courses = [math42, bio13, en1_1, eng1]
-# courses = [math42, chem1, en1_9, eng1]
-# courses = [math42, bio13, en1_9, eng1]
-
-# courses = [math42, chem1, en1_9, eng1, bio13]
+# courses = [math42, bio13, en1_1, eng1]
+courses = [comp15, math70, psy1, chem1]
 
 
 # start, stop = time(10), time(19)
-start, stop = time(10), time(21)
+# start, stop = time(10), time(21)
+start, stop = time(10), time(23, 59, 59, 999999)
 # start, stop = time(12), time(18)
+
 
 for course in courses:
     course.filter_classes(period_is_between_hours, start=start, end=stop)
@@ -327,39 +329,33 @@ def S(x):
 # a, b = 25, 55
 # a, b = 40, 90
 # a, b = 18, 58
-a, b = 8, 48
+# a, b = 8, 48
 # These functions are arbitrary.
-f_between = lambda m: (m - 7.714) * S((m - a)/(b - a))
-f_begin = lambda m: (m - 3.857) * S((m - a)/(b - a))
-f_end = lambda m: (m - 3.857) * S((m - a)/(b - a))
+# f_between = lambda m: (m - 7.714) * S((m - a)/(b - a))
+# f_begin = lambda m: (m - 3.857) * S((m - a)/(b - a))
+# f_end = lambda m: (m - 3.857) * S((m - a)/(b - a))
+
+
 
 # f_between = lambda m: (m - 7.714) if (m - 7.714) > 15 else 0
 # f_begin = lambda m: (m - 3.857) if (m - 3.857) > 15 else 0
 # f_end = lambda m: (m - 3.857) if (m - 3.857) > 15 else 0
 
-# '''
-# between:
-# x-18
-#
-# begin:
-# x-14
-#
-# end:
-# x-4
-#
-#
-# c=x-b
-# x=c+b
-#
-# '''
-
-# c = 23
+# cutoff = 20
 # b_between = 18
 # b_begin = 14
 # b_end = 4
-# f_between = lambda m: m - b_between if m - b_between > c else 0
-# f_begin = lambda m: m - b_begin if m - b_begin > c else 0
-# f_end = lambda m: m - b_end if m - b_end > c else 0
+# f_between = lambda m: m - b_between if m - b_between > cutoff else 0
+# f_begin = lambda m: m - b_begin if m - b_begin > cutoff else 0
+# f_end = lambda m: m - b_end if m - b_end > cutoff else 0
+
+
+# f_between = lambda m: (0 if m > 180 else m) if m > 60 else 0
+# f_between = lambda m: min(m, 180) if m > 60 else 0
+
+f_between = lambda m: 0.5 * (m - 180) + 180 if m > 180 else (m if m > 60 else 0)
+f_begin = lambda m: m if m > 60 else 0
+f_end = lambda m: m if m > 0 else 0
 
 
 scores = []
@@ -367,10 +363,17 @@ for combination in combinations:
     scores.append(score_by_gap_times(combination, start, stop, f_between, f_begin, f_end))
 
 
+# def objective_function(course_arrangement):
+#     gap_score = score_by_gap_times(course_arrangement, start, stop, f_between, f_begin, f_end)
+#     max_classtime_proportion = max(get_day_class_lengths(course_arrangement))
+#     return (-gap_score, max_classtime_proportion)
+
 def objective_function(course_arrangement):
     gap_score = score_by_gap_times(course_arrangement, start, stop, f_between, f_begin, f_end)
-    max_classtime_proportion = max(get_day_class_lengths(course_arrangement))
+    class_lengths = get_day_class_lengths(course_arrangement)
+    max_classtime_proportion = max(class_lengths)
     return (-gap_score, max_classtime_proportion)
+
 
 
 combinations.sort(key=objective_function)
@@ -382,6 +385,7 @@ for c in combinations:
     max_classtime_proportion = max(get_day_class_lengths(c))
     print(f"""gap score: {gap_score}
 max class time proportion: {max_classtime_proportion}""")
+    print(get_day_class_lengths(c))
     for aa in c:
         print(aa)
     print()
@@ -398,12 +402,13 @@ def to_ics(schedule):
             e.name = arrangement.name + ' ' + event.kind
             start = datetime.combine(days[weekdays.index(event.day)], event.start_time)
             end = datetime.combine(days[weekdays.index(event.day)], event.end_time)
-            e.begin = start + timedelta(hours=4)
-            e.end = end + timedelta(hours=4)
+            e.begin = start + timedelta(hours=5)
+            e.end = end + timedelta(hours=5)
             c.events.add(e)
     return c
 
 
+# best_schedule = random.choice(combinations)
 best_schedule = combinations[0]
 c = to_ics(best_schedule)
 

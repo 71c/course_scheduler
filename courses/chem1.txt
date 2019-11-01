@@ -1,0 +1,329 @@
+01-LEC
+Details
+80821	Regular
+Th 9:30AM - 10:20AM
+Mo, We 8:30AM - 9:20AM
+Pearson Hall, Room 104
+Medford/Somerville
+Sergiy Kryatov
+5	open status image
+02-LEC
+Details
+80825	Regular
+Mo, We, Fr 1:30PM - 2:20PM
+Pearson Hall, Room 104
+Medford/Somerville
+Sergiy Kryatov
+5	open status image
+LA-LAB
+Details
+80835	Regular
+Mo 1:20PM - 4:20PM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+LAA-LAB
+Details
+80929	Regular
+Mo 1:20PM - 4:20PM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+LB-LAB
+Details
+80930	Regular
+Mo 6:30PM - 9:30PM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+LBB-LAB
+Details
+80931	Regular
+Mo 6:30PM - 9:30PM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+LC-LAB
+Details
+80933	Regular
+Tu 8:30AM - 11:30AM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+LCC-LAB
+Details
+80934	Regular
+Tu 8:30AM - 11:30AM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+LCD-LAB
+Details
+80935	Regular
+Tu 8:30AM - 11:30AM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+LD-LAB
+Details
+80936	Regular
+Tu 1:20PM - 4:20PM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+LE-LAB
+Details
+80937	Regular
+We 8:30AM - 11:30AM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+LEE-LAB
+Details
+83183	Regular
+We 8:30AM - 11:30AM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+LEF-LAB
+Details
+83184	Regular
+We 8:30AM - 11:30AM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+LF-LAB
+Details
+80938	Regular
+We 1:20PM - 4:20PM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+LFF-LAB
+Details
+80939	Regular
+We 1:20PM - 4:20PM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+LG-LAB
+Details
+80940	Regular
+We 6:30PM - 9:30PM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+LH-LAB
+Details
+80941	Regular
+Th 8:30AM - 11:30AM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+LHH-LAB
+Details
+80942	Regular
+Th 8:30AM - 11:30AM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+LHK-LAB
+Details
+80943	Regular
+Th 8:30AM - 11:30AM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+LM-LAB
+Details
+80944	Regular
+Th 1:20PM - 4:20PM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+LN-LAB
+Details
+80945	Regular
+Th 1:20PM - 4:20PM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+LT-LAB
+Details
+80838	Regular
+Th 6:30PM - 9:30PM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+LU-LAB
+Details
+80839	Regular
+Fr 8:30AM - 11:30AM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+LV-LAB
+Details
+80840	Regular
+Fr 8:30AM - 11:30AM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+LW-LAB
+Details
+80841	Regular
+Fr 8:30AM - 11:30AM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+LX-LAB
+Details
+80842	Regular
+Fr 1:20PM - 4:20PM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+LY-LAB
+Details
+80843	Regular
+Fr 1:20PM - 4:20PM
+Pearson Hall, 200 - Chem Lab
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+LZZ-LAB
+Details
+80844	Regular
+Time Not Specified
+TBA
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+RA-RCT
+Details
+80823	Regular
+Tu 9:30AM - 10:20AM
+Pearson Hall, Room 112
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+RC-RCT
+Details
+80819	Regular
+Th 6:00PM - 6:50PM
+Lane Hall, Room 100A
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+RD-RCT
+Details
+80820	Regular
+Mo 6:00PM - 6:50PM
+Pearson Hall, Room 106
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+RF-RCT
+Details
+80824	Regular
+We 7:30PM - 8:15PM
+Pearson Hall, Room 112
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+RG-RCT
+Details
+80818	Regular
+Th 6:00PM - 6:50PM
+Pearson Hall, Room 112
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+RI-RCT
+Details
+80822	Regular
+Fr 8:30AM - 9:20AM
+Pearson Hall, Room 112
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+RJ-RCT
+Details
+80826	Regular
+Fr 10:30AM - 11:20AM
+Pearson Hall, Room 112
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+RK-RCT
+Details
+80857	Regular
+Tu 8:30AM - 9:20AM
+Pearson Hall, Room 106
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+RL-RCT
+Details
+80858	Regular
+Mo 3:00PM - 3:50PM
+Pearson Hall, Room 112
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+RM-RCT
+Details
+80859	Regular
+We 4:30PM - 5:20PM
+Pearson Hall, Room 112
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+RN-RCT
+Details
+80860	Regular
+Th 3:00PM - 3:50PM
+East Hall, Room 016
+Medford/Somerville
+Sergiy Kryatov
+0	closed status image
+RO-RCT
+Details
+80861	Regular
+Th 7:30PM - 8:15PM
+Pearson Hall, Room 112
+Medford/Somerville
+Sergiy Kryatov
+0	open status image
+RZZ-RCT
+Details
+80856	Regular
+Time Not Specified
+TBA
+Medford/Somerville
+Sergiy Kryatov
+0	open status image	
