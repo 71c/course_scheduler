@@ -83,11 +83,11 @@ def get_and_save_data(term):
     classes = get_classes_data(s, term)
     with open(f'classes {term}.json', 'w') as outfile:
         json.dump(classes, outfile, indent=4)
-    details = get_data_with_requests_async(s, term, classes)
+    details = get_data_with_requests(s, term, classes)
     with open(f'details {term}.json', 'w') as outfile:
         json.dump(details, outfile, indent=4)
 
-# get_and_save_data('Fall 2019')
+get_and_save_data('Summer 2019')
 
 
 # with open('classes Fall 2019.json') as json_file:
@@ -101,13 +101,4 @@ def get_and_save_data(term):
 
 
 
-# with open('classes Spring 2020.json') as json_file:
-#     classes = json.load(json_file)
-# for r in classes['searchResults']:
-#     for section in r['sections']:
-#         for component in section['components']:
-#             if len(component['locations']) != 1:
-#                 print(len(component['locations']))
 
-
-# https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getSearchresultsAll3?term=2202&career=ASE
