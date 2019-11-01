@@ -5,6 +5,8 @@ import urllib.request
 import json
 import requests
 import concurrent.futures
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 
 def get_term_number(term):
@@ -46,6 +48,10 @@ def get_datas(s, urls, class_nums):
 def get_session():
     s = requests.Session()
     r = s.get('https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/?tab=TFP_CLASS_SEARCH#class_search')
+    retry = Retry(connect=3, backoff_factor=0.5)
+    adapter = HTTPAdapter(max_retries=retry)
+    s.mount('http://', adapter)
+    s.mount('https://', adapter)
     print('got session')
     return s
 
@@ -87,7 +93,7 @@ def get_and_save_data(term):
     with open(f'details {term}.json', 'w') as outfile:
         json.dump(details, outfile, indent=4)
 
-get_and_save_data('Summer 2019')
+get_and_save_data('Spring 2020')
 
 
 # with open('classes Fall 2019.json') as json_file:
@@ -97,8 +103,4 @@ get_and_save_data('Summer 2019')
 # details = get_data_with_requests(s, term, classes)
 # with open(f'details {term}.json', 'w') as outfile:
 #     json.dump(details, outfile, indent=4)
-
-
-
-
 
