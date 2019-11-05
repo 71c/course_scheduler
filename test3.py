@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 # from course_scheduler import ClassTime
 from time import time
-import itertools
 
 '''
 (a & b) & (c & d)
@@ -28,7 +27,7 @@ class ClassTime:
         return (self,)
 
 
-class Group(ABC):
+class Group:
     def __init__(self, contents, kind):
         self.contents = contents
         self.kind = kind
@@ -40,21 +39,27 @@ class Group(ABC):
         for prod in result:
             yield tuple(prod)
 
+    def is_valid(self, group):
+        for a, b in itertools.combinations(group, 2):
+            if not self.belongs_to_other(a, b):
+                return False
+        return True
+
     def evaluate(self):
         if self.kind == 'and':
             return self.product(*self.contents)
         else:
-            # return [tuple(x.evaluate()) for x in self.contents]
-            u = []
-            for x in self.contents:
-                for h in tuple(x.evaluate()):
-                    u.append(h)
-            return u
+            return self.chain_contents()
 
-    @abstractmethod
+    def chain_contents(self):
+        for it in self.contents:
+            for element in it.evaluate():
+                yield element
+
     def belongs_to_group(self, a, rest):
         return True
-        
+
+
 class PeriodGroup(Group):
     def belongs_to_group(self, a, rest):
         if type(a) is tuple:
@@ -63,8 +68,6 @@ class PeriodGroup(Group):
                     return False
             return True
         if len(rest) >= 1 and type(rest[0]) is tuple:
-            # return self.belongs_to_group(a, rest[0])
-            
             for u in rest:
                 if not self.belongs_to_group(a, u):
                     return False
@@ -208,24 +211,24 @@ class PeriodGroup(Group):
 
 
 
-# pg = PeriodGroup([
-#     PeriodGroup([
-#         PeriodGroup([ClassTime(1, 2, 'Mo', 'LEC')],'and'),
-#         PeriodGroup([
-#             PeriodGroup([ClassTime(3, 4, 'Mo', 'RCT')],'and'),
-#             PeriodGroup([ClassTime(5, 6, 'Mo', 'RCT')],'and'),
-#             PeriodGroup([ClassTime(7, 8, 'Mo', 'RCT')],'and')
-#         ], 'or')
-#     ], 'and'),
-#     PeriodGroup([
-#         PeriodGroup([ClassTime(2, 3, 'Mo', 'LEC')],'and'),
-#         PeriodGroup([
-#             PeriodGroup([ClassTime(4, 5, 'Mo', 'RCT')],'and'),
-#             PeriodGroup([ClassTime(6, 7, 'Mo', 'RCT')],'and'),
-#             PeriodGroup([ClassTime(8, 9, 'Mo', 'RCT')],'and')
-#         ], 'or')
-#     ], 'and')
-# ], 'or')
+pg = PeriodGroup([
+    PeriodGroup([
+        PeriodGroup([ClassTime(1, 2, 'Mo', 'LEC')],'and'),
+        PeriodGroup([
+            PeriodGroup([ClassTime(3, 4, 'Mo', 'RCT')],'and'),
+            PeriodGroup([ClassTime(5, 6, 'Mo', 'RCT')],'and'),
+            PeriodGroup([ClassTime(7, 8, 'Mo', 'RCT')],'and')
+        ], 'or')
+    ], 'and'),
+    PeriodGroup([
+        PeriodGroup([ClassTime(2, 3, 'Mo', 'LEC')],'and'),
+        PeriodGroup([
+            PeriodGroup([ClassTime(4, 5, 'Mo', 'RCT')],'and'),
+            PeriodGroup([ClassTime(6, 7, 'Mo', 'RCT')],'and'),
+            PeriodGroup([ClassTime(8, 9, 'Mo', 'RCT')],'and')
+        ], 'or')
+    ], 'and')
+], 'or')
 
 
 
@@ -271,14 +274,14 @@ class PeriodGroup(Group):
 # ], 'and')
 
 class Dummy:
-	def __init__(self, v):
-		self.v = v
+    def __init__(self, v):
+        self.v = v
 
-	def evaluate(self):
-		return (self,)
+    def evaluate(self):
+        return (self,)
 
-	def __repr__(self):
-		return str(self.v)
+    def __repr__(self):
+        return str(self.v)
 
 pg = Group([Group([Dummy(1), Dummy(2)], 'or'), Dummy(3)], 'and')
 
