@@ -93,14 +93,15 @@ def get_and_save_data(term):
     with open(f'details {term}.json', 'w') as outfile:
         json.dump(details, outfile, indent=4)
 
-get_and_save_data('Spring 2020')
 
+if __name__ == '__main__':
+    get_and_save_data('Spring 2020')
 
-# with open('classes Fall 2019.json') as json_file:
-#     classes = json.load(json_file)
-# s = get_session()
-# term = 'Fall 2019'
-# details = get_data_with_requests(s, term, classes)
-# with open(f'details {term}.json', 'w') as outfile:
-#     json.dump(details, outfile, indent=4)
+    # with open('classes Fall 2019.json') as json_file:
+    #     classes = json.load(json_file)
+    # s = get_session()
+    # term = 'Fall 2019'
+    # details = get_data_with_requests(s, term, classes)
+    # with open(f'details {term}.json', 'w') as outfile:
+    #     json.dump(details, outfile, indent=4)
 
