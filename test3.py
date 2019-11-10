@@ -49,34 +49,48 @@ get_depth = lambda L: type(L) is list and (1 if len(L) == 0 else max(map(get_dep
 
 
 class Group:
-    def __init__(self, contents, kind, merge=False, data=None):
+    def __init__(self, contents, kind, merge=False, data=None, cache=True):
         '''
         contents: a list of things that the group contains
         kind: way that contents are grouped together. either "and" or "or"
         merge: whether things are merged when evaluating. only applies if kind == 'and'
+        data: extra data associated with the group
+        cache: whehter to cache the result of the "evaluate" function. on by default.
         '''
         self.contents = contents
         self.kind = kind
         self.merge = merge
         self.data = data
+        self.do_cache = cache
+        self.cached_eval = None
 
     def evaluate(self):
-        if self.kind == 'and':
-            return self.product_contents()
-        return self.chain_contents()
+        if self.do_cache:
+            if self.cached_eval is not None:
+                return self.cached_eval
+            if self.kind == 'and':
+                self.cached_eval = list(self.product_contents())
+            else:
+                self.cached_eval = list(self.chain_contents())
+            return self.cached_eval
+        else:
+            if self.kind == 'and':
+                return self.product_contents()
+            return self.chain_contents()
 
     def product_contents(self):
         result = [[]]
         for pool in self.contents:
-            result = [x+[y] for x in result for y in pool.evaluate() if self.belongs_to_group(y, x)] 
+            ev = list(pool.evaluate())
+            result = [x+[y] for x in result for y in ev if self.belongs_to_group(y, x)]
         
         if self.merge:
             for r in result:
-                max_depth = get_depth(r) - 1
+                depths = list(map(get_depth, r))
+                max_depth = max(depths)
                 r_ = []
-                for x in r:
-                    depth = get_depth(x)
-                    if (type(x) is list or type(x) is tuple) and (depth == max_depth or depth == 1 and len(x) == 0):
+                for x, depth in zip(r, depths):
+                    if type(x) is list and (depth == max_depth or depth == 1 and len(x) == 0):
                         r_.extend(x)
                     else:
                         r_.append(x)
@@ -524,19 +538,14 @@ if __name__ == '__main__':
     with open('my2.ics', 'w') as f:
         f.writelines(c)
 
-
     cProfile.run('list(pg.evaluate())', sort='cumulative')
-
-
-
-
-
-
-
 
 
     # for u in get_schedule_possibilities([math70, chem12, comp15, math61]):
     #     print(u)
+
+    cProfile.run('list(comp15.evaluate())')
+    print(comp15.evaluate())
 
    
 
