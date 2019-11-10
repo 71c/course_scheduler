@@ -1,9 +1,19 @@
-from abc import ABC, abstractmethod
 from time import time
 import json
+from test1 import get_mean_mad
+import random
+import numpy as np
+from itertools import product, combinations, chain
+from datetime import datetime, date, timedelta
+from ics import Calendar, Event
+import matplotlib.pyplot as plt
+import cProfile
 
 
-class Groupable(ABC):
+weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr']
+
+
+class Groupable:
     def evaluate(self):
         return (self,)
 
@@ -25,7 +35,8 @@ class ClassTime(Groupable):
         self.kind = kind
 
     def __repr__(self):
-        return f'{self.kind} {self.day} {self.start_time} - {self.end_time}'
+        # return f'{self.kind} {self.day} {self.start_time} - {self.end_time}'
+        return f'{self.kind} {self.day} {timedelta(minutes=self.start_time)} - {timedelta(minutes=self.end_time)}'
 
     def __eq__(self, value):
         return self.start_time == value.start_time and self.end_time == value.end_time and self.day == value.day and self.kind == value.kind
@@ -34,7 +45,7 @@ class ClassTime(Groupable):
         return self.day == other.day and not (self.end_time < other.start_time or self.start_time > other.end_time)
 
 
-get_depth = lambda L: isinstance(L, list) and (1 if len(L) == 0 else max(map(get_depth, L))+1)
+get_depth = lambda L: type(L) is list and (1 if len(L) == 0 else max(map(get_depth, L))+1)
 
 
 class Group:
@@ -42,6 +53,7 @@ class Group:
         '''
         contents: a list of things that the group contains
         kind: way that contents are grouped together. either "and" or "or"
+        merge: whether things are merged when evaluating. only applies if kind == 'and'
         '''
         self.contents = contents
         self.kind = kind
@@ -89,13 +101,13 @@ class Group:
 
 class PeriodGroup(Group):
     def belongs_to_group(self, a, rest):
-        if type(a) is tuple or type(a) is list:
+        if type(a) is list:
             for i in a:
                 if not self.belongs_to_group(i, rest):
                     return False
             return True
         for u in rest:
-            if type(u) is tuple or type(u) is list:
+            if type(u) is list:
                 if not self.belongs_to_group(a, u):
                     return False
             else:
@@ -156,6 +168,61 @@ def get_schedule_possibilities(courses):
     possibilities = list(load.evaluate())
     possibilities = [{names[i]: p[i] for i in range(len(names))} for p in possibilities]
     return possibilities
+
+
+def flatten_list(L):
+    flattened = []
+    for x in L:
+        if isinstance(x, list):
+            flattened.extend(flatten_list(x))
+        else:
+            flattened.append(x)
+    return flattened
+
+
+def get_day_class_lengths(class_time_list, normalize=True):
+    """returns total number of minutes of class time each day from a schedule,
+    optionally normalized to sum to 1"""
+    minute_counts = [0, 0, 0, 0, 0]
+    for class_time in class_time_list:
+        index = weekdays.index(class_time.day)
+        minute_counts[index] += class_time.end_time - class_time.start_time
+    minute_counts = np.array(minute_counts)
+    if normalize:
+        minute_counts = minute_counts / sum(minute_counts)
+    return minute_counts
+
+
+def get_class_options(req, spec):
+    spec.insert(0, [req, len(req)])
+    spec_expanded = []
+    for s in spec:
+        if len(s) == 2 and isinstance(s[1], int) and get_depth(s[0]) >= 1:
+            options, n = s
+        else:
+            options, n = s, 1
+        spec_expanded.append(combinations(options, n))
+    return list(map(list, map(chain.from_iterable, product(*spec_expanded))))
+
+
+def to_ics(schedule, class_names):
+    monday = date.today() - timedelta(date.today().weekday()) + timedelta(7)
+    days = [monday + timedelta(i) for i in range(5)]
+    c = Calendar()
+    for class_name, periods in zip(class_names, schedule):
+        for period in periods:
+            e = Event()
+            e.name = class_name + ' ' + period.kind
+            
+            start_time = (datetime.min + timedelta(minutes=period.start_time)).time()
+            end_time = (datetime.min + timedelta(minutes=period.end_time)).time()
+            start = datetime.combine(days[weekdays.index(period.day)], start_time)
+            end = datetime.combine(days[weekdays.index(period.day)], end_time)
+            
+            e.begin = start + timedelta(hours=5)
+            e.end = end + timedelta(hours=5)
+            c.events.add(e)
+    return c
 
 
 if __name__ == '__main__':
@@ -350,13 +417,121 @@ if __name__ == '__main__':
     chem12 = classes_groups_by_course_num['CHEM-0012'][0]
     math70 = classes_groups_by_course_num['MATH-0070'][0]
     math61 = classes_groups_by_course_num['MATH-0061'][0]
+    snd38 = classes_groups_by_course_num['SND-0038'][0]
+    es3 = classes_groups_by_course_num['ES-0003'][0]
     load = PeriodGroup([math70, chem12, comp15, math61], 'and')
     t = time()
     possibilities = list(load.evaluate())
     print(time() - t)
     print(len(possibilities))
-    for possibility in possibilities:
-        print(possibility)
+
+    class_names = [course.data for course in load.contents]
+
+    time_range = time_range=60*12
+    # time_range = None
+
+    func1 = lambda x: get_mean_mad(flatten_list(x), time_range=time_range)
+    func2 = lambda x: max(get_day_class_lengths(flatten_list(x)))
+    func3 = lambda x: (func1(x), func2(x))
+    func4 = lambda x: (func2(x), func1(x))
+    # func5 = lambda x: (func2(x) + func1(x), len([y for y in flatten_list(x) if y.start_time < 630]), len([y for y in flatten_list(x) if y.start_time < 570]))
+    func5 = lambda x: (len([y for y in flatten_list(x) if y.start_time < 630]), len([y for y in flatten_list(x) if y.start_time < 570]), func2(x) + func1(x))
+    # func5 = lambda x: ( func2(x) + func1(x))
+
+    
+    possibilities.sort(key=func3)
+    best = possibilities[0]
+
+    print(best)
+    print(func3(best))
+
+
+    # scores = [func(x) for x in possibilities]
+    # scores.sort()
+    # print(scores[:20], scores[-20:])
+    # print(np.mean(scores))
+    # plt.hist(scores)
+    # plt.show()
+
+    c = to_ics(best, class_names)
+    with open('my2.ics', 'w') as f:
+        f.writelines(c)
+
+
+    # a = get_class_options(['COMP-0015', 'CHEM-0012'], [
+    #     ['MATH-0061', 'MATH-0070'],
+    #     ['ES-0003', 'SND-0038']
+    # ])
+    # a = get_class_options(['COMP-0015', 'CHEM-0012'], [
+    # a = get_class_options(['COMP-0015', 'CHEM-0001'], [
+    #     [['MATH-0061', 'MATH-0070', 'ES-0003'], 2],
+    # ])
+
+    a = get_class_options(['COMP-0015', 'ES-0003', 'MATH-0061', 'MATH-0070', 'CHEM-0001'], [])
+    # a = get_class_options(['COMP-0015', 'ES-0003'],
+    #     [[['MATH-0061', 'MATH-0070', 'CHEM-0001'], 2]])
+    print(a, len(a))
+
+    min_class_time = 630 # 10:30
+    min_class_time_2 = 570 # 10:30
+    exclusions = ['CHEM-0012']
+
+    for u in a:
+        pg = PeriodGroup([classes_groups_by_course_num[x][0] for x in u], 'and')
+        ev = list(pg.evaluate())
+        # ev = [
+        #     x for x in ev if
+        #     not any(
+        #         name not in exclusions and any(z.start_time < min_class_time for z in y)
+        #         for name, y in zip(u, x)
+        #     )
+        # ]
+        if len(ev) > 0:
+            scores1 = [func1(x) for x in ev]
+            scores2 = [func2(x) for x in ev]
+            scores3 = [(func4(x)) for x in ev]
+            scores5 = [(func5(x)) for x in ev]
+            print(min(scores1), min(scores2), min(scores3))
+            print(min(scores5))
+        else:
+            print("No classes")
+
+    # classes = ['COMP-0015', 'CHEM-0012', 'MATH-0061', 'ES-0003']
+    # classes = ['COMP-0015', 'CHEM-0012', 'MATH-0070', 'ES-0003']
+    # classes = ['COMP-0015', 'ES-0003', 'MATH-0061', 'MATH-0070']
+
+    classes = ['COMP-0015', 'ES-0003', 'MATH-0061', 'MATH-0070', 'CHEM-0001']
+    # classes = ['COMP-0015', 'ES-0003', 'MATH-0061', 'CHEM-0001']
+    # classes = ['COMP-0015', 'ES-0003', 'MATH-0061', 'MATH-0070']
+    pg = PeriodGroup([classes_groups_by_course_num[x][0] for x in classes], 'and')
+    ev = list(pg.evaluate())
+
+    print(len(ev))
+
+    # ev = [
+    #     x for x in ev if
+    #     not any(
+    #         name not in exclusions and any(z.start_time < min_class_time for z in y)
+    #         for name, y in zip(u, x)
+    #     )
+    # ]
+
+    best = min(ev, key=func5)
+    print(best)
+    print(func5(best))
+    print(get_day_class_lengths(flatten_list(best), normalize=False).sum())
+    c = to_ics(best, classes)
+    with open('my2.ics', 'w') as f:
+        f.writelines(c)
+
+
+    cProfile.run('list(pg.evaluate())', sort='cumulative')
+
+
+
+
+
+
 
 
 
@@ -367,12 +542,35 @@ if __name__ == '__main__':
 
 
 
-    course_to_period_group(classes['searchResults'][0])
+    
+
+
+    
+    
 
 
 
 
 '''
+
+
+CHEM-0012 (
+    (
+        ((LAB Mo 800 - 980) | (LAB Mo 1080 - 1260) | (LAB Tu 1080 - 1260)) &
+        ((RCT We 1170 - 1215) | (RCT Fr 930 - 980))
+    )
+    &
+    (
+        (
+            (
+                (LEC Tu 720 - 795 & LEC Th 720 - 795 & LEC Fr 720 - 795 & LEC Th 570 - 620)
+            )
+        )
+    )
+)
+
+
+
 (A1 | A2 | ... A11) & (R1 | R2 | R3 | R4) & L1 | (A1 | A2 | ... A11) & (R5 | R6 | R7 | R8 | R9) & L2
 (A1 | A2 | ... A11) & ((R1 | R2 | R3 | R4) & L1 | (R5 | R6 | R7 | R8 | R9) & L2)
 
