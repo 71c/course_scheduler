@@ -9,6 +9,8 @@ from ics import Calendar, Event
 import matplotlib.pyplot as plt
 import cProfile
 import re
+import sys
+from pympler.asizeof import asizeof
 
 
 weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr']
@@ -81,37 +83,10 @@ class Group:
 
     def product_contents(self):
         result = [[]]
-        
+
         for pool in self.contents:
             ev = list(pool.evaluate())
-            
             result = [x+[y] for x in result for y in ev if self.belongs_to_group(y, x)]
-
-            # result_ = []
-            # for x in result:
-            #     for y in ev:
-            #         assert get_depth(y) <= 1
-            #         if self.belongs_to_group(y, x):
-            #             result_.append(x+[y])
-            # result = result_
-        # print(self.conflict_matrix)
-
-
-        # for pool in self.contents:
-        #     ev = list(pool.evaluate())
-        #     result = [x+[y] for x in result for y in ev]
-        # result2 = []
-        # for r in result:
-        #     u = True
-        #     for i in range(len(r)):
-        #         if not self.belongs_to_group(r[i], r[:i] + r[i+1:]):
-        #             u = False
-        #             break
-        #     if u:
-        #         result2.append(r)
-        # result = result2
-
-
 
         if self.merge:
             for r in result:
@@ -165,52 +140,36 @@ class PeriodGroup(Group):
         self.conflict_matrix = {}
 
     def belongs_to_group(self, a, rest):
+        a_num = id(a)
         for u in rest:
-            if id(a) in self.conflict_matrix:
-                if id(u) in self.conflict_matrix[id(a)]:
-                    if self.conflict_matrix[id(a)][id(u)]:
+            u_num = id(u)
+            if a_num in self.conflict_matrix:
+                if u_num in self.conflict_matrix[a_num]:
+                    if self.conflict_matrix[a_num][u_num]:
                         return False
                     else:
                         continue
             else:
-                self.conflict_matrix[id(a)] = {}
+                self.conflict_matrix[a_num] = {}
             if type(a) is list:
-                self.conflict_matrix[id(a)][id(u)] = False
+                self.conflict_matrix[a_num][u_num] = False
                 for i in a:
                     if type(u) is list:
                         if not self.belongs_to_group(i, u):
-                            self.conflict_matrix[id(a)][id(u)] = True
+                            self.conflict_matrix[a_num][u_num] = True
                             return False
                     else:
                         if i.intersects(u):
-                            self.conflict_matrix[id(a)][id(u)] = True
+                            self.conflict_matrix[a_num][u_num] = True
                             return False
             else:
                 if type(u) is list:
-                    self.conflict_matrix[id(a)][id(u)] = not self.belongs_to_group(a, u)
+                    self.conflict_matrix[a_num][u_num] = not self.belongs_to_group(a, u)
                 else:
-                    self.conflict_matrix[id(a)][id(u)] = a.intersects(u)
-            if self.conflict_matrix[id(a)][id(u)]:
+                    self.conflict_matrix[a_num][u_num] = a.intersects(u)
+            if self.conflict_matrix[a_num][u_num]:
                 return False
         return True
-
-    def belongs_to_group_sub(self, a, rest):
-        if type(a) is list:
-            for i in a:
-                if not self.belongs_to_group_sub(i, rest):
-                    return False
-            return True
-        for u in rest:
-            if type(u) is list:
-                if not self.belongs_to_group_sub(a, u):
-                    return False
-            else:
-                if a.intersects(u):
-                    return False
-        return True
-
-
-
 
 
 def make_optional(group):
@@ -319,6 +278,7 @@ def to_ics(schedule, class_names):
             start = datetime.combine(days[weekdays.index(period.day)], start_time)
             end = datetime.combine(days[weekdays.index(period.day)], end_time)
             
+            # timezone
             e.begin = start + timedelta(hours=5)
             e.end = end + timedelta(hours=5)
             c.events.add(e)
