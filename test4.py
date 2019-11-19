@@ -128,10 +128,14 @@ def main():
     # names.append('PHY-0002')
 
     pg = PeriodGroup(cs_i, 'and')
+    pg = PeriodGroup([pg, classes_groups_by_course_num['MATH-0070'][0]], 'and')
+    # cProfile.runctx('pg.evaluate()', None, locals(), sort='cumulative')
     t = time()
     ev = pg.evaluate()
     print(time() - t, 'EV_TIME')
     print(len(ev))
+
+    print(pg.conflict_matrix)
 
 if __name__ == '__main__':
     main()
