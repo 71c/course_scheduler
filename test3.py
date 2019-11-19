@@ -8,6 +8,7 @@ from datetime import datetime, date, timedelta
 from ics import Calendar, Event
 import matplotlib.pyplot as plt
 import cProfile
+import re
 
 
 weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr']
@@ -80,10 +81,27 @@ class Group:
 
     def product_contents(self):
         result = [[]]
+        
         for pool in self.contents:
             ev = list(pool.evaluate())
             result = [x+[y] for x in result for y in ev if self.belongs_to_group(y, x)]
-        
+
+        # for pool in self.contents:
+        #     ev = list(pool.evaluate())
+        #     result = [x+[y] for x in result for y in ev]
+        # result2 = []
+        # for r in result:
+        #     u = True
+        #     for i in range(len(r)):
+        #         if not self.belongs_to_group(r[i], r[:i] + r[i+1:]):
+        #             u = False
+        #             break
+        #     if u:
+        #         result2.append(r)
+        # result = result2
+
+
+
         if self.merge:
             for r in result:
                 depths = list(map(get_depth, r))
@@ -99,13 +117,13 @@ class Group:
             for prod in result:
                 yield (prod)
 
-    def belongs_to_group(self, a, rest):
-        return True
-
     def chain_contents(self):
         for it in self.contents:
             for element in it.evaluate():
                 yield element
+
+    def belongs_to_group(self, a, rest):
+        return True
 
     def __repr__(self):
         if self.data is not None:
@@ -134,11 +152,14 @@ def make_optional(group):
     return Group([group, Group([], 'and')], 'or')
 
 
-def course_to_period_group(course, exclude_classes_with_no_days=True):
+def course_to_period_group(course, exclude_classes_with_no_days=True, only_consider_open_classes=True):
     period_dict = {}
     for section in course['sections']:
         comp_desc = section['comp_desc']
         for component in section['components']:
+            if only_consider_open_classes and component['status'] != 'O':
+                continue
+
             assoc_class = component['assoc_class']
             
             # build PeriodGroup
@@ -427,6 +448,24 @@ if __name__ == '__main__':
             classes_groups_by_course_num[course_num] = [pg]
     
 
+    # classes = ['COMP-0015', 'ES-0003', 'MATH-0061', 'MATH-0070', 'CHEM-0001']
+    classes = ['COMP-0015', 'MATH-0042', 'MATH-0070', 'CHEM-0001', 'CHEM-0012', 'ENG-0001']
+    classes = ['COMP-0015', 'MATH-0070', 'MATH-0061', 'ES-0003', 'CHEM-0012']
+    random.shuffle(classes)
+    pg = PeriodGroup([classes_groups_by_course_num[x][0] for x in classes], 'and')
+    cProfile.run('list(pg.evaluate())', sort='cumulative')
+    ev = list(pg.evaluate())
+
+    c = to_ics(random.choice(ev), classes)
+    with open('crazy.ics', 'w') as f:
+        f.writelines(c)
+
+    print(ev[0])
+
+    print(len(ev))
+    print("HEREEE")
+
+
     comp15 = classes_groups_by_course_num['COMP-0015'][0]
     chem12 = classes_groups_by_course_num['CHEM-0012'][0]
     math70 = classes_groups_by_course_num['MATH-0070'][0]
@@ -450,6 +489,8 @@ if __name__ == '__main__':
     func4 = lambda x: (func2(x), func1(x))
     # func5 = lambda x: (func2(x) + func1(x), len([y for y in flatten_list(x) if y.start_time < 630]), len([y for y in flatten_list(x) if y.start_time < 570]))
     func5 = lambda x: (len([y for y in flatten_list(x) if y.start_time < 630]), len([y for y in flatten_list(x) if y.start_time < 570]), func2(x) + func1(x))
+    func6 = lambda x: (len([y for y in flatten_list(x) if y.start_time < 630]), len([y for y in flatten_list(x) if y.start_time < 570]), func2(x), func1(x))
+    func7 = lambda x: (len(flatten_list(x)), func2(x), func1(x))
     # func5 = lambda x: ( func2(x) + func1(x))
 
     
@@ -490,37 +531,32 @@ if __name__ == '__main__':
     min_class_time_2 = 570 # 10:30
     exclusions = ['CHEM-0012']
 
-    for u in a:
-        pg = PeriodGroup([classes_groups_by_course_num[x][0] for x in u], 'and')
-        ev = list(pg.evaluate())
-        # ev = [
-        #     x for x in ev if
-        #     not any(
-        #         name not in exclusions and any(z.start_time < min_class_time for z in y)
-        #         for name, y in zip(u, x)
-        #     )
-        # ]
-        if len(ev) > 0:
-            scores1 = [func1(x) for x in ev]
-            scores2 = [func2(x) for x in ev]
-            scores3 = [(func4(x)) for x in ev]
-            scores5 = [(func5(x)) for x in ev]
-            print(min(scores1), min(scores2), min(scores3))
-            print(min(scores5))
-        else:
-            print("No classes")
+    # for u in a:
+    #     pg = PeriodGroup([classes_groups_by_course_num[x][0] for x in u], 'and')
+    #     ev = list(pg.evaluate())
+    #     if len(ev) > 0:
+    #         scores1 = [func1(x) for x in ev]
+    #         scores2 = [func2(x) for x in ev]
+    #         scores3 = [(func4(x)) for x in ev]
+    #         scores5 = [(func5(x)) for x in ev]
+    #         print(min(scores1), min(scores2), min(scores3))
+    #         print(min(scores5))
+    #     else:
+    #         print("No classes")
 
     # classes = ['COMP-0015', 'CHEM-0012', 'MATH-0061', 'ES-0003']
     # classes = ['COMP-0015', 'CHEM-0012', 'MATH-0070', 'ES-0003']
     # classes = ['COMP-0015', 'ES-0003', 'MATH-0061', 'MATH-0070']
 
-    classes = ['COMP-0015', 'ES-0003', 'MATH-0061', 'MATH-0070', 'CHEM-0001']
+    # classes = ['COMP-0015', 'ES-0003', 'MATH-0061', 'MATH-0070', 'CHEM-0001']
     # classes = ['COMP-0015', 'ES-0003', 'MATH-0061', 'CHEM-0001']
-    # classes = ['COMP-0015', 'ES-0003', 'MATH-0061', 'MATH-0070']
+    classes = ['COMP-0015', 'ES-0003', 'MATH-0061', 'MATH-0070', 'CHEM-0012']
     pg = PeriodGroup([classes_groups_by_course_num[x][0] for x in classes], 'and')
+    cProfile.run('list(pg.evaluate())', sort='cumulative')
     ev = list(pg.evaluate())
 
     print(len(ev))
+    print(len([e for e in ev if func5(e)[0] == 0]))
 
     # ev = [
     #     x for x in ev if
@@ -530,26 +566,114 @@ if __name__ == '__main__':
     #     )
     # ]
 
-    best = min(ev, key=func5)
+    best = min(ev, key=func6)
     print(best)
-    print(func5(best))
+    print(func7(best))
     print(get_day_class_lengths(flatten_list(best), normalize=False).sum())
     c = to_ics(best, classes)
     with open('my2.ics', 'w') as f:
         f.writelines(c)
 
-    cProfile.run('list(pg.evaluate())', sort='cumulative')
+    
 
 
-    # for u in get_schedule_possibilities([math70, chem12, comp15, math61]):
-    #     print(u)
+    # classes = ['COMP-0015', 'ES-0003', 'MATH-0061', 'MATH-0070', 'CHEM-0001', 'SND-0038', 'CHEM-0012']
+    # classes = ['SND-0038', 'MATH-0070', 'MATH-0061', 'ES-0003', 'CHEM-0012', 'CHEM-0001', 'COMP-0015']
+    # classes = ['COMP-0015', 'ES-0003', 'MATH-0061', 'MATH-0070']
+    # pg = PeriodGroup([classes_groups_by_course_num[x][0] for x in classes], 'and', cache=False)
+    # cProfile.run('list(pg.evaluate())', sort='cumulative')
 
-    cProfile.run('list(comp15.evaluate())')
-    print(comp15.evaluate())
+    # cProfile.run('list(pg.evaluate())', sort='cumulative')
+
+    # # print(len(list(pg.evaluate())))
+
+
+    def get_intervals(x):
+        if type(x) is ClassTime:
+            return x
+        if len(x.contents) == 1:
+            return get_intervals(x.contents[0])
+        return [get_intervals(y) for y in x.contents]
+    def get_things(course):
+        a = []
+        for kind in course.contents:
+            a.append(get_intervals(kind))
+        return a
+    g = get_things(comp15)
+    comp15_lab = [[x] for x in g[0]]
+    comp15_lec = g[1]
+    math70_lec = get_things(math70)
+    math61_lec = get_things(math61)
+    g = get_things(es3)
+    es3_lab = [[x] for x in g[0][0]]
+    es3_rct = [[g[0][1]]]
+    es3_lec = [g[1]]
+
+    g = get_things(chem12)
+    chem12_lab = [[x] for x in g[0][0]]
+    chem12_rct = [[x] for x in g[0][1]]
+    chem12_lec = [[x for x in g[1]]]
+
+    print(chem12_lab)
+    print(chem12_rct)
+    print(chem12_lec)
+    print("GOOGLE GOOGLE GOOGLE")
+
+    for u in get_things(chem12):
+        print(u)
+        print()
+
+    print(comp15_lab, "HISDFHSDFHSDIOFHSDFHSDOFHSDOFHSDOFHSDIFH")
+
+    print(chem12)
+
+    print(es3)
+
+    t = time()
+    all_sections = comp15_lab + comp15_lec + math70_lec + math61_lec + es3_lab + es3_rct + es3_lec + chem12_lab + chem12_rct + chem12_lec
+    section_ids = [1 for _ in comp15_lab] + [2 for _ in comp15_lec] + [3 for _ in math70_lec] + [4 for _ in math61_lec] + [5 for _ in es3_lab] + [6 for _ in es3_rct] + [7 for _ in es3_lec] + [8 for _ in chem12_lab] + [9 for _ in chem12_rct] + [10 for _ in chem12_lec]
+    # ub = list(zip(all_sections, section_ids))
+    # random.shuffle(ub)
+    # all_sections, section_ids = list(zip(*ub))
+    n_sections = len(all_sections)
+    intersection_matrix = np.zeros((n_sections, n_sections), dtype=np.uint8)
+    for i in range(n_sections):
+        for j in range(i, n_sections):
+            if section_ids[i] == section_ids[j]:
+                intersection_matrix[i, j] = 1
+                intersection_matrix[j, i] = 1
+                continue
+            
+            they_intersect = False
+            for a in all_sections[i]:
+                for b in all_sections[j]:
+                    if a.intersects(b):
+                        intersection_matrix[i, j] = 1
+                        intersection_matrix[j, i] = 1
+                        they_intersect = True
+                        break
+                if they_intersect:
+                    break
+
+    print(str(intersection_matrix.tolist()).replace('[', '{').replace(']', '}'))
+
+    print(time() - t)
+
+
+
+
+
+
+
 
    
 
+'''
 
+
+[[LAB Tu 16:30:00 - 17:45:00, LEC Mo 16:30:00 - 17:45:00, LEC We 16:30:00 - 17:45:00], [LAB Th 16:30:00 - 17:45:00, RCT Fr 13:30:00 - 14:45:00, LEC Tu 18:00:00 - 19:15:00, LEC Th 18:00:00 - 19:15:00], [LEC Tu 10:30:00 - 11:45:00, LEC Th 10:30:00 - 11:45:00], [LEC Tu 13:30:00 - 14:45:00, LEC Th 13:30:00 - 14:45:00]]
+
+'''
 
     
 
@@ -644,6 +768,61 @@ Lecture
 
 (A1 | A2 | ... A11) & (R1 | R2 | R3 | R4) & L1 | (A1 | A2 | ... A11) & (R5 | R6 | R7 | R8 | R9) & L2
 (A1 | A2 | ... A11) & ((R1 | R2 | R3 | R4) & L1 | (R5 | R6 | R7 | R8 | R9) & L2)
+
+
+
+
+ES-0003 ((((LAB Th 13:30:00 - 14:45:00) | (LAB Th 16:30:00 - 17:45:00) | (LAB Fr 10:30:00 - 11:45:00)) & ((RCT Fr 13:30:00 - 14:45:00))) & ((((LEC Tu 18:00:00 - 19:15:00 & LEC Th 18:00:00 - 19:15:00)))))
+
+ES-0003 (
+    (
+        (
+            (LAB Th 13:30:00 - 14:45:00) | 
+            (LAB Th 16:30:00 - 17:45:00) | 
+            (LAB Fr 10:30:00 - 11:45:00)
+        )
+        &
+        (
+            (RCT Fr 13:30:00 - 14:45:00)
+        )
+    ) 
+    &
+    (
+        (
+            (
+                (LEC Tu 18:00:00 - 19:15:00 & LEC Th 18:00:00 - 19:15:00)
+            )
+        )
+    )
+)
+
+
+CHEM-0012 
+(
+    (
+        (
+            (LAB Mo 13:20:00 - 16:20:00) | 
+            (LAB Mo 18:00:00 - 21:00:00) | 
+            (LAB Tu 18:00:00 - 21:00:00)
+        ) 
+        & 
+        (
+            (RCT We 19:30:00 - 20:15:00) | 
+            (RCT Fr 15:30:00 - 16:20:00)
+        )
+    )
+    &
+    (
+        (
+            (
+                (LEC Tu 12:00:00 - 13:15:00 & LEC Th 12:00:00 - 13:15:00 & LEC Fr 12:00:00 - 13:15:00 & LEC Th 9:30:00 - 10:20:00)
+            )
+        )
+    )
+)
+
+
+
 
 '''
 

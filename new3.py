@@ -87,10 +87,10 @@ def get_data_with_requests(s, term, classes):
 def get_and_save_data(term):
     s = get_session()
     classes = get_classes_data(s, term)
-    with open(f'classes {term}.json', 'w') as outfile:
+    with open(f'classes_data/classes {term}.json', 'w') as outfile:
         json.dump(classes, outfile, indent=4)
     details = get_data_with_requests(s, term, classes)
-    with open(f'details {term}.json', 'w') as outfile:
+    with open(f'classes_data/details {term}.json', 'w') as outfile:
         json.dump(details, outfile, indent=4)
 
 
