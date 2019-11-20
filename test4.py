@@ -1,5 +1,4 @@
-from test3 import *
-from time import sleep
+from course_scheduler import *
 
 def annalise_reminants():
     print("hello")
