@@ -1,16 +1,7 @@
-from time import time
-import json
 from schedule_stats import get_mean_mad, get_day_class_lengths
-import random
-import numpy as np
-from itertools import product, combinations, chain
 from datetime import datetime, date, timedelta
 from ics import Calendar, Event
-import matplotlib.pyplot as plt
-import cProfile
-import re
-import sys
-from pympler.asizeof import asizeof
+import itertools
 
 
 weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr']
@@ -115,23 +106,6 @@ class Group:
         if self.data is not None:
             return str(self.data) + ' (' + (' & ' if self.kind == 'and' else ' | ').join(map(str, self.contents)) + ')'
         return '(' + (' & ' if self.kind == 'and' else ' | ').join(map(str, self.contents)) + ')'
-
-
-# class PeriodGroup(Group):
-#     def belongs_to_group(self, a, rest):
-#         if type(a) is list:
-#             for i in a:
-#                 if not self.belongs_to_group(i, rest):
-#                     return False
-#             return True
-#         for u in rest:
-#             if type(u) is list:
-#                 if not self.belongs_to_group(a, u):
-#                     return False
-#             else:
-#                 if a.intersects(u):
-#                     return False
-#         return True
 
 
 class PeriodGroup(Group):
