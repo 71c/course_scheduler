@@ -119,10 +119,10 @@ def main():
         else:
             classes_groups_by_course_num[course_num] = [pg]
 
-    names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015', 'CHEM-0001', 'MATH-0061', 'ES-0003']
+    names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015', 'CHEM-0001', 'MATH-0061', 'ES-0003', 'CHEM-0012']
     # names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015']
     # names = ['COMP-0015', 'MATH-0070', 'MATH-0061', 'ES-0003']
-    random.shuffle(names)
+    # random.shuffle(names)
     # names = ['MATH-0042', 'COMP-0015']
     cs_i = [classes_groups_by_course_num[x][0] for x in names]
     # phy_2_2 = classes_groups_by_course_num['PHY-0002'][1]
@@ -132,9 +132,7 @@ def main():
     pg = PeriodGroup(cs_i, 'and')
     print([len(x.contents) for x in pg.contents])
     # pg = PeriodGroup([pg, classes_groups_by_course_num['MATH-0070'][0]], 'and')
-    # cProfile.runctx('pg.evaluate()', None, locals(), sort='cumulative')
-
-    print(asizeof(pg), 'PG BEFORE CACHE')
+    cProfile.runctx('pg.evaluate()', None, locals(), sort='cumulative')
 
     t = time()
     ev = pg.evaluate()
@@ -142,13 +140,7 @@ def main():
     print(len(ev))
 
 
-    print(asizeof(pg.cached_eval), 'PG')
 
-    # print(pg.cached_eval)
-
-
-    # print(len(pg.conflict_matrix.keys()))
-    # print(len(pg.contents[0].conflict_matrix.keys()))
 
 
 if __name__ == '__main__':
