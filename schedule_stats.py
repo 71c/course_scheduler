@@ -1,3 +1,5 @@
+import numpy as np
+
 def get_mean_mad(class_time_list, time_range=None):
     n = len({t.day for t in class_time_list})
     start_and_end_times = []
@@ -20,3 +22,15 @@ def get_mean_mad(class_time_list, time_range=None):
         time_range = current_time - beginning_time
     total_mad *= 2/n**2 / time_range
     return total_mad
+
+def get_day_class_lengths(class_time_list, normalize=True):
+    """returns total number of minutes of class time each day from a schedule,
+    optionally normalized to sum to 1"""
+    minute_counts = [0, 0, 0, 0, 0]
+    for class_time in class_time_list:
+        index = weekdays.index(class_time.day)
+        minute_counts[index] += class_time.end_time - class_time.start_time
+    minute_counts = np.array(minute_counts)
+    if normalize:
+        minute_counts = minute_counts / sum(minute_counts)
+    return minute_counts

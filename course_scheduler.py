@@ -1,6 +1,6 @@
 from time import time
 import json
-from test1 import get_mean_mad
+from schedule_stats import get_mean_mad, get_day_class_lengths
 import random
 import numpy as np
 from itertools import product, combinations, chain
@@ -232,19 +232,6 @@ def flatten_list(L):
         else:
             flattened.append(x)
     return flattened
-
-
-def get_day_class_lengths(class_time_list, normalize=True):
-    """returns total number of minutes of class time each day from a schedule,
-    optionally normalized to sum to 1"""
-    minute_counts = [0, 0, 0, 0, 0]
-    for class_time in class_time_list:
-        index = weekdays.index(class_time.day)
-        minute_counts[index] += class_time.end_time - class_time.start_time
-    minute_counts = np.array(minute_counts)
-    if normalize:
-        minute_counts = minute_counts / sum(minute_counts)
-    return minute_counts
 
 
 def get_class_options(req, spec):
