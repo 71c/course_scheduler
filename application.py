@@ -1,3 +1,5 @@
+# run pyton3 application.py NOT flask run
+
 import requests
 from flask import Flask, escape, request, render_template
 from flask_socketio import SocketIO, emit
@@ -24,7 +26,4 @@ def update_data():
 
 
 if __name__ == '__main__':
-    app.debug = True
-    app.run()
-
-    # socketio.run(app)
+    socketio.run(app)
