@@ -12,7 +12,11 @@ https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.F
 https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getSearchresultsAll3?term=2202&career=ASE&searchby=crs_number
 https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getSearchresultsAll3?term=2202&career=ASE
 
+URL for getting names of course subjects:
+https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getSubjects?callback=jQuery18203761815175560712_1574303444970&term=2202&career=ALL&_=1574303450239
 
+URL for finding discrete math
+https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getSearchresultsAll3?callback=jQuery18206768505385353858_1574452621076&term=2202&career=ALL&subject=MATH&crs_number=0061&attribute=&keyword=&instructor=&searchby=crs_number&_=1574452647695
 
 
 https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getSearchresultsAll3?callback=jQuery182008299747805888957_1572479212338&term=2202&career=ASE&subject=&crs_number=&attribute=&keyword=&instructor=&searchby=crs_number&_=1572479261198

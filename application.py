@@ -1,4 +1,4 @@
-# run pyton3 application.py NOT flask run
+# run python3 application.py NOT flask run
 # export FLASK_ENV=development
 # export FLASK_ENV=production
 
