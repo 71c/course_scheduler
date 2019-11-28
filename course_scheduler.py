@@ -398,10 +398,9 @@ if __name__ == '__main__':
     # print(list(g.evaluate()))
 
 
-    h = hpy()
-    print(h.heap())
-
-    print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+    # h = hpy()
+    # print(h.heap())
+    # print(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
 
 
 

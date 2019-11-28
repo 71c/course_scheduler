@@ -2,16 +2,20 @@
 # export FLASK_ENV=development
 # export FLASK_ENV=production
 
+import os
 from flask import Flask, escape, request, render_template
 from flask_socketio import SocketIO, emit
-from get_data import get_and_save_data
-from api import get_classes_by_course_num
-
-app = Flask(__name__)
-socketio = SocketIO(app)
+from models import *
+from flask import current_app as app
+from get_data_2 import *
+from api_2 import get_classes_by_course_num
 
 # get data on startup
-get_and_save_data('Spring 2020')
+with app.app_context():
+    socketio = SocketIO(app)
+    print("getting data...")
+    get_and_save_data('Spring 2020')
+    print("got data")
 
 @app.route('/')
 def index():
@@ -25,7 +29,9 @@ def update_data():
 @socketio.on("search")
 def search(data):
     print('serch term:', data['term'])
-    print(get_classes_by_course_num(data['term']))
+    x = get_classes_by_course_num(data['term'])
+    print(x)
+    print(x[0].sections)
 
 if __name__ == '__main__':
     socketio.run(app)

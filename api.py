@@ -54,5 +54,13 @@ def get_classes_by_course_title(course_title):
     return []
 
 if __name__ == '__main__':
-    print(get_classes_by_course_title('calculus iii'))
+    # print(get_classes_by_course_title('calculus iii'))
     # print(classes_for_display_by_course_title)
+
+    from time import time
+    t = time()
+    a = [x for x in classes_for_display if x['course_num'] == 'MATH-0042']
+    print(time() - t)
+    print(a)
+    print(len(classes_for_display))
+

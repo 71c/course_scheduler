@@ -55,6 +55,9 @@ class Section:
                             return True
         return False
 
+    def __repr__(self):
+        return f'Section(course_num={self.course_num}, class_num={self.class_num}, assoc_class={self.assoc_class}, comp_desc={self.comp_desc})'
+
 
 class ScheduleGenerate:
     def __init__(self):
@@ -201,23 +204,36 @@ if __name__ == '__main__':
     # print(time() - t)
 
 
-    names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015', 'CHEM-0001', 'MATH-0061', 'MATH-0070']
-    random.shuffle(names)
-    # names = ['MATH-0042', 'COMP-0015']
-    courses = [courses_by_course_num[x][0] for x in names]
-    schedule_generate = ScheduleGenerate()
-    schedule_generate.get_sections(courses)
+    # names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015', 'CHEM-0001', 'MATH-0061', 'MATH-0070']
+    # random.shuffle(names)
+    # # names = ['MATH-0042', 'COMP-0015']
+    # courses = [courses_by_course_num[x][0] for x in names]
+    # schedule_generate = ScheduleGenerate()
+    # schedule_generate.get_sections(courses)
 
-    t = time()
-    schedules = schedule_generate.get_possible_schedules((schedule_generate.sections_by_id.keys()))
-    print(time() - t)
-    print(len(schedules))
-    # print(list(map(len, schedules)))
-    # print(schedules)
+    # t = time()
+    # schedules = schedule_generate.get_possible_schedules((schedule_generate.sections_by_id.keys()))
+    # print(time() - t)
+    # print(len(schedules))
+    # # print(list(map(len, schedules)))
+    # # print(schedules)
 
-    cProfile.run('schedule_generate.get_possible_schedules(set(schedule_generate.sections_by_id.keys()))', sort='cumulative')
+    # cProfile.run('schedule_generate.get_possible_schedules(set(schedule_generate.sections_by_id.keys()))', sort='cumulative')
+
+
 
     
+    t = time()
+    schedule_generate = ScheduleGenerate()
+    schedule_generate.get_sections(classes['searchResults'])
+    print(time() - t)
+    comp_descs = {s.comp_desc for s in schedule_generate.sections_by_id.values()}
+    comp_descs_frequencies = {comp_desc: 0 for comp_desc in comp_descs}
+    for s in schedule_generate.sections_by_id.values():
+        comp_descs_frequencies[s.comp_desc] += 1
+    print(comp_descs)
+    print(comp_descs_frequencies)
+    print(sorted(comp_descs_frequencies.items(), key=lambda x: x[1], reverse=True))
 
 
 
