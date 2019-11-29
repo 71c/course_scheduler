@@ -1,0 +1,5 @@
+https://github.com/abulrim/siscode
+https://github.com/abulrim/sisparse
+http://siscode.me/
+https://mikedombrowski.com/ur/
+https://github.com/MikeDombo/university-schedule-generator

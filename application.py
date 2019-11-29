@@ -38,6 +38,23 @@ def search(data):
         'desc_long': x.desc_long,
         'id': x.id
     } for x in search_results]
+
+    # names = ['MATH-0166', 'PHIL-0192', 'MATH-0070']
+    # t = time.time()
+    # courses = [get_search_results(x)[0] for x in names]
+    # print(time.time() - t)
+    # t = time.time()
+    # pg = PeriodGroup([course_object_to_period_group(x, accepted_statuses=('O','W','C')) for x in courses], 'and')
+    # print(time.time() - t)
+    # t = time.time()
+    # schedules = pg.evaluate()
+    # print(time.time() - t)
+    # print(schedules)
+
+    # cProfile.run("[get_search_results(x)[0] for x in ['MATH-0166', 'PHIL-0192', 'MATH-0070']]", sort='cumulative')
+
+
+
     emit('results', search_results_json)
 
 

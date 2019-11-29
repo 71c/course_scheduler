@@ -118,6 +118,8 @@ def main():
         else:
             classes_groups_by_course_num[course_num] = [pg]
 
+
+
     # names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015', 'CHEM-0001', 'MATH-0061', 'ES-0003', 'CHEM-0012']
     # # names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015']
     # # names = ['COMP-0015', 'MATH-0070', 'MATH-0061', 'ES-0003']
@@ -139,9 +141,19 @@ def main():
     # print(len(ev))
 
     names = ['MATH-0166', 'PHIL-0192', 'MATH-0070']
+    t = time()
     cs_i = [classes_groups_by_course_num[x][0] for x in names]
     pg = PeriodGroup(cs_i, 'and')
     schedules = pg.evaluate()
+    print(time() - t)
+
+    t = time()
+    for c in classes['searchResults']:
+        pg = course_to_period_group(c, only_consider_open_classes=False)
+    print(time() - t)
+
+
+
     for x in schedules:
         print(x)
         print()

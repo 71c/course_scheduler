@@ -20,22 +20,24 @@
     </head>
     <body>
         <div class="container">
-            <h1>Course Scheduler</h1>
-            <form id="update_data">
-                <button type="submit">update data</button>
-            </form>
-            <form id="search_form">
-                <input type="text" placeholder="Search by course number, subject, or title" id="search_bar">
-                <button>search</button>
-            </form>
-            <!-- <div id="results" class="panel-group"> -->
-            <div id="results" class="accordion">
-            
+            <div class="col-12">
+                <h1>Course Scheduler</h1>
+                <form id="update_data">
+                    <button type="submit">update data</button>
+                </form>
+                <form id="search_form">
+                    <input type="text" placeholder="Search by course number, subject, or title" id="search_bar">
+                    <button>search</button>
+                </form>
+            </div>
+            <div class="col-8">
+                <div id="results" class="accordion md-accordion accordion-blocks" role="tablist">
+                
+                </div>
+            </div>
+            <div class="col-4">
+
             </div>
         </div>
-        <div class="bg-info clearfix">
-  <button type="button" class="btn btn-secondary float-left">Example Button floated left</button>
-  <button type="button" class="btn btn-secondary float-right">Example Button floated right</button>
-</div>
     </body>
 </html>
