@@ -20,11 +20,11 @@ class Course(db.Model):
     # Example: Mathematics
     subject_long = db.Column(db.String, nullable=False)
     # Example: Calculus III
-    course_title = db.Column(db.String, nullable=False)
+    title = db.Column(db.String, nullable=False)
     # Example: Vectors in two and three dimensions, applications of the ...
     desc_long = db.Column(db.String, nullable=False)
 
-    sections = db.relationship("Section", backref="flight", lazy=True)
+    sections = db.relationship("Section", backref="course", lazy='joined')
 
 
 class Section(db.Model):
@@ -43,6 +43,8 @@ class Section(db.Model):
     # can be "O" (open), "C" (closed), or "W", (waitlist)
     status = db.Column(db.String, nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+
+    periods = db.relationship("Period", backref="section", lazy='joined')
 
 
 class Period(db.Model):

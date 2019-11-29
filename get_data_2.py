@@ -97,18 +97,16 @@ def get_and_save_data(term):
     
     db.drop_all()
     db.create_all()
-
-    t = time.time()
     
     courses_objects = []
     for course_data in courses:
         course_num = course_data['course_num']
-        course_title = course_data['course_title']
+        title = course_data['course_title']
         desc_long = course_data['desc_long']
         subject = re.match(r'[A-Z]+', course_num).group()
         subject_long = long_subject_dict[subject]
         course = Course(course_num=course_num, subject=subject,
-            subject_long=subject_long, course_title=course_title,
+            subject_long=subject_long, title=title,
             desc_long=desc_long)
         courses_objects.append(course)
     db.session.bulk_save_objects(courses_objects)
@@ -123,7 +121,7 @@ def get_and_save_data(term):
                 class_num = component_data['class_num']
                 comp_desc_short = component_data['ssr_comp']
                 section_num = component_data['section_num']
-                component_short = re.search(r'[A-Z]+$', section_num).group()
+                component_short = component_data['ssr_comp']
                 status = component_data['status']
                 section = Section(class_num=class_num, section_num=section_num,
                     assoc_class=assoc_class, component=comp_desc,
@@ -151,8 +149,6 @@ def get_and_save_data(term):
     db.session.bulk_save_objects(periods_objects)
     # db.session.add_all(periods_objects)
     db.session.commit()
-
-    print(time.time() - t)
 
 
 if __name__ == '__main__':

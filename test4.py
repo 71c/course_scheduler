@@ -118,25 +118,39 @@ def main():
         else:
             classes_groups_by_course_num[course_num] = [pg]
 
-    names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015', 'CHEM-0001', 'MATH-0061', 'ES-0003', 'CHEM-0012']
-    # names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015']
-    # names = ['COMP-0015', 'MATH-0070', 'MATH-0061', 'ES-0003']
-    # random.shuffle(names)
-    # names = ['MATH-0042', 'COMP-0015']
+    # names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015', 'CHEM-0001', 'MATH-0061', 'ES-0003', 'CHEM-0012']
+    # # names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015']
+    # # names = ['COMP-0015', 'MATH-0070', 'MATH-0061', 'ES-0003']
+    # # random.shuffle(names)
+    # # names = ['MATH-0042', 'COMP-0015']
+    # cs_i = [classes_groups_by_course_num[x][0] for x in names]
+    # # phy_2_2 = classes_groups_by_course_num['PHY-0002'][1]
+    # # cs_i.append(phy_2_2)
+    # # names.append('PHY-0002')
+
+    # pg = PeriodGroup(cs_i, 'and')
+    # print([len(x.contents) for x in pg.contents])
+    # # pg = PeriodGroup([pg, classes_groups_by_course_num['MATH-0070'][0]], 'and')
+    # cProfile.runctx('pg.evaluate()', None, locals(), sort='cumulative')
+
+    # t = time()
+    # ev = pg.evaluate()
+    # print(time() - t, 'EV_TIME')
+    # print(len(ev))
+
+    names = ['MATH-0166', 'PHIL-0192', 'MATH-0070']
     cs_i = [classes_groups_by_course_num[x][0] for x in names]
-    # phy_2_2 = classes_groups_by_course_num['PHY-0002'][1]
-    # cs_i.append(phy_2_2)
-    # names.append('PHY-0002')
-
     pg = PeriodGroup(cs_i, 'and')
-    print([len(x.contents) for x in pg.contents])
-    # pg = PeriodGroup([pg, classes_groups_by_course_num['MATH-0070'][0]], 'and')
-    cProfile.runctx('pg.evaluate()', None, locals(), sort='cumulative')
+    schedules = pg.evaluate()
+    for x in schedules:
+        print(x)
+        print()
+    a_calendar = to_ics(schedules[0], names)
+    with open('sam_cal.ics', 'w') as f:
+        f.writelines(a_calendar)
 
-    t = time()
-    ev = pg.evaluate()
-    print(time() - t, 'EV_TIME')
-    print(len(ev))
+
+
 
 
 
