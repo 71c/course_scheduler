@@ -38,7 +38,8 @@ def annalise_reminants():
     #     print()
 
     # names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015', 'CHEM-0001', 'MATH-0061']
-    names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002']
+    # names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002']
+    names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015']
     random.shuffle(names)
     # names = ['MATH-0042', 'COMP-0015']
     cs_i = [classes_groups_by_course_num[x][0] for x in names]
@@ -52,45 +53,46 @@ def annalise_reminants():
     ev = pg.evaluate()
     print(time() - t, 'EV_TIME')
     print(len(ev))
-
-    exclusions = []
-    min_class_time = 570
-    ev = [
-        x for x in ev if
-        not any(
-            name not in exclusions and any(z.start_time < min_class_time for z in y)
-            for name, y in zip(names, x)
-        )
-    ]
     print(len(ev))
 
-    func2 = lambda x: max(get_day_class_lengths(flatten_list(x)))
+    # exclusions = []
+    # min_class_time = 570
+    # ev = [
+    #     x for x in ev if
+    #     not any(
+    #         name not in exclusions and any(z.start_time < min_class_time for z in y)
+    #         for name, y in zip(names, x)
+    #     )
+    # ]
+    # print(len(ev))
 
-    ev.sort(key=func2)
+    # func2 = lambda x: max(get_day_class_lengths(flatten_list(x)))
 
-    most_spread_out = ev[0]
-    least_spread_out = ev[-1]
+    # ev.sort(key=func2)
 
-    most_spread_out_cal = to_ics(most_spread_out, names)
-    least_spread_out_cal = to_ics(least_spread_out, names)
+    # most_spread_out = ev[0]
+    # least_spread_out = ev[-1]
 
-    print(func2(most_spread_out))
-    print(func2(least_spread_out))
+    # most_spread_out_cal = to_ics(most_spread_out, names)
+    # least_spread_out_cal = to_ics(least_spread_out, names)
 
-    rands = random.sample(ev, 5)
+    # print(func2(most_spread_out))
+    # print(func2(least_spread_out))
 
-    with open('most_spread_out.ics', 'w') as f:
-        f.writelines(most_spread_out_cal)
+    # rands = random.sample(ev, 5)
 
-    with open('least_spread_out.ics', 'w') as f:
-        f.writelines(least_spread_out_cal)
+    # with open('most_spread_out.ics', 'w') as f:
+    #     f.writelines(most_spread_out_cal)
 
-    for i, rand in enumerate(rands):
-        cal = to_ics(rand, names)
-        print(rand)
-        print()
-        with open(f'rand{i}.ics', 'w') as f:
-            f.writelines(cal)
+    # with open('least_spread_out.ics', 'w') as f:
+    #     f.writelines(least_spread_out_cal)
+
+    # for i, rand in enumerate(rands):
+    #     cal = to_ics(rand, names)
+    #     print(rand)
+    #     print()
+    #     with open(f'rand{i}.ics', 'w') as f:
+    #         f.writelines(cal)
 
 
 
@@ -111,7 +113,7 @@ def main():
 
     classes_groups_by_course_num = {}
     for c in classes['searchResults']:
-        pg = course_to_period_group(c, only_consider_open_classes=False)
+        pg = course_to_period_group(c, only_consider_open_classes=True)
         course_num = c['course_num']
         if course_num in classes_groups_by_course_num:
             classes_groups_by_course_num[course_num].append(pg)
@@ -140,26 +142,26 @@ def main():
     # print(time() - t, 'EV_TIME')
     # print(len(ev))
 
-    names = ['MATH-0166', 'PHIL-0192', 'MATH-0070']
+    # names = ['MATH-0166', 'PHIL-0192', 'MATH-0070']
+    names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015']
     t = time()
     cs_i = [classes_groups_by_course_num[x][0] for x in names]
     pg = PeriodGroup(cs_i, 'and')
     schedules = pg.evaluate()
     print(time() - t)
+    print(len(schedules))
 
-    t = time()
-    for c in classes['searchResults']:
-        pg = course_to_period_group(c, only_consider_open_classes=False)
-    print(time() - t)
+    # t = time()
+    # for c in classes['searchResults']:
+    #     pg = course_to_period_group(c, only_consider_open_classes=False)
+    # print(time() - t)
 
-
-
-    for x in schedules:
-        print(x)
-        print()
-    a_calendar = to_ics(schedules[0], names)
-    with open('sam_cal.ics', 'w') as f:
-        f.writelines(a_calendar)
+    # for x in schedules:
+    #     print(x)
+    #     print()
+    # a_calendar = to_ics(schedules[0], names)
+    # with open('sam_cal.ics', 'w') as f:
+    #     f.writelines(a_calendar)
 
 
 

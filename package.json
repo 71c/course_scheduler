@@ -1,0 +1,10 @@
+{
+  "name": "course-scheduler",
+  "version": "0.0.1",
+  "description": "schedule courses at Tufts with ease",
+  "dependencies": {
+    "express": "^4.17.1",
+    "request": "^2.88.0",
+    "socket.io": "^2.3.0"
+  }
+}

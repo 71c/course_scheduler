@@ -49,7 +49,7 @@ class Section(db.Model):
     def intersects(self, other):
         for period_1 in self.periods:
             for period_2 in other.periods:
-                if period_1.meet_start_min <= period_2.meet_end_min and period_1.meet_end_min >= period_2.meet_start_min:
+                if self.day == other.day and (period_1.meet_start_min <= period_2.meet_end_min and period_1.meet_end_min >= period_2.meet_start_min):
                     return True
         return False
 

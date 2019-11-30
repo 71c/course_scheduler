@@ -156,12 +156,18 @@ if __name__ == '__main__':
     # get_and_save_data('Spring 2020')
     # print(time.time() - t)
 
-    t = time.time()
+    # t = time.time()
 
-    term = 'Spring 2020'
-    s = get_session()
-    r = s.get(get_search_url(term))
-    with open(f'classes_data/classes {term}_.json', 'w') as outfile:
-        outfile.write(r.text)
+    # term = 'Spring 2020'
+    # s = get_session()
+    # r = s.get(get_search_url(term))
+    # with open(f'classes_data/classes {term}_.json', 'w') as outfile:
+    #     outfile.write(r.text)
 
-    print(time.time() - t)
+    # print(time.time() - t)
+
+    r = requests.get(GET_SESSION_URL)
+    print(r.headers)
+    print(r.cookies)
+    v = requests.get(get_search_url('Spring 2020'), headers=r.headers);
+    print(v.text)

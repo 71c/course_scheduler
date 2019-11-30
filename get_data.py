@@ -97,16 +97,16 @@ def get_and_save_data(term, save_details=False):
             json.dump(details, outfile, indent=4)
 
 if __name__ == '__main__':
-    # t = time.time()
-    # get_and_save_data('Spring 2020')
-    # print(time.time() - t)
-
     t = time.time()
-
-    term = 'Spring 2020'
-    s = get_session()
-    r = s.get(get_search_url(term))
-    with open(f'classes_data/classes {term}_.json', 'w') as outfile:
-        outfile.write(r.text)
-
+    get_and_save_data('Spring 2020')
     print(time.time() - t)
+
+    # t = time.time()
+
+    # term = 'Spring 2020'
+    # s = get_session()
+    # r = s.get(get_search_url(term))
+    # with open(f'classes_data/classes {term}_.json', 'w') as outfile:
+    #     outfile.write(r.text)
+
+    # print(time.time() - t)

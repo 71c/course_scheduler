@@ -25,11 +25,14 @@ def index():
 
 @socketio.on("update data")
 def update_data():
+    t = time.time()
     get_and_save_data('Spring 2020')
+    print(time.time() - t)
     emit('updated data')
 
 @socketio.on("search")
 def search(data):
+
     print('serch term:', data['term'])
     search_results = get_search_results(data['term'])
     search_results_json = [{
@@ -52,6 +55,8 @@ def search(data):
     # print(schedules)
 
     # cProfile.run("[get_search_results(x)[0] for x in ['MATH-0166', 'PHIL-0192', 'MATH-0070']]", sort='cumulative')
+
+    
 
 
 
