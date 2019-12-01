@@ -20,7 +20,7 @@ Course.prototype.toString = function courseToString() {
 }
 
 class Section {
-    constructor(class_num, section_num, assoc_class, component, component_short, status) {
+    constructor(class_num, section_num, assoc_class, component, component_short, status, periods=[]) {
         this.id = Section.currId++;
         this.class_num = class_num;
         this.section_num = section_num;
@@ -28,7 +28,7 @@ class Section {
         this.component = component;
         this.component_short = component_short;
         this.status = status;
-        this.periods = [];
+        this.periods = periods;
     }
 
     add_period(day, start, end) {

@@ -54,6 +54,7 @@ ev = list(pg.evaluate())
 for e in ev:
     print(e)
 print(time() - t)
+print(len(ev))
 
 with open('classes_data/classes Spring 2020.json') as json_file:
   classes = json.load(json_file)

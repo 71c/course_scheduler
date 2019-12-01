@@ -58,6 +58,7 @@ class PeriodGroup {
 
     *product_contents() {
         let result = [[]];
+        // console.log(this.contents)
         for (const level of this.contents) {
             const ev = [];
             for (let x of level.evaluate())
@@ -82,7 +83,7 @@ class PeriodGroup {
             }
         } else {
             for (const r of result)
-                yield r
+                yield r;
         }
     }
 

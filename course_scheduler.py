@@ -148,80 +148,80 @@ class Group:
         return '(' + (' & ' if self.kind == 'and' else ' | ').join(map(str, self.contents)) + ')'
 
 
-# class PeriodGroup(Group):
-#     def belongs_to_group(self, a, rest):
-#         if type(a) is list:
-#             for i in a:
-#                 if not self.belongs_to_group(i, rest):
-#                     return False
-#             return True
-#         for u in rest:
-#             if type(u) is list:
-#                 if not self.belongs_to_group(a, u):
-#                     return False
-#             else:
-#                 if a.intersects(u):
-#                     return False
-#         return True
-
-
 class PeriodGroup(Group):
-    def __init__(self, contents, kind, merge=False, data=None, cache=True):
-        super().__init__(contents, kind, merge, data, cache)
-        self.conflict_matrix = {}
-
     def belongs_to_group(self, a, rest):
-        a_num = id(a)
-        if a_num not in self.conflict_matrix:
-            self.conflict_matrix[a_num] = {}
+        if type(a) is list:
+            for i in a:
+                if not self.belongs_to_group(i, rest):
+                    return False
+            return True
         for u in rest:
-            u_num = id(u)
-            if u_num not in self.conflict_matrix[a_num]:
-                if type(a) is list:
-                    self.conflict_matrix[a_num][u_num] = False
-                    for i in a:
-                        if type(u) is list:
-                            if not self.belongs_to_group(i, u):
-                                self.conflict_matrix[a_num][u_num] = True
-                                return False
-                        else:
-                            if i.intersects(u):
-                                self.conflict_matrix[a_num][u_num] = True
-                                return False
-                elif type(u) is list:
-                    self.conflict_matrix[a_num][u_num] = not self.belongs_to_group(a, u)
-                else:
-                    self.conflict_matrix[a_num][u_num] = a.intersects(u)
-            if self.conflict_matrix[a_num][u_num]:
-                return False
+            if type(u) is list:
+                if not self.belongs_to_group(a, u):
+                    return False
+            else:
+                if a.intersects(u):
+                    return False
         return True
 
-    # def belongs_to_group(self, a, rest):
-    #     a_num = id(a)
-    #     if a_num not in self.conflict_matrix:
-    #         self.conflict_matrix[a_num] = {}
-    #     for u in rest:
-    #         u_num = id(u)
-    #         if u_num not in self.conflict_matrix[a_num]:
-    #             if type(a) is list:
-    #                 self.conflict_matrix[a_num][u_num] = False
-    #                 if type(u) is list:
-    #                     for i in a:
-    #                         if not self.belongs_to_group(i, u):
-    #                             self.conflict_matrix[a_num][u_num] = True
-    #                             return False
-    #                 else:
-    #                     for i in a:
-    #                         if i.intersects(u):
-    #                             self.conflict_matrix[a_num][u_num] = True
-    #                             return False
-    #             elif type(u) is list:
-    #                 self.conflict_matrix[a_num][u_num] = not self.belongs_to_group(a, u)
-    #             else:
-    #                 self.conflict_matrix[a_num][u_num] = a.intersects(u)
-    #         if self.conflict_matrix[a_num][u_num]:
-    #             return False
-    #     return True
+
+# class PeriodGroup(Group):
+#     def __init__(self, contents, kind, merge=False, data=None, cache=True):
+#         super().__init__(contents, kind, merge, data, cache)
+#         self.conflict_matrix = {}
+
+#     def belongs_to_group(self, a, rest):
+#         a_num = id(a)
+#         if a_num not in self.conflict_matrix:
+#             self.conflict_matrix[a_num] = {}
+#         for u in rest:
+#             u_num = id(u)
+#             if u_num not in self.conflict_matrix[a_num]:
+#                 if type(a) is list:
+#                     self.conflict_matrix[a_num][u_num] = False
+#                     for i in a:
+#                         if type(u) is list:
+#                             if not self.belongs_to_group(i, u):
+#                                 self.conflict_matrix[a_num][u_num] = True
+#                                 return False
+#                         else:
+#                             if i.intersects(u):
+#                                 self.conflict_matrix[a_num][u_num] = True
+#                                 return False
+#                 elif type(u) is list:
+#                     self.conflict_matrix[a_num][u_num] = not self.belongs_to_group(a, u)
+#                 else:
+#                     self.conflict_matrix[a_num][u_num] = a.intersects(u)
+#             if self.conflict_matrix[a_num][u_num]:
+#                 return False
+#         return True
+
+#     # def belongs_to_group(self, a, rest):
+#     #     a_num = id(a)
+#     #     if a_num not in self.conflict_matrix:
+#     #         self.conflict_matrix[a_num] = {}
+#     #     for u in rest:
+#     #         u_num = id(u)
+#     #         if u_num not in self.conflict_matrix[a_num]:
+#     #             if type(a) is list:
+#     #                 self.conflict_matrix[a_num][u_num] = False
+#     #                 if type(u) is list:
+#     #                     for i in a:
+#     #                         if not self.belongs_to_group(i, u):
+#     #                             self.conflict_matrix[a_num][u_num] = True
+#     #                             return False
+#     #                 else:
+#     #                     for i in a:
+#     #                         if i.intersects(u):
+#     #                             self.conflict_matrix[a_num][u_num] = True
+#     #                             return False
+#     #             elif type(u) is list:
+#     #                 self.conflict_matrix[a_num][u_num] = not self.belongs_to_group(a, u)
+#     #             else:
+#     #                 self.conflict_matrix[a_num][u_num] = a.intersects(u)
+#     #         if self.conflict_matrix[a_num][u_num]:
+#     #             return False
+#     #     return True
 
 
 
