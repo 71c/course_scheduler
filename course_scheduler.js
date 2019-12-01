@@ -47,7 +47,6 @@ class PeriodGroup {
     }
 
     *cycle(values, uplevel) {
-        // console.log(`values: ${values}\nuplevel: ${uplevel}`);
         for (const prefix of uplevel) {
             for (const current of values) {
                 if (this.belongs_to_group(current, prefix))
@@ -58,12 +57,10 @@ class PeriodGroup {
 
     *product_contents() {
         let result = [[]];
-        // console.log(this.contents)
         for (const level of this.contents) {
             const ev = [];
             for (let x of level.evaluate())
                 ev.push(x);
-            // console.log(`ev: ${ev}`)
             result = this.cycle(ev, result);
         }
         if (this.merge) {
@@ -89,70 +86,69 @@ class PeriodGroup {
 
     *chain_contents() {
         for (const it of this.contents) {
-            // console.log(it);
             for (const element of it.evaluate()) {
                 yield element;
             }
         }
     }
 
-    // belongs_to_group(a, rest) {
-    //     const a_num = Object.id(a)
-    //     if (! (a_num in this.conflict_matrix))
-    //         this.conflict_matrix[a_num] = {}
-    //     for (const u of rest) {
-    //         const u_num = Object.id(u)
-    //         if (! (u_num in this.conflict_matrix[a_num])) {
-    //             if (Array.isArray(a)) {
-    //                 this.conflict_matrix[a_num][u_num] = false
-    //                 for (const i of a) {
-    //                     if (Array.isArray(u)) {
-    //                         if (! this.belongs_to_group(i, u)) {
-    //                             this.conflict_matrix[a_num][u_num] = true
-    //                             return false
-    //                         }
-    //                     } else {
-    //                         if (i.intersects(u)) {
-    //                             this.conflict_matrix[a_num][u_num] = true
-    //                             return false
-    //                         }
-    //                     }
-    //                 }
-    //             } else if (Array.isArray(u)) {
-    //                 this.conflict_matrix[a_num][u_num] = ! this.belongs_to_group(a, u)
-    //             } else {
-    //                 this.conflict_matrix[a_num][u_num] = a.intersects(u)
-    //             }
-    //         }
-    //         if (this.conflict_matrix[a_num][u_num])
-    //             return false
-    //     }
-    //     return true
-    // }
-
     belongs_to_group(a, rest) {
-        if (Array.isArray(a)) {
-            for (const i of a) {
-                if (! this.belongs_to_group(i, rest)) {
-                    return false
-                }
-            }
-            return true
-        }
+        const a_num = Object.id(a)
+        if (! (a_num in this.conflict_matrix))
+            this.conflict_matrix[a_num] = {}
         for (const u of rest) {
-            if (Array.isArray(u)) {
-                if (! this.belongs_to_group(a, u)) {
-                    return false
+            const u_num = Object.id(u)
+            if (! (u_num in this.conflict_matrix[a_num])) {
+                if (Array.isArray(a)) {
+                    this.conflict_matrix[a_num][u_num] = false
+                    for (const i of a) {
+                        if (Array.isArray(u)) {
+                            if (! this.belongs_to_group(i, u)) {
+                                this.conflict_matrix[a_num][u_num] = true
+                                return false
+                            }
+                        } else {
+                            if (i.intersects(u)) {
+                                this.conflict_matrix[a_num][u_num] = true
+                                return false
+                            }
+                        }
+                    }
+                } else if (Array.isArray(u)) {
+                    this.conflict_matrix[a_num][u_num] = ! this.belongs_to_group(a, u)
+                } else {
+                    this.conflict_matrix[a_num][u_num] = a.intersects(u)
                 }
             }
-            else {
-                if (a.intersects(u)) {
-                    return false
-                }
-            }
+            if (this.conflict_matrix[a_num][u_num])
+                return false
         }
         return true
     }
+
+    // belongs_to_group(a, rest) {
+    //     if (Array.isArray(a)) {
+    //         for (const i of a) {
+    //             if (! this.belongs_to_group(i, rest)) {
+    //                 return false
+    //             }
+    //         }
+    //         return true
+    //     }
+    //     for (const u of rest) {
+    //         if (Array.isArray(u)) {
+    //             if (! this.belongs_to_group(a, u)) {
+    //                 return false
+    //             }
+    //         }
+    //         else {
+    //             if (a.intersects(u)) {
+    //                 return false
+    //             }
+    //         }
+    //     }
+    //     return true
+    // }
 }
 
 module.exports = {

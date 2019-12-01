@@ -110,31 +110,50 @@ with open('classes_data/classes Spring 2020.json') as json_file:
 
 classes_groups_by_course_num = {}
 for c in classes['searchResults']:
-    pg = course_to_period_group(c, only_consider_open_classes=True)
+    pg = course_to_period_group(c, only_consider_open_classes=False)
     course_num = c['course_num']
     if course_num in classes_groups_by_course_num:
         classes_groups_by_course_num[course_num].append(pg)
     else:
         classes_groups_by_course_num[course_num] = [pg]
 
-# names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015']
-names = ['MATH-0042']
+names = ['PHY-0012', 'MATH-0042', 'ENG-0001', 'ES-0002', 'COMP-0015']
+# names = ['CHEM-0001', 'SPN-0002', 'COMP-0011', 'FR-0002']
+# names = ['CHEM-0001', 'CHEM-0002', 'SPN-0002', 'SPN-0004']
+
 t = time()
 cs_i = [classes_groups_by_course_num[x][0] for x in names]
+print(time() - t)
+
+t = time()
 pg = PeriodGroup(cs_i, 'and')
+print(time() - t)
+
+t = time()
 schedules = pg.evaluate()
 print(time() - t)
+
 print(len(schedules))
-for s in schedules:
-    print(s)
-    print()
-print(pg)
+
+
+# classes_names = [c['course_num'] for c in classes['searchResults']]
+# ev_lens = [len(course_to_period_group(x, only_consider_open_classes=False).evaluate()) for x in classes['searchResults']]
+# indices = list(range(len(classes_names)))
+# indices.sort(key=lambda i: ev_lens[i])
+# classes_names = [(classes_names[i], ev_lens[i]) for i in indices]
+# print(classes_names)
+
+
+# for s in schedules:
+#     print(s)
+#     print()
+# print(pg)
 
 # Group([], 'and') means the presence of nothing; 1 possibility
 # Group([], 'or') means the absence of anything; 0 possibilities
-g = Group([Group([G(1), G(2)], 'or'), Group([], 'or')], 'and')
-print(g)
-print(g.evaluate())
+# g = Group([Group([G(1), G(2)], 'or'), Group([], 'or')], 'and')
+# print(g)
+# print(g.evaluate())
 '''
 
 (MATH-0042 ((((LEC Mo 9:30:00 - 10:20:00 & LEC We 9:30:00 - 10:20:00 & LEC Fr 9:30:00 - 10:20:00)) & ((RCT Tu 8:30:00 - 9:20:00) | (RCT Tu 10:30:00 - 11:20:00) | (RCT Tu 13:30:00 - 14:20:00))) | (((RCT Tu 9:30:00 - 10:20:00) | (RCT Tu 12:00:00 - 12:50:00)))))
