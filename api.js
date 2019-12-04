@@ -39,14 +39,30 @@ function get_search_results(term) {
     const text_before_or_after = new RegExp(`\\b${term}\\b`, 'i');
     const results_first = [];
     const results_second = [];
+    const results_third = [];
+    const results_fourth = [];
+    const results_fifth = [];
+    const results_sixth = [];
     for (const course of models.courses) {
-        if (course.subject_long.toUpperCase() === term)
-            results_first.push(course);
-        else if (text_before_or_after.test(course.subject_long))
-            results_second.push(course);
+        if (course.subject_long.toUpperCase() === term) {
+            if (course.title.toUpperCase() === term)
+                results_first.push(course);
+            else if (text_before_or_after.test(course.title))
+                results_second.push(course);
+            else
+                results_fifth.push(course);
+        }
+        else if (text_before_or_after.test(course.subject_long)) {
+            if (course.title.toUpperCase() === term)
+                results_third.push(course);
+            else if (text_before_or_after.test(course.title))
+                results_fourth.push(course);
+            else
+                results_sixth.push(course);
+        }
     }
-    if (results_first.length !== 0 || results_second.length !== 0)
-        return results_first.concat(results_second);
+    if (results_first.length !== 0 || results_second.length !== 0 || results_third.length !== 0 || results_fourth.length !== 0 || results_fifth.length !== 0 || results_sixth.length !== 0)
+        return results_first.concat(results_second, results_third, results_fourth, results_fifth, results_sixth);
     for (const course of models.courses) {
         if (course.title.toUpperCase() === term)
             results_first.push(course);

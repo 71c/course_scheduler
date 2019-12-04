@@ -543,10 +543,12 @@ function main() {
 }
 
 
+if (require.main === module) {
+    get_data.get_and_save_data('Spring 2020', () => {
+        main();
+    });
+}
 
-get_data.get_and_save_data('Spring 2020', () => {
-    main();
-});
 
 
 

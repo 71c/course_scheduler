@@ -83,8 +83,7 @@ function get_and_save_data(term, callback=()=>{}) {
         console.log(time() - t);
         console.log('got courses!');
         courses = body.searchResults;
-        ++n;
-        if (n === 2) when_got_data();
+        if (++n === 2) when_got_data();
     }
     function callback_subjects(error, response, body) {
         console.log(time() - t);
@@ -93,14 +92,11 @@ function get_and_save_data(term, callback=()=>{}) {
         body.forEach(function(x) {
             long_subject_dict[x.value] = x.desc.substring(x.value.length+3);
         });
-        ++n;
-        if (n === 2) when_got_data();
+        if (++n === 2) when_got_data();
     }
 
     
     function when_got_data() {
-        console.log(long_subject_dict);
-
         models.courses = [];
         const subject_finder = /^[A-Z]+/;
         for (const course_data of courses) {
