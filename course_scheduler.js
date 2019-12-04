@@ -126,29 +126,27 @@ class PeriodGroup {
         return true
     }
 
-    // belongs_to_group(a, rest) {
-    //     if (Array.isArray(a)) {
-    //         for (const i of a) {
-    //             if (! this.belongs_to_group(i, rest)) {
-    //                 return false
-    //             }
-    //         }
-    //         return true
-    //     }
-    //     for (const u of rest) {
-    //         if (Array.isArray(u)) {
-    //             if (! this.belongs_to_group(a, u)) {
-    //                 return false
-    //             }
-    //         }
-    //         else {
-    //             if (a.intersects(u)) {
-    //                 return false
-    //             }
-    //         }
-    //     }
-    //     return true
-    // }
+    belongs_to_group_slow(a, rest) {
+        /* This function is never used. It's just for show.
+        It is the same as belongs_to_group but without caching so
+        the algorithm it uses can be seen clearly */
+        if (Array.isArray(a)) {
+            for (const i of a)
+                if (! this.belongs_to_group(i, rest))
+                    return false
+            return true
+        }
+        for (const u of rest) {
+            if (Array.isArray(u)) {
+                if (! this.belongs_to_group(a, u))
+                    return false
+            } else {
+                if (a.intersects(u))
+                    return false
+            }
+        }
+        return true
+    }
 }
 
 module.exports = {

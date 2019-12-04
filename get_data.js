@@ -71,7 +71,7 @@ function get_classes_data_and_course_subjects(term, callback_courses, callback_s
     });
 }
 
-function get_and_save_data(term) {
+function get_and_save_data(term, callback=()=>{}) {
     let t = time();
 
     let courses;
@@ -134,6 +134,7 @@ function get_and_save_data(term) {
         }
         console.log(time() - t);
         console.log('done getting data!!!');
+        callback();
     }
 }
 

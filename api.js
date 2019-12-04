@@ -31,12 +31,12 @@ function get_search_results(term) {
         if (results.length !== 0)
             return results;
     }
-    if (/[a-zA-Z]{2,4}/.exec(term)) {
+    if (/[a-zA-Z]{2,4}/.test(term)) {
         const results = get_classes_by_subject(term);
         if (results.length !== 0)
             return results;
     }
-    const text_before_or_after = new RegExp(`\b${term}\b`, 'i');
+    const text_before_or_after = new RegExp(`\\b${term}\\b`, 'i');
     const results_first = [];
     const results_second = [];
     for (const course of models.courses) {
