@@ -43,6 +43,33 @@ function get_search_results(term) {
     const results_fourth = [];
     const results_fifth = [];
     const results_sixth = [];
+    const results_seventh = [];
+    const results_eighth = [];
+    
+    // for (const course of models.courses) {
+    //     if (course.subject_long.toUpperCase() === term) {
+    //         if (course.title.toUpperCase() === term)
+    //             results_first.push(course);
+    //         else if (text_before_or_after.test(course.title))
+    //             results_second.push(course);
+    //         else
+    //             results_fifth.push(course);
+    //     }
+    //     else if (text_before_or_after.test(course.subject_long)) {
+    //         if (course.title.toUpperCase() === term)
+    //             results_third.push(course);
+    //         else if (text_before_or_after.test(course.title))
+    //             results_fourth.push(course);
+    //         else
+    //             results_sixth.push(course);
+    //     } else {
+    //         if (course.title.toUpperCase() === term)
+    //             results_seventh.push(course);
+    //         else if (text_before_or_after.test(course.title))
+    //             results_eighth.push(course);  
+    //     }
+    // }
+
     for (const course of models.courses) {
         if (course.subject_long.toUpperCase() === term) {
             if (course.title.toUpperCase() === term)
@@ -50,7 +77,7 @@ function get_search_results(term) {
             else if (text_before_or_after.test(course.title))
                 results_second.push(course);
             else
-                results_fifth.push(course);
+                results_seventh.push(course);
         }
         else if (text_before_or_after.test(course.subject_long)) {
             if (course.title.toUpperCase() === term)
@@ -58,27 +85,25 @@ function get_search_results(term) {
             else if (text_before_or_after.test(course.title))
                 results_fourth.push(course);
             else
-                results_sixth.push(course);
+                results_eighth.push(course);
+        } else {
+            if (course.title.toUpperCase() === term)
+                results_fifth.push(course);
+            else if (text_before_or_after.test(course.title))
+                results_sixth.push(course);  
         }
     }
-    if (results_first.length !== 0 || results_second.length !== 0 || results_third.length !== 0 || results_fourth.length !== 0 || results_fifth.length !== 0 || results_sixth.length !== 0)
-        return results_first.concat(results_second, results_third, results_fourth, results_fifth, results_sixth);
-    for (const course of models.courses) {
-        if (course.title.toUpperCase() === term)
-            results_first.push(course);
-        else if (text_before_or_after.test(course.title))
-            results_second.push(course);
-    }
-    if (results_first.length !== 0 || results_second.length !== 0)
-        return results_first.concat(results_second);
+
+    if (results_first.length !== 0 || results_second.length !== 0 || results_third.length !== 0 || results_fourth.length !== 0 || results_fifth.length !== 0 || results_sixth.length !== 0 || results_seventh.length !== 0 || results_eighth.length !== 0)
+        return results_first.concat(results_second, results_third, results_fourth, results_fifth, results_sixth, results_seventh, results_eighth);
     return [];
 }
 
-function course_object_to_period_group(course, exclude_classes_with_no_days=true, accepted_statuses=['O']) {
+function course_object_to_period_group(course, exclude_classes_with_no_days=true, accepted_statuses=Set(['O'])) {
     const period_dict = {}
     for (const section of course.sections) {
         if (! exclude_classes_with_no_days || section.periods.length !== 0) {
-            const status_ok = accepted_statuses.includes(section.status);
+            const status_ok = accepted_statuses.has(section.status);
             const assoc_class = section.assoc_class;
             const component = section.component;
             if (! (assoc_class in period_dict))

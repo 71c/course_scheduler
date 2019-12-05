@@ -3,6 +3,7 @@ const app = express();
 app.use(express.static('static'));
 const http = require('http').createServer(app);
 var io = require('socket.io')(http);
+
 const models = require('./models');
 const api = require('./api');
 const get_data = require('./get_data');
@@ -36,8 +37,32 @@ io.on('connection', function(socket){
     // evaluation_timing_test(['CHEM-0001', 'CHEM-0002', 'SPN-0002', 'SPN-0004', 'SPN-0021']);
     io.emit('results', search_results_json);
   });
+  socket.on('get schedules', function(msg) {
+    console.log(msg);
+    const schedules = get_schedules(msg, new Set(['O', 'C', 'W']));
+    console.log(schedules);
+    console.log(JSON.stringify(schedules[0]));
+  });
+});
+
+// app.post('/test', function(req, res) {
+//   res.json({data: "your data here"});
+// });
+
+app.get('/searching', function(req, res){
+ res.send("WHEEE");
 });
 
 http.listen(3000, function(){
   console.log('listening on *:3000');
 });
+
+function get_schedules(course_ids, accepted_statuses) {
+  const courses = models.courses.filter(course => course_ids.includes(course.id));
+  const pg = new course_scheduler.PeriodGroup(
+    courses.map(course => api.course_object_to_period_group(course, true, accepted_statuses)),
+    'and'
+  );
+  const ev = pg.evaluate();
+  return ev;
+}
