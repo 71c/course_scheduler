@@ -75,7 +75,6 @@ function get_search_results(term) {
 
 function course_object_to_period_group(course, exclude_classes_with_no_days=true, accepted_statuses=['O'], cache=true, give_ids=false) {
     const period_dict = {};
-    console.log("THIS IS THE COURSE", course);
     for (const section of course.sections) {
         if (! exclude_classes_with_no_days || section.periods.length !== 0) {
             const status_ok = accepted_statuses.includes(section.status);
