@@ -180,7 +180,7 @@ print(list(group_v4.evaluate()))
 
 classes_groups_by_course_num = {}
 for c in classes['searchResults']:
-    pg = course_to_period_group(c)
+    pg = course_to_period_group(c, only_consider_open_classes=False)
     course_num = c['course_num']
     if course_num in classes_groups_by_course_num:
         classes_groups_by_course_num[course_num].append(pg)
@@ -189,8 +189,9 @@ for c in classes['searchResults']:
 
 
 # classes = ['COMP-0015', 'ES-0003', 'MATH-0061', 'MATH-0070', 'CHEM-0001']
-classes = ['COMP-0015', 'MATH-0042', 'MATH-0070', 'CHEM-0001', 'CHEM-0012', 'ENG-0001']
-classes = ['COMP-0015', 'MATH-0070', 'MATH-0061', 'ES-0003', 'CHEM-0012']
+# classes = ['COMP-0015', 'MATH-0042', 'MATH-0070', 'CHEM-0001', 'CHEM-0012', 'ENG-0001']
+# classes = ['COMP-0015', 'MATH-0070', 'MATH-0061', 'ES-0003', 'CHEM-0012']
+classes = ['MATH-0032', 'MATH-0034']
 random.shuffle(classes)
 pg = PeriodGroup([classes_groups_by_course_num[x][0] for x in classes], 'and')
 cProfile.run('list(pg.evaluate())', sort='cumulative')
@@ -235,10 +236,13 @@ func7 = lambda x: (len(flatten_list(x)), func2(x), func1(x))
 
 
 possibilities.sort(key=func3)
-best = possibilities[0]
+print(possibilities[0])
+print()
+print(flatten_list(possibilities[0]))
 
-print(best)
-print(func3(best))
+# best = possibilities[0]
+# print(best)
+# print(func3(best))
 
 
 # scores = [func(x) for x in possibilities]

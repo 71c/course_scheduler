@@ -1,5 +1,7 @@
 import numpy as np
 
+weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr']
+
 def get_mean_mad(class_time_list, time_range=None):
     n = len({t.day for t in class_time_list})
     start_and_end_times = []

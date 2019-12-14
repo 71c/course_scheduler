@@ -4,7 +4,7 @@ import numpy as np
 from sklearn import linear_model
 
 
-with open('classes_data/classes Spring 2020.json') as json_file:
+with open('classes_data/classes Spring 2020 2019-12-06.json') as json_file:
     classes = json.load(json_file)
 
 
@@ -120,7 +120,7 @@ def courses_with_most_options():
     indices = list(range(len(classes_names)))
     indices.sort(key=lambda i: ev_lens[i])
     return [(classes_names[i], ev_lens[i]) for i in indices]
-print(courses_with_most_options())
+
 
 def time_evaluation():
     classes_groups_by_course_num = {}
@@ -150,6 +150,7 @@ def time_evaluation():
 
     print(len(schedules))
 
+# print(courses_with_most_options())
 time_evaluation()
 
 

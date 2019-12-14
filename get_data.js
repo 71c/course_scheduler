@@ -77,10 +77,15 @@ function get_and_save_data(term, callback=()=>{}) {
     let courses;
     let long_subject_dict;
     let n = 0;
-    get_classes_data_and_course_subjects('Spring 2020', callback_courses, callback_subjects);
+    get_classes_data_and_course_subjects('Spring 2020', 
+        callback_courses, callback_subjects);
 
     function callback_courses(error, response, body) {
         console.log(time() - t);
+        if (error) {
+            console.log("ERROR:");
+            console.log(error);
+        }
         console.log('got courses!');
         courses = body.searchResults;
         if (++n === 2) when_got_data();
@@ -100,30 +105,27 @@ function get_and_save_data(term, callback=()=>{}) {
         models.courses = [];
         const subject_finder = /^[A-Z]+/;
         for (const course_data of courses) {
-            const course_num = course_data.course_num;
-            const title = course_data.course_title;
-            const desc_long = course_data.desc_long;
-            const subject = subject_finder.exec(course_num)[0];
+            const subject = subject_finder.exec(course_data.course_num)[0];
             const subject_long = long_subject_dict[subject];
-            const course = new models.Course(course_num, subject, subject_long, title, desc_long);
+            const course = new models.Course(course_data.course_num, subject,
+                subject_long, course_data.course_title, course_data.desc_long);
             for (const section of course_data.sections) {
                 const comp_desc = section.comp_desc;
                 for (const component_data of section.components) {
-                    const assoc_class = component_data.assoc_class;
-                    const class_num = component_data.class_num;
-                    const comp_desc_short = component_data.ssr_comp;
-                    const section_num = component_data.section_num;
                     const component_short = component_data.ssr_comp;
-                    const status = component_data.status;
-                    const section = new models.Section(class_num, section_num, assoc_class, comp_desc, component_short, status);
+                    const section = new models.Section(component_data.class_num,
+                        component_data.section_num, component_data.assoc_class,
+                        comp_desc, component_short, component_data.status);
                     for (const location of component_data.locations) {
                         for (const meeting of location.meetings) {
                             for (const day of meeting.days) {
-                                section.add_period(day, meeting.meet_start_min, meeting.meet_end_min);
+                                section.add_period(day, meeting.meet_start_min,
+                                    meeting.meet_end_min);
                             }
                         }
                     }
                     course.add_section(section);
+                    models.sections.push(section);
                 }
             }
             models.courses.push(course);

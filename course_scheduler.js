@@ -1,11 +1,20 @@
+const sections = require('./models').sections;
+
 // I wanted to have id function from python
 // https://stackoverflow.com/a/1997811
 (function() {
     if ( typeof Object.id == "undefined" ) {
         var id = 0;
+        var ids_of_nums = {};
 
         Object.id = function(o) {
-            if ( typeof o.__uniqueid == "undefined" ) {
+            // modified so it can be a number
+            if (typeof o === "number") {
+                if (!(o in ids_of_nums))
+                    ids_of_nums[o] = ++id;
+                return ids_of_nums[o];
+            }
+            if (typeof o.__uniqueid == "undefined") {
                 Object.defineProperty(o, "__uniqueid", {
                     value: ++id,
                     enumerable: false,
@@ -20,14 +29,15 @@
     }
 })();
 
-function get_depth(L) {
-    return Array.isArray(L) ?
-        (L.length === 0 ? 1 : Math.max(...L.map(get_depth)) + 1) :
-        0;
+function getArrayDepth(arr) {
+    return Array.isArray(arr) ? 1 + arr.reduce(function(depthA, b) {
+        var depthB = getArrayDepth(b);
+        return depthA > depthB ? depthA : depthB;
+    }, 0) : 0;
 }
 
 class PeriodGroup {
-    constructor(contents, kind, merge=false, data=null, cache=true) {
+    constructor(contents, kind, merge=false, cache=true, data=null) {
         this.contents = contents
         this.isAnd = kind === 'and' // kind should be either 'and' or 'or'
         this.merge = merge
@@ -65,7 +75,7 @@ class PeriodGroup {
         }
         if (this.merge) {
             for (const r of result) {
-                const depths = r.map(get_depth);
+                const depths = r.map(getArrayDepth);
                 const max_depth = Math.max(...depths);
                 let r_ = [];
                 for (let i = 0; i < r.length; i++) {
@@ -79,25 +89,30 @@ class PeriodGroup {
                 yield r_;
             }
         } else {
-            for (const r of result)
+            for (const r of result) {
                 yield r;
+            }
         }
     }
 
     *chain_contents() {
         for (const it of this.contents) {
-            for (const element of it.evaluate()) {
-                yield element;
+            if (typeof it === "number") {
+                yield it;
+            }
+            else {
+                for (const element of it.evaluate())
+                    yield element;
             }
         }
     }
 
     belongs_to_group(a, rest) {
-        const a_num = Object.id(a)
+        const a_num = Object.id(a);
         if (! (a_num in this.conflict_matrix))
             this.conflict_matrix[a_num] = {}
         for (const u of rest) {
-            const u_num = Object.id(u)
+            const u_num = Object.id(u);
             if (! (u_num in this.conflict_matrix[a_num])) {
                 if (Array.isArray(a)) {
                     this.conflict_matrix[a_num][u_num] = false
@@ -115,9 +130,12 @@ class PeriodGroup {
                         }
                     }
                 } else if (Array.isArray(u)) {
-                    this.conflict_matrix[a_num][u_num] = ! this.belongs_to_group(a, u)
+                    this.conflict_matrix[a_num][u_num] = !this.belongs_to_group(a, u)
                 } else {
-                    this.conflict_matrix[a_num][u_num] = a.intersects(u)
+                    // this.conflict_matrix[a_num][u_num] = a.intersects(u)
+                    this.conflict_matrix[a_num][u_num] = typeof a === "number" ?
+                        sections[a].intersects(sections[u]) :
+                        a.intersects(u)
                 }
             }
             if (this.conflict_matrix[a_num][u_num])

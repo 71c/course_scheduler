@@ -54,10 +54,10 @@
             <div class="row">
                 <div class="col-12">
                     <h1>Course Scheduler</h1>
-                    <form id="update_data">
-                        <!-- https://stackoverflow.com/a/45851915 -->
+                    <!-- <form id="update_data">
                         <button onmousedown="event.preventDefault()" type="submit" class="btn btn-primary btn-sm mb-2">update data</button>
-                    </form>
+                    </form> -->
+                    <button onmousedown="event.preventDefault()" id="update_data" type="submit" class="btn btn-primary btn-sm mb-2">update data</button>
                 </div>
             </div>
             <div class="row">
@@ -65,6 +65,7 @@
                     <form id="search_form" autocomplete="off" class="form-inline mt-2 mt-md-0">
                         <input type="search" class="form-control mr-sm-2" placeholder="Search by course number, subject, or title" id="search_bar" style="width:100%">
                     </form>
+                    <!-- <input type="search" class="form-control mr-sm-2" placeholder="Search by course number, subject, or title" id="search_bar" style="width:100%"> -->
                     <div id="results" class="accordion md-accordion accordion-blocks" role="tablist">
                     </div>
                 </div>
@@ -78,8 +79,6 @@
             </div>
         </div>
 
-        <script src="/socket.io/socket.io.js"></script>
-
         <script
           src="https://code.jquery.com/jquery-3.4.1.min.js"
           integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
@@ -90,17 +89,6 @@
         <script src="https://unpkg.com/popper.js@1.12.6/dist/umd/popper.js" integrity="sha384-fA23ZRQ3G/J53mElWqVJEGJzU0sTs+SvzG8fXVWP+kJQ1lwFAOkcUOysnlKJC33U" crossorigin="anonymous"></script>
         <script src="https://unpkg.com/bootstrap-material-design@4.1.1/dist/js/bootstrap-material-design.js" integrity="sha384-CauSuKpEqAFajSpkdjv3z9t8E7RlpJ1UP0lKM/+NdtSarroVKu069AlsRPKkFBz9" crossorigin="anonymous"></script>
 
-        <!-- MDBootstrap JS -->
-        <!-- JQuery -->
-        <!-- <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script> -->
-        <!-- Bootstrap tooltips -->
-        <!-- <script type="text/javascript" src="js/popper.min.js"></script> -->
-        <!-- Bootstrap core JavaScript -->
-        <!-- <script type="text/javascript" src="js/bootstrap.min.js"></script> -->
-        <!-- MDB core JavaScript -->
-        <!-- <script type="text/javascript" src="js/mdb.min.js"></script> -->
-
         <script type="text/javascript" src="/index.js"></script>
-        <!-- <script type="text/javascript" src="{{ url_for('static', filename='index.js') }}"></script> -->
     </body>
 </html>

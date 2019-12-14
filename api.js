@@ -26,8 +26,6 @@ function get_search_results(term) {
         const after_num = course_num_match[4];
         const course_num = `${subject}-${before_num}${num}${after_num}`;
         const results = get_classes_by_course_num(course_num);
-        console.log(course_num);
-        console.log(results);
         if (results.length !== 0)
             return results;
     }
@@ -45,30 +43,6 @@ function get_search_results(term) {
     const results_sixth = [];
     const results_seventh = [];
     const results_eighth = [];
-    
-    // for (const course of models.courses) {
-    //     if (course.subject_long.toUpperCase() === term) {
-    //         if (course.title.toUpperCase() === term)
-    //             results_first.push(course);
-    //         else if (text_before_or_after.test(course.title))
-    //             results_second.push(course);
-    //         else
-    //             results_fifth.push(course);
-    //     }
-    //     else if (text_before_or_after.test(course.subject_long)) {
-    //         if (course.title.toUpperCase() === term)
-    //             results_third.push(course);
-    //         else if (text_before_or_after.test(course.title))
-    //             results_fourth.push(course);
-    //         else
-    //             results_sixth.push(course);
-    //     } else {
-    //         if (course.title.toUpperCase() === term)
-    //             results_seventh.push(course);
-    //         else if (text_before_or_after.test(course.title))
-    //             results_eighth.push(course);  
-    //     }
-    // }
 
     for (const course of models.courses) {
         if (course.subject_long.toUpperCase() === term) {
@@ -99,11 +73,12 @@ function get_search_results(term) {
     return [];
 }
 
-function course_object_to_period_group(course, exclude_classes_with_no_days=true, accepted_statuses=Set(['O'])) {
-    const period_dict = {}
+function course_object_to_period_group(course, exclude_classes_with_no_days=true, accepted_statuses=['O'], cache=true, give_ids=false) {
+    const period_dict = {};
+    console.log("THIS IS THE COURSE", course);
     for (const section of course.sections) {
         if (! exclude_classes_with_no_days || section.periods.length !== 0) {
-            const status_ok = accepted_statuses.has(section.status);
+            const status_ok = accepted_statuses.includes(section.status);
             const assoc_class = section.assoc_class;
             const component = section.component;
             if (! (assoc_class in period_dict))
@@ -112,7 +87,7 @@ function course_object_to_period_group(course, exclude_classes_with_no_days=true
             else if (! (component in period_dict[assoc_class]))
                 period_dict[assoc_class][component] = [];
             if (status_ok)
-                period_dict[assoc_class][component].push(section);
+                period_dict[assoc_class][component].push(give_ids ? section.id : section);
         }
     }
     let class_components_group_9999 = null
@@ -121,17 +96,18 @@ function course_object_to_period_group(course, exclude_classes_with_no_days=true
         const class_components = []
         const assoc_class_dict = period_dict[key]
         for (const key2 in assoc_class_dict)
-            class_components.push(new course_scheduler.PeriodGroup(assoc_class_dict[key2], 'or'))
-        const class_components_group = new course_scheduler.PeriodGroup(class_components, 'and', true)
+            class_components.push(new course_scheduler.PeriodGroup(assoc_class_dict[key2], 'or', merge=false, cache=false))
+        const class_components_group = new course_scheduler.PeriodGroup(class_components, 'and', merge=true, cache=false)
         if (key === '9999')
             class_components_group_9999 = class_components_group
         else
             assoc_class_period_groups.push(class_components_group)
     }
-    let class_options = new course_scheduler.PeriodGroup(assoc_class_period_groups, 'or')
+    let class_options = new course_scheduler.PeriodGroup(assoc_class_period_groups, 'or', merge=false, cache=false)
     if ('9999' in period_dict)
-        class_options = new course_scheduler.PeriodGroup([class_components_group_9999, class_options], 'and', true)
+        class_options = new course_scheduler.PeriodGroup([class_components_group_9999, class_options], 'and', merge=true, cache=false)
     class_options.data = course.course_num
+    class_options.do_cache = cache;
     return class_options
 }
 
