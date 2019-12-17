@@ -1,5 +1,4 @@
 const sections = require('./models').sections;
-var sort = require('sort');
 
 var weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr'];
 

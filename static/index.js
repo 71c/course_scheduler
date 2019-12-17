@@ -75,16 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
     };
     document.getElementById('create schedule').onsubmit = function() {
-        // $.get('/get_schedules', JSON.stringify(Array.from(my_courses_ids)), function(data) {
-        //     console.log(data);
-        // });
-
-<<<<<<< HEAD
-        $.ajax({
-            url: '/get_schedules',
-            type: 'GET',
-            data: {'ids': Array.from(my_courses_ids)},
-=======
         var accepted_statuses = [];
         for (var status of ['O', 'C', 'W'])
             if (document.getElementById(status).checked)
@@ -96,7 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 ids: Array.from(my_courses_ids),
                 accepted_statuses: accepted_statuses
             },
->>>>>>> implemented partial sorting
             contentType: "application/json",
             complete: function(data) {
                 console.log(data);
