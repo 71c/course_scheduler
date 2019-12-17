@@ -71,9 +71,23 @@
                 </div>
                 <div class="col-4" id="right">
                     <div id="my_courses"></div>
-                    <input type="checkbox" checked data-toggle="toggle">
+
+                    <fieldset>
+                        <input type="checkbox" checked data-toggle="toggle" name="O" id="O">
+                        <label for="O">Include Open Classes</label>
+                        <br>
+
+                        <input type="checkbox" data-toggle="toggle" name="C" id="C">
+                        <label for="C">Include Closed Classes</label>
+                        <br>
+
+                        <input type="checkbox" data-toggle="toggle" name="W" id="W">
+                        <label for="W">Include Waitlist Classes</label>
+
+                    </fieldset>
+
                     <form id="create schedule">
-                        <button class="btn btn-primary" type="submit">Create Schedule</button>
+                        <button class="btn btn-primary" type="submit" onmousedown="event.preventDefault()">Create Schedule</button>
                     </form>
                 </div>
             </div>

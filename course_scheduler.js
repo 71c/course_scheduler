@@ -132,7 +132,6 @@ class PeriodGroup {
                 } else if (Array.isArray(u)) {
                     this.conflict_matrix[a_num][u_num] = !this.belongs_to_group(a, u)
                 } else {
-                    // this.conflict_matrix[a_num][u_num] = a.intersects(u)
                     this.conflict_matrix[a_num][u_num] = typeof a === "number" ?
                         sections[a].intersects(sections[u]) :
                         a.intersects(u)
@@ -142,6 +141,11 @@ class PeriodGroup {
                 return false
         }
         return true
+    }
+
+    belongs_to_group_async(a, rest, callback) {
+        var result = this.belongs_to_group(a, rest);
+        callback(result, a, rest);
     }
 
     belongs_to_group_slow(a, rest) {

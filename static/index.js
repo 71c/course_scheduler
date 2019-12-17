@@ -1,6 +1,3 @@
-function time() {
-    return new Date().getTime();
-}
 const my_courses_ids = new Set();  // set.add(value) set.delete(value) set.has(value)
 const classes_by_id = {};
 
@@ -82,10 +79,24 @@ document.addEventListener('DOMContentLoaded', () => {
         //     console.log(data);
         // });
 
+<<<<<<< HEAD
         $.ajax({
             url: '/get_schedules',
             type: 'GET',
             data: {'ids': Array.from(my_courses_ids)},
+=======
+        var accepted_statuses = [];
+        for (var status of ['O', 'C', 'W'])
+            if (document.getElementById(status).checked)
+                accepted_statuses.push(status);
+        $.ajax({
+            url: '/get_schedules',
+            type: 'GET',
+            data: {
+                ids: Array.from(my_courses_ids),
+                accepted_statuses: accepted_statuses
+            },
+>>>>>>> implemented partial sorting
             contentType: "application/json",
             complete: function(data) {
                 console.log(data);

@@ -37,20 +37,6 @@ function get_course_subjects_url(term, career='ALL') {
     return `${COURSE_SUBJECTS_URL}?term=${get_term_number(term)}&career=${career}`;
 }
 
-function get_classes_data(term, callback) {
-    request.get({
-        headers: {'user-agent': 'node.js'},
-        url: GET_SESSION_URL
-    }, function(error, response, body) {
-        request({
-            headers: {'user-agent': 'node.js'},
-            url: get_search_url(term),
-            header: response.headers,
-            json: true
-        }, callback);
-    });
-}
-
 function get_classes_data_and_course_subjects(term, callback_courses, callback_subjects) {
     request.get({
         headers: {'user-agent': 'node.js'},
@@ -71,20 +57,74 @@ function get_classes_data_and_course_subjects(term, callback_courses, callback_s
     });
 }
 
-function get_and_save_data(term, callback=()=>{}) {
+function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>{}) {
     let t = time();
 
     let courses;
     let long_subject_dict;
     let n = 0;
-    get_classes_data_and_course_subjects('Spring 2020', 
-        callback_courses, callback_subjects);
+    let nTriesCourses = 0;
+    let nTriesSubjects = 0;
+    let nTriesSession = 0;
+    let maxTries = 0;
+    
+    // get_classes_data_and_course_subjects('Spring 2020', 
+    //     callback_courses, callback_subjects);
+
+    get_session();
+
+    function get_session() {
+        request.get({
+            headers: {'user-agent': 'node.js'},
+            url: GET_SESSION_URL
+        }, callback_get_session);
+    }
+
+    function callback_get_session(error, response, body) {
+        if (error) {
+            console.log("ERROR:");
+            console.log(error);
+            if (nTriesSession++ === maxTries) {
+                console.log("Failed to get data :(");
+                callbackFail();
+                return;
+            }
+            get_session();
+            return;
+        }
+        get_courses(response);
+        get_subjects(response);
+    }
+
+    function get_courses(response) {
+        request({
+            headers: {'user-agent': 'node.js'},
+            url: get_search_url(term),
+            header: response.headers,
+            json: true
+        }, callback_courses);
+    }
+    function get_subjects(response) {
+        request({
+            headers: {'user-agent': 'node.js'},
+            url: get_course_subjects_url(term),
+            header: response.headers,
+            json: true
+        }, callback_subjects);
+    }
 
     function callback_courses(error, response, body) {
         console.log(time() - t);
         if (error) {
             console.log("ERROR:");
             console.log(error);
+            if (nTriesCourses++ === maxTries) {
+                console.log("Failed to get data :(");
+                callbackFail();
+                return;
+            }
+            get_courses(response);
+            return;
         }
         console.log('got courses!');
         courses = body.searchResults;
@@ -92,6 +132,17 @@ function get_and_save_data(term, callback=()=>{}) {
     }
     function callback_subjects(error, response, body) {
         console.log(time() - t);
+        if (error) {
+            console.log("ERROR:");
+            console.log(error);
+            if (nTriesSubjects++ === maxTries) {
+                console.log("Failed to get data :(");
+                callbackFail();
+                return;
+            }
+            get_subjects(response);
+            return;
+        }
         console.log('got subjects!');
         long_subject_dict = {};
         body.forEach(function(x) {
@@ -132,7 +183,7 @@ function get_and_save_data(term, callback=()=>{}) {
         }
         console.log(time() - t);
         console.log('done getting data!!!');
-        callback();
+        callbackSuccess();
     }
 }
 
@@ -140,6 +191,3 @@ function get_and_save_data(term, callback=()=>{}) {
 module.exports = {
     get_and_save_data: get_and_save_data
 };
-
-
-

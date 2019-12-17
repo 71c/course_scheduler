@@ -1,4 +1,24 @@
 const sections = require('./models').sections;
+var sort = require('sort');
+
+var weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr'];
+
+function arraySum(arr) {
+    return arr.reduce((a, b) => a + b, 0);
+}
+
+function schedule_to_period_list(schedule) {
+	var periods = [];
+    for (var sectionids_or_sections of schedule) {
+        for (var sectionid_or_section of sectionids_or_sections) {
+            var section_periods = typeof sectionid_or_section === "number" ?
+                sections[sectionid_or_section].periods :
+                sectionid_or_section;
+            periods.push(...section_periods);
+        }
+    }
+    return periods;
+}
 
 function get_mean_mad(schedule, time_range) {
     /*
@@ -44,32 +64,54 @@ function get_mean_mad(schedule, time_range) {
             t_i is the start of an interval of time where the number of days at once (and thus the MAD function) is constant, and
             ∆t_i is the duration of this time interval.
     */
-    // TODO: this is Python code!
 
     // get all periods from schedule
-    for (const coursesections of schedule) {
-        
+    var start_and_end_times = [];
+    const days_set = new Set();
+    for (var sectionids of schedule) {
+        for (var sectionid of sectionids) {
+        	for (var period of sections[sectionid].periods) {
+        		start_and_end_times.append({time: period.start, kind: "start"});
+        		start_and_end_times.append({time: period.end, kind: "end"});
+        		days_set.add(period.day);
+        	}
+        }
     }
-
-    n = len({t.day for t in class_time_list})
-    start_and_end_times = []
-    for class_time in class_time_list:
-        start_and_end_times.push({"time": class_time.start_time, "kind": "start"})
-        start_and_end_times.push({"time": class_time.end_time, "kind": "end"})
-    start_and_end_times.sort(key=lambda x: x["time"])
-    beginning_time = start_and_end_times[0]["time"]
-    current_time = beginning_time
-    n_classes_at_once = 1
-    total_mad = 0
-    for t in start_and_end_times[1:]:
-        new_time = t["time"]
-        dt = new_time - current_time
-        if dt != 0:
-            total_mad += dt * n_classes_at_once * (n - n_classes_at_once)
-            current_time = new_time
-            n_classes_at_once += t.kind === "start" ? 1 : -1
+    // sort times by time
+    start_and_end_times.sort((a, b) => a.time < b.time ? -1 : a.time > b.time ? 1 : 0);
+    // number of days
+    const n = days_set.size;
+    
+    const beginning_time = start_and_end_times[0].time;
+    var current_time = beginning_time;
+    var n_classes_at_once = 1;
+    var total_mad = 0;
+    for (const t of start_and_end_times[1:]) {
+    	const new_time = t.time
+        const dt = new_time - current_time
+        if (dt !== 0) {
+        	total_mad += dt * n_classes_at_once * (n - n_classes_at_once);
+            current_time = new_time;
+            n_classes_at_once += t.kind === "start" ? 1 : -1;
+        }
+    }
     if (time_range === undefined)
-        time_range = current_time - beginning_time
-    total_mad *= 2/n**2 / time_range
-    return total_mad
+        time_range = current_time - beginning_time;
+    total_mad *= 2/n**2 / time_range;
+    return total_mad;
+}
+
+function get_day_class_lengths(class_time_list, normalize=true) {
+    /* returns total number of minutes of class time each day from a schedule,
+    optionally normalized to sum to 1 */
+    var minute_counts = [0, 0, 0, 0, 0];
+    for (const class_time of class_time_list) {
+        const index = weekdays.indexOf(class_time.day);
+        minute_counts[index] += class_time.end_time - class_time.start_time;
+    }
+    if (normalize) {
+        const total_minutes = arraySum(minute_counts);
+        minute_counts = minute_counts.map(minute_count => minute_count / total_minutes);
+    }
+    return minute_counts
 }
