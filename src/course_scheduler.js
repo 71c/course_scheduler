@@ -143,11 +143,6 @@ class PeriodGroup {
         return true
     }
 
-    belongs_to_group_async(a, rest, callback) {
-        var result = this.belongs_to_group(a, rest);
-        callback(result, a, rest);
-    }
-
     belongs_to_group_slow(a, rest) {
         /* This function is never used. It's just for show.
         It is the same as belongs_to_group but without caching so

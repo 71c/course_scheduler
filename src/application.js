@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-app.use(express.static('static'));
+app.use(express.static('dist'));
 const http = require('http').createServer(app);
 
 const assert = require('assert');
@@ -11,7 +11,6 @@ const api = require('./api');
 const get_data = require('./get_data');
 const course_scheduler = require('./course_scheduler');
 const evaluation_timing_test = require('./some_tests').evaluation_timing_test;
-
 
 const {default_compare, basic_compare, PartialSorter} = require('./partial_sort');
 
@@ -29,7 +28,7 @@ function toc(name) {
 
 
 app.get('/', function(req, res) {
-    res.sendFile(__dirname + '/templates/index.html');
+    res.sendFile(__dirname + '/dist/index.html');
 });
 
 app.get('/get_schedules', function(req, res) {

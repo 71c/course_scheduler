@@ -1,4 +1,6 @@
-const my_courses_ids = new Set();  // set.add(value) set.delete(value) set.has(value)
+import 'jquery';
+
+const my_courses_ids = new Set();
 const classes_by_id = {};
 
 function update_courses_display() {
