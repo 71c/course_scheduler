@@ -11,13 +11,14 @@
     "request": "^2.88.0",
     "underscore": "^1.9.1"
   },
-  "main": "course_scheduler.js",
+  "main": "application.js",
   "directories": {
     "test": "test"
   },
-  "devDependencies": {},
-  "scripts": {
+  "devDependencies": {
+    "webpack": "^4.41.3"
   },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/71c/course_scheduler.git"
