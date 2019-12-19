@@ -74,24 +74,73 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         return false;
     };
-    document.getElementById('create schedule').onsubmit = function() {
+    // document.getElementById('create schedule').onsubmit = function() {
+    //     var accepted_statuses = [];
+    //     for (var status of ['O', 'C', 'W'])
+    //         if (document.getElementById(status).checked)
+    //             accepted_statuses.push(status);
+    //     $.ajax({
+    //         url: '/get_schedules',
+    //         type: 'GET',
+    //         data: {
+    //             ids: Array.from(my_courses_ids),
+    //             accepted_statuses: accepted_statuses
+    //         },
+    //         contentType: "application/json",
+    //         complete: function(data) {
+    //             console.log("GOT IT!!!");
+    //             const {n_possibilities, top_schedules, courses} = data.responseJSON;
+    //             const sections_by_id = {};
+    //             courses.forEach(course => {
+    //                 course.sections.forEach(section => {
+    //                     sections_by_id[section.id] = section;
+    //                 });
+    //             });
+    //         }
+    //     });
+    //     return false;
+    // }
+    var scheduleForm = document.getElementById('create schedule');
+    scheduleForm.onsubmit = function() {
+
         var accepted_statuses = [];
         for (var status of ['O', 'C', 'W'])
             if (document.getElementById(status).checked)
                 accepted_statuses.push(status);
-        $.ajax({
-            url: '/get_schedules',
-            type: 'GET',
-            data: {
-                ids: Array.from(my_courses_ids),
-                accepted_statuses: accepted_statuses
-            },
-            contentType: "application/json",
-            complete: function(data) {
-                console.log(data);
-            }
-        })
-        return false;
+        var data = {
+            ids: Array.from(my_courses_ids),
+            accepted_statuses: accepted_statuses
+        };
+
+
+        var input1 = document.createElement("input");
+        input1.type = "hidden";
+        input1.name = "ids";
+        input1.value = JSON.stringify(data.ids);
+
+        var input2 = document.createElement("input");
+        input2.type = "hidden";
+        input2.name = "accepted_statuses";
+        input2.value = JSON.stringify(data.accepted_statuses);
+
+
+        scheduleForm.appendChild(input1);
+        scheduleForm.appendChild(input2);
+
+        // document.getElementById('create schedule').action = "/schedule" + 
+
+        // let urlEncodedData = "",
+        //     urlEncodedDataPairs = [],
+        //     name;
+        // for(name in data)
+        //     urlEncodedDataPairs.push(encodeURIComponent(name) + '=' + encodeURIComponent(data[name]));
+        // urlEncodedData = urlEncodedDataPairs.join('&').replace(/%20/g, '+');
+        // console.log(urlEncodedData);
+        // scheduleForm.action = "" + urlEncodedData;
+        // scheduleForm.action + '?' + urlEncodedData
+
+
+        return true;
     }
 });
 

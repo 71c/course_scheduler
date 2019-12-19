@@ -1,11 +1,13 @@
 const express = require('express');
 const app = express();
 
+// https://www.tiktip.com/a/1/4/15/1
+const mustacheExpress = require('mustache-express');
+app.engine('html', mustacheExpress());
 app.use(express.static('src/public'));
 app.use(express.static('node_modules'));
-
-// app.use(express.static('dist'));
-
+app.set('view engine', 'html');
+app.set('views', 'src/public');
 
 const http = require('http').createServer(app);
 
@@ -20,17 +22,16 @@ const evaluation_timing_test = require('./some_tests').evaluation_timing_test;
 
 const {default_compare, basic_compare, PartialSorter} = require('./partial_sort');
 
-
 const path = require('path');
 
 
-var time = Date.now;
-var startTimes = {};
+const time = Date.now;
+const startTimes = {};
 function tic(name) {
     return startTimes[name] = time();
 }
 function toc(name) {
-    var dt = time() - startTimes[name];
+    const dt = time() - startTimes[name];
     console.log(`${name === undefined ? "" : name + " "}time: ${dt}`);
     return dt;
 }
@@ -41,24 +42,41 @@ app.get('/', function(req, res) {
 });
 
 app.get('/schedule', function(req, res) {
-    res.sendFile(path.resolve(__dirname, 'public/schedule.html'));
+    const ids = JSON.parse(req.query.ids).map(id => parseInt(id, 10));
+    const accepted_statuses = JSON.parse(req.query.accepted_statuses);
+    console.log(ids);
+    console.log(accepted_statuses);
+
+    // TODO: get this from the user
+    const score_function = _ => Math.random();
+    const k = 100;
+    tic('new version');
+    const info = get_top_schedules_list(ids, accepted_statuses, score_function, k);
+    toc('new version');
+    console.log(`n schedules: ${info.n_possibilities}`);
+
+    // res.sendFile(path.resolve(__dirname, 'public/schedule.html'));
+
+    // res.send(info);
+
+    // res.sendFile(path.resolve(__dirname, 'public/schedule.html'));
+    res.render('schedule', {data: JSON.stringify(info)});
 });
 
 app.get('/get_schedules', function(req, res) {
     console.log("Got request to gnerate schedules");
 
     const ids = req.query.ids.map(id => parseInt(id, 10));
-    // TODO: get this from the user
     const accepted_statuses = req.query.accepted_statuses;
-    console.log(accepted_statuses);
     // TODO: get this from the user
     const score_function = _ => Math.random();
     const k = 100;
     tic('new version');
-    const {top_schedules, n_possibilities} = get_top_schedules_list(ids, accepted_statuses, score_function, k);
+    const info = get_top_schedules_list(ids, accepted_statuses, score_function, k);
     toc('new version');
-    console.log(`n schedules: ${n_possibilities}`);
-    res.send({});
+    console.log(`n schedules: ${info.n_possibilities}`);
+    res.send(info);
+    // res.sendFile(path.resolve(__dirname, 'public/schedule.html'));
 });
 
 app.get('/search/:term', function(req, res) {
@@ -107,7 +125,8 @@ function get_top_schedules_list(course_ids, accepted_statuses, score_function, k
     sorter.insertAll(schedules_and_scores);
     return {
         n_possibilities: sorter.numPassed,
-        top_schedules: sorter.getMinArray()
+        top_schedules: sorter.getMinArray(),
+        courses: courses
     };
 }
 
