@@ -31,6 +31,10 @@ app.get('/', function(req, res) {
     res.sendFile(__dirname + '/dist/index.html');
 });
 
+app.get('/schedule', function(req, res) {
+    re.sendFile(__dirname + '/dist/schedule.html');
+})
+
 app.get('/get_schedules', function(req, res) {
     console.log("Got request to gnerate schedules");
 

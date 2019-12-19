@@ -1,0 +1,24 @@
+textarea:hover, 
+input:hover, 
+textarea:active, 
+input:active, 
+textarea:focus, 
+input:focus,
+button:focus,
+button:active,
+button:hover,
+label:focus,
+.btn:active,
+.btn.active
+{
+    box-shadow: none !important;
+}
+
+a {
+    font-size: 14px;
+    margin-top: 7px;
+}
+.card-title {
+    font-size: 19px !important;
+    font-weight: 400!important;
+}

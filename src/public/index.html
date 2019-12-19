@@ -2,57 +2,15 @@
 <html lang="en">
     <head>
         <title>Course Scheduler</title>
-        
         <!-- required meta tags -->
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-        <!-- Bootstrap CSS -->
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
-
-        <!-- Bootstrap Material Design CSS -->
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons">
-        <link rel="stylesheet" href="https://unpkg.com/bootstrap-material-design@4.1.1/dist/css/bootstrap-material-design.min.css" integrity="sha384-wXznGJNEXNG1NFsbm0ugrLFMQPWswR3lds2VeinahP8N0zJw9VWSopbjv2x7WCvX" crossorigin="anonymous">
-
-
-        <style>
-            textarea:hover, 
-            input:hover, 
-            textarea:active, 
-            input:active, 
-            textarea:focus, 
-            input:focus,
-            button:focus,
-            button:active,
-            button:hover,
-            label:focus,
-            .btn:active,
-            .btn.active
-            {
-                /*outline:0px !important;
-                -webkit-appearance:none;*/
-                box-shadow: none !important;
-            }
-
-            a {
-                font-size: 14px;
-                margin-top: 7px;
-            }
-            .card-title {
-                font-size: 19px !important;
-                font-weight: 400!important;
-            }
-        </style>
     </head>
     <body>
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12">
                     <h1>Course Scheduler</h1>
-                    <!-- <form id="update_data">
-                        <button onmousedown="event.preventDefault()" type="submit" class="btn btn-primary btn-sm mb-2">update data</button>
-                    </form> -->
                     <button onmousedown="event.preventDefault()" id="update_data" type="submit" class="btn btn-primary btn-sm mb-2">update data</button>
                 </div>
             </div>
@@ -61,7 +19,6 @@
                     <form id="search_form" autocomplete="off" class="form-inline mt-2 mt-md-0">
                         <input type="search" class="form-control mr-sm-2" placeholder="Search by course number, subject, or title" id="search_bar" style="width:100%">
                     </form>
-                    <!-- <input type="search" class="form-control mr-sm-2" placeholder="Search by course number, subject, or title" id="search_bar" style="width:100%"> -->
                     <div id="results" class="accordion md-accordion accordion-blocks" role="tablist">
                     </div>
                 </div>
@@ -88,17 +45,5 @@
                 </div>
             </div>
         </div>
-
-        <script
-          src="https://code.jquery.com/jquery-3.4.1.min.js"
-          integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-          crossorigin="anonymous"></script>
-
-
-        <!-- Bootstrap Material Design JS -->
-        <script src="https://unpkg.com/popper.js@1.12.6/dist/umd/popper.js" integrity="sha384-fA23ZRQ3G/J53mElWqVJEGJzU0sTs+SvzG8fXVWP+kJQ1lwFAOkcUOysnlKJC33U" crossorigin="anonymous"></script>
-        <script src="https://unpkg.com/bootstrap-material-design@4.1.1/dist/js/bootstrap-material-design.js" integrity="sha384-CauSuKpEqAFajSpkdjv3z9t8E7RlpJ1UP0lKM/+NdtSarroVKu069AlsRPKkFBz9" crossorigin="anonymous"></script>
-
-        <script type="text/javascript" src="/bundle.js"></script>
     </body>
 </html>
