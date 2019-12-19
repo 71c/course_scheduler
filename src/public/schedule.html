@@ -6,6 +6,13 @@
         <!-- required meta tags -->
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <link rel="stylesheet" href="./roboto-css.css">
+        <link rel="stylesheet" href="bootstrap-material-design/dist/css/bootstrap-material-design.min.css">
+        <link rel="stylesheet" href="./main.css">
+
+        <link rel="stylesheet" href="@fullcalendar/core/main.css">
+        <link rel="stylesheet" href="@fullcalendar/timegrid/main.css">
     </head>
     <body>
         <div class="container-fluid">
@@ -13,7 +20,13 @@
                 <div class="col-12">
                     <h1>Course Scheduler</h1>
                 </div>
+                <div id="calendar"></div>
             </div>
         </div>
+        <script type="text/javascript" src="jquery/dist/jquery.min.js"></script>
+        <script type="text/javascript" src="@fullcalendar/core/main.js"></script>
+        <script type="text/javascript" src="@fullcalendar/daygrid/main.js"></script>
+        <script type="text/javascript" src="@fullcalendar/timegrid/main.js"></script>
+        <script type="text/javascript" src="./schedule.js"></script>
     </body>
 </html>

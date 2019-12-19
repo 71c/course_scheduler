@@ -1,6 +1,12 @@
 const express = require('express');
 const app = express();
-app.use(express.static('dist'));
+
+app.use(express.static('src/public'));
+app.use(express.static('node_modules'));
+
+// app.use(express.static('dist'));
+
+
 const http = require('http').createServer(app);
 
 const assert = require('assert');
@@ -13,6 +19,9 @@ const course_scheduler = require('./course_scheduler');
 const evaluation_timing_test = require('./some_tests').evaluation_timing_test;
 
 const {default_compare, basic_compare, PartialSorter} = require('./partial_sort');
+
+
+const path = require('path');
 
 
 var time = Date.now;
@@ -28,12 +37,12 @@ function toc(name) {
 
 
 app.get('/', function(req, res) {
-    res.sendFile(__dirname + '/dist/index.html');
+    res.sendFile(path.resolve(__dirname, 'public/index.html'));
 });
 
 app.get('/schedule', function(req, res) {
-    re.sendFile(__dirname + '/dist/schedule.html');
-})
+    res.sendFile(path.resolve(__dirname, 'public/schedule.html'));
+});
 
 app.get('/get_schedules', function(req, res) {
     console.log("Got request to gnerate schedules");

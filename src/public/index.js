@@ -1,9 +1,3 @@
-import 'bootstrap-material-design/dist/css/bootstrap-material-design.min.css';
-import './roboto-css.css';
-import './main.css';
-
-require.ensure(['jquery'], function() {
-    var {$} = require('jquery');
 const my_courses_ids = new Set();
 const classes_by_id = {};
 
@@ -99,7 +93,5 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         return false;
     }
-});
-
 });
 

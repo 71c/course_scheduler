@@ -3,8 +3,11 @@
   "version": "0.0.1",
   "description": "schedule courses at Tufts with ease",
   "dependencies": {
+    "@fullcalendar/bootstrap": "^4.3.0",
     "@fullcalendar/core": "^4.3.1",
     "@fullcalendar/daygrid": "^4.3.0",
+    "@fullcalendar/list": "^4.3.0",
+    "@fullcalendar/timegrid": "^4.3.0",
     "bootstrap": "^4.4.1",
     "bootstrap-material-design": "^4.1.2",
     "distributions": "^2.1.0",
