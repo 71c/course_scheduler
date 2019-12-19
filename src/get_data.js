@@ -170,7 +170,8 @@ function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>{}) {
                     for (const location of component_data.locations) {
                         for (const meeting of location.meetings) {
                             for (const day of meeting.days) {
-                                section.add_period(day, meeting.meet_start_min,
+                                section.add_period(day,
+                                    meeting.meet_start_min,
                                     meeting.meet_end_min);
                             }
                         }

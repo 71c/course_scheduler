@@ -31,11 +31,11 @@ class Section {
         this.periods = periods;
     }
 
-    add_period(day, start, end) {
+    add_period(day, start_minutes, end_minutes) {
         this.periods.push({
             day: day,
-            start: start,
-            end: end
+            start: start_minutes,
+            end: end_minutes
         });
     }
 

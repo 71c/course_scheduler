@@ -88,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
     //         },
     //         contentType: "application/json",
     //         complete: function(data) {
-    //             console.log("GOT IT!!!");
     //             const {n_possibilities, top_schedules, courses} = data.responseJSON;
     //             const sections_by_id = {};
     //             courses.forEach(course => {
