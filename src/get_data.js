@@ -201,7 +201,7 @@ function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>{}) {
     }
     
     function when_got_data(courses, long_subject_dict) {
-        models.courses = [];
+        models.reset();
         const subject_finder = /^[A-Z]+/;
         for (const course_data of courses) {
             const subject = subject_finder.exec(course_data.course_num)[0];

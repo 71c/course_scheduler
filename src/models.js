@@ -60,8 +60,14 @@ Section.prototype.toString = function sectionToString() {
 }
 
 module.exports = {
-  Course: Course,
-  Section: Section,
-  courses: [],
-  sections: []
+    Course: Course,
+    Section: Section,
+    courses: [],
+    sections: [],
+    reset: function() {
+        this.courses = [];
+        this.sections = [];
+        Course.currId = 0;
+        Section.currId = 0;
+    }
 };

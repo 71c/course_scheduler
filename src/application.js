@@ -134,7 +134,9 @@ function get_top_schedules_list(course_ids, accepted_statuses, score_function, k
 
 function get_schedules(courses, accepted_statuses) {
     const pg = new course_scheduler.PeriodGroup(
-        courses.map(course => api.course_object_to_period_group(course, true, accepted_statuses, cache=false, give_ids=true)),
+        courses.map(course => {
+            return api.course_object_to_period_group(course, true, accepted_statuses, cache=false, give_ids=true)
+        }),
         'and', merge=false, cache=false
     );
     return pg.evaluate();

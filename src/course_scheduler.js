@@ -1,4 +1,4 @@
-const sections = require('./models').sections;
+const models = require('./models');
 
 // I wanted to have id function from python
 // https://stackoverflow.com/a/1997811
@@ -133,7 +133,7 @@ class PeriodGroup {
                     this.conflict_matrix[a_num][u_num] = !this.belongs_to_group(a, u)
                 } else {
                     this.conflict_matrix[a_num][u_num] = typeof a === "number" ?
-                        sections[a].intersects(sections[u]) :
+                        models.sections[a].intersects(models.sections[u]) :
                         a.intersects(u)
                 }
             }
