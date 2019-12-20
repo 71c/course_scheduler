@@ -1,4 +1,5 @@
 const request = require('request').defaults({jar: true});
+const fs = require('fs');
 const models = require('./models');
 
 const GET_SESSION_URL = 'https://sis.uit.tufts.edu/psc/paprd/EMPLOYEE/EMPL/s/WEBLIB_TFP_PG.ISCRIPT2.FieldFormula.IScript_AutoLogOut';
@@ -8,8 +9,26 @@ const COURSE_SUBJECTS_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS
 
 const term_parser = /(spring|summer|fall|spring|annual term) (\d{4})/i;
 
-function time() {
-    return new Date().getTime();
+// whether to cache the data whenever we get it
+const CACHE_DATA = true;
+// whether to use the cached data (assuming it exists) if cannot get data from the web
+const USE_CACHED_DATA_IF_FAIL = true;
+// whether to use the cached data always even if can get data from the web; this is helpful when developing
+const ALWAYS_USE_CACHED_DATA = false;
+
+const COURSES_PATH = 'courses_data/courses.json';
+const SUBJECTS_PATH = 'courses_data/subjects.json';
+
+
+const time = Date.now;
+const startTimes = {};
+function tic(name) {
+    return startTimes[name] = time();
+}
+function toc(name) {
+    const dt = time() - startTimes[name];
+    console.log(`${name === undefined ? "" : name + " "}time: ${dt}`);
+    return dt;
 }
 
 function get_term_number(term) {
@@ -37,28 +56,8 @@ function get_course_subjects_url(term, career='ALL') {
     return `${COURSE_SUBJECTS_URL}?term=${get_term_number(term)}&career=${career}`;
 }
 
-function get_classes_data_and_course_subjects(term, callback_courses, callback_subjects) {
-    request.get({
-        headers: {'user-agent': 'node.js'},
-        url: GET_SESSION_URL
-    }, function(error, response, body) {
-        request({
-            headers: {'user-agent': 'node.js'},
-            url: get_search_url(term),
-            header: response.headers,
-            json: true
-        }, callback_courses);
-        request({
-            headers: {'user-agent': 'node.js'},
-            url: get_course_subjects_url(term),
-            header: response.headers,
-            json: true
-        }, callback_subjects);
-    });
-}
-
-function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>{}) {
-    let t = time();
+function get_classes_data_and_course_subjects(term, callback, callbackFail) {
+    tic();
 
     let courses;
     let long_subject_dict;
@@ -67,9 +66,6 @@ function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>{}) {
     let nTriesSubjects = 0;
     let nTriesSession = 0;
     let maxTries = 0;
-    
-    // get_classes_data_and_course_subjects('Spring 2020', 
-    //     callback_courses, callback_subjects);
 
     get_session();
 
@@ -82,10 +78,8 @@ function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>{}) {
 
     function callback_get_session(error, response, body) {
         if (error) {
-            console.log("ERROR:");
             console.log(error);
             if (nTriesSession++ === maxTries) {
-                console.log("Failed to get data :(");
                 callbackFail();
                 return;
             }
@@ -114,12 +108,10 @@ function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>{}) {
     }
 
     function callback_courses(error, response, body) {
-        console.log(time() - t);
+        toc();
         if (error) {
-            console.log("ERROR:");
             console.log(error);
             if (nTriesCourses++ === maxTries) {
-                console.log("Failed to get data :(");
                 callbackFail();
                 return;
             }
@@ -128,15 +120,13 @@ function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>{}) {
         }
         console.log('got courses!');
         courses = body.searchResults;
-        if (++n === 2) when_got_data();
+        if (++n === 2) callback(courses, long_subject_dict);
     }
     function callback_subjects(error, response, body) {
-        console.log(time() - t);
+        toc();
         if (error) {
-            console.log("ERROR:");
             console.log(error);
             if (nTriesSubjects++ === maxTries) {
-                console.log("Failed to get data :(");
                 callbackFail();
                 return;
             }
@@ -148,11 +138,69 @@ function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>{}) {
         body.forEach(function(x) {
             long_subject_dict[x.value] = x.desc.substring(x.value.length+3);
         });
-        if (++n === 2) when_got_data();
+        if (++n === 2) callback(courses, long_subject_dict);
+    }
+}
+
+function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>{}) {
+    if (ALWAYS_USE_CACHED_DATA) {
+        getCachedData();
+        return;
     }
 
+    get_classes_data_and_course_subjects(term, when_got_data, function() {
+        if (USE_CACHED_DATA_IF_FAIL) {
+            console.log("could not get data online; using cached data")
+            getCachedData();
+        } else {
+            console.log("could not get data online; failed to get data");
+            callbackFail();
+        }
+    });
+
+    function getCachedData() {
+        let n = 0;
+        let failed = false;
+        var coursesData, sectionsData;
+        fs.readFile(COURSES_PATH, function(err, data) {
+            if (err) {
+                if (failed)
+                    return;
+                if (err.code === "ENOENT") {
+                    failed = true;
+                    console.log(err);
+                    console.log(`file ${COURSES_PATH} does not exist. Failed to get data.`);
+                    callbackFail();
+                    return;
+                }
+                else {
+                    throw err;
+                }
+            }
+            coursesData = JSON.parse(data);
+            if (++n === 2) when_got_data(coursesData, sectionsData);
+        });
+        fs.readFile(SUBJECTS_PATH, function(err, data) {
+            if (err) {
+                if (failed)
+                    return;
+                if (err.code === "ENOENT") {
+                    failed = true;
+                    console.log(err);
+                    console.log(`file ${SUBJECTS_PATH} does not exist. Failed to get data.`);
+                    callbackFail();
+                    return;
+                }
+                else {
+                    throw err;
+                }
+            }
+            sectionsData = JSON.parse(data);
+            if (++n === 2) when_got_data(coursesData, sectionsData);
+        });
+    }
     
-    function when_got_data() {
+    function when_got_data(courses, long_subject_dict) {
         models.courses = [];
         const subject_finder = /^[A-Z]+/;
         for (const course_data of courses) {
@@ -182,12 +230,22 @@ function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>{}) {
             }
             models.courses.push(course);
         }
-        console.log(time() - t);
+        toc();
+        if (CACHE_DATA) {
+            let n = 0;
+            fs.writeFile(COURSES_PATH, JSON.stringify(courses), function(err) {
+                if (err) throw err;
+                if (++n === 2) console.log("saved data to disk");
+            });
+            fs.writeFile(SUBJECTS_PATH, JSON.stringify(long_subject_dict), function(err) {
+                if (err) throw err;
+                if (++n === 2) console.log("saved data to disk");
+            });
+        }
         console.log('done getting data!!!');
         callbackSuccess();
     }
 }
-
 
 module.exports = {
     get_and_save_data: get_and_save_data
