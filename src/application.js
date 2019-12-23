@@ -43,7 +43,7 @@ app.get('/', function(req, res) {
 
 app.get('/schedule', function(req, res) {
     if (!/^((\d+-)+\d+|\d*)$/.test(req.query.ids)) {
-        res.send("Wrong format!!!");
+        res.send("Wrong format!");
         return;
     }
     if (req.query.ids.length === 0) {

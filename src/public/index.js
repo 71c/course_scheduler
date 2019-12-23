@@ -137,3 +137,10 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     $("#time_range").text(minutesToTimeString12hr($("#time_range_slider").slider("values", 0)) + " - " + minutesToTimeString12hr($("#time_range_slider").slider("values", 1)))
 });
+
+// https://stackoverflow.com/a/13123626/9911203
+$(window).bind("pageshow", function(event) {
+    if (event.originalEvent.persisted) {
+        window.location.reload() 
+    }
+});

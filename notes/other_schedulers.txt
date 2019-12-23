@@ -1,0 +1,12 @@
+http://siscode.me/
+    https://github.com/abulrim/siscode
+    https://github.com/abulrim/sisparse
+https://mikedombrowski.com/ur/
+    https://github.com/MikeDombo/university-schedule-generator
+http://schedulestorm.com/   -- 
+    https://github.com/Step7750/ScheduleStorm
+    https://github.com/Step7750/ScheduleStorm-Server
+https://github.com/ahoskins/winston
+https://registrar.illinois.edu/registration/registration-process/how-to-use-schedule-generator/
+https://rooster.rug.nl/
+http://mycoursepal.com/rowan/index.php
