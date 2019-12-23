@@ -64,7 +64,7 @@ function get_search_results(term) {
             if (course.title.toUpperCase() === term)
                 results_fifth.push(course);
             else if (text_before_or_after.test(course.title))
-                results_sixth.push(course);  
+                results_sixth.push(course);
         }
     }
 
@@ -117,3 +117,4 @@ module.exports = {
     get_search_results: get_search_results,
     course_object_to_period_group: course_object_to_period_group
 };
+    

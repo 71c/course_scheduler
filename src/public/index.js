@@ -1,11 +1,11 @@
 const my_courses_ids = new Set();
 const classes_by_id = {};
+let minMaxTimes = [450, 1290];
 
 function update_courses_display() {
     const courses_container = document.getElementById("my_courses");
-    while (courses_container.firstChild) {
+    while (courses_container.firstChild)
         courses_container.removeChild(courses_container.firstChild);
-    }
     for (const course_id of my_courses_ids.values()) {
         const course = classes_by_id[course_id];
         const course_element = document.createElement('div');
@@ -14,7 +14,70 @@ function update_courses_display() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+var renderSearchResults = function(res) {
+    const resultsDiv = document.getElementById('results');
+    while (resultsDiv.firstChild)
+        resultsDiv.removeChild(resultsDiv.firstChild);
+    resultsDiv.innerHTML = res.map(
+        // The onmousedown="event.preventDefault()" part prevents the buttons from staying focused https://stackoverflow.com/a/45851915
+        function(course) {
+return`<div class="card">
+    <div class="card-header d-flex py-0" role="tab" id="header${course.id}">
+    <a data-toggle="collapse" class="flex-grow-1 py-2" data-target="#collapser${course.id}" aria-controls="collapser${course.id}" aria-expanded="false">${course.course_num} - ${course.title}</a>
+    <button onmousedown="event.preventDefault()" id="button${course.id}" class="btn btn-primary my-2" type="button" kind="add">Add</button>
+    </div>
+    <div class="collapse" aria-labelledby="header${course.id}" id="collapser${course.id}">
+    <div class="card-body">
+        <!-- <h5 class="card-title">${course.title}</h5> -->
+        <p class="card-text">${course.desc_long?course.desc_long:"[No course description]"}</p>
+    </div>
+    </div>
+    </div>`}).join('');
+
+    res.forEach(function(course) {
+        const course_result = document.getElementById('button'+course.id);
+        if (my_courses_ids.has(course.id)) {
+            course_result.setAttribute("kind", "remove");
+            course_result.innerHTML = "Remove";
+        }
+        classes_by_id[course.id] = course;
+        course_result.addEventListener('click', function() {
+            if (this.getAttribute("kind") === "add") {
+                my_courses_ids.add(course.id);
+                this.setAttribute("kind", "remove");
+                this.innerHTML = "Remove";
+            } else {
+                my_courses_ids.delete(course.id);
+                this.setAttribute("kind", "add");
+                this.innerHTML = "Add";
+            }
+            update_courses_display();
+        });
+    });
+}
+
+var getSearchResults = function() {
+    $.ajax({
+        url: '/search/' + document.getElementById('search_bar').value
+    }).done(renderSearchResults).fail(function(err) {
+      console.log('Error: ' + err.status);
+    });
+    return false;
+}
+
+function minutesToTimeString12hr(minutes) {
+    var minutePart = minutes % 60;
+    var hourPart = Math.floor(minutes / 60) % 24;
+    var amPm = hourPart >= 12 ? "PM" : "AM";
+    hourPart = hourPart % 12;
+    if (hourPart === 0)
+        hourPart = 12;
+    var hourPartString = hourPart.toString();
+    var minutePartString = minutePart > 9 ? minutePart.toString() : "0" + minutePart.toString();
+    return hourPartString + ":" + minutePartString + amPm;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
     console.log('page loaded');
     document.getElementById('update_data').addEventListener('click', function() {
         $.ajax({
@@ -25,121 +88,40 @@ document.addEventListener('DOMContentLoaded', () => {
           console.log('Error: ' + err.status);
         });
     });
-    document.querySelector('#search_form').onsubmit = function() {
-        $.ajax({
-            url: '/search/' + document.getElementById('search_bar').value
-        }).done(function(res) {
-            const resultsDiv = document.getElementById('results');
-            while (resultsDiv.firstChild) {
-                resultsDiv.removeChild(resultsDiv.firstChild);
-            }
-            resultsDiv.innerHTML = res.map(
-                // The onmousedown="event.preventDefault()" part prevents the buttons from staying focused https://stackoverflow.com/a/45851915
-                course =>
-            `<div class="card">
-            <div class="card-header d-flex py-0" role="tab" id="header${course.id}">
-            <a data-toggle="collapse" class="flex-grow-1 py-2" data-target="#collapser${course.id}" aria-controls="collapser${course.id}" aria-expanded="false">${course.course_num} - ${course.title}</a>
-            <button onmousedown="event.preventDefault()" id="button${course.id}" class="btn btn-primary my-2" type="button" kind="add">Add</button>
-            </div>
-            <div class="collapse" aria-labelledby="header${course.id}" id="collapser${course.id}">
-            <div class="card-body">
-                <!-- <h5 class="card-title">${course.title}</h5> -->
-                <p class="card-text">${course.desc_long?course.desc_long:"[No course description]"}</p>
-            </div>
-            </div>
-            </div>`).join('');
-
-            res.forEach(course => {
-                const course_result = document.getElementById('button'+course.id);
-                if (my_courses_ids.has(course.id)) {
-                    course_result.setAttribute("kind", "remove");
-                    course_result.innerHTML = "Remove";
-                }
-                classes_by_id[course.id] = course;
-                course_result.addEventListener('click', function() {
-                    if (this.getAttribute("kind") === "add") {
-                        my_courses_ids.add(course.id);
-                        this.setAttribute("kind", "remove");
-                        this.innerHTML = "Remove";
-                    } else {
-                        my_courses_ids.delete(course.id);
-                        this.setAttribute("kind", "add");
-                        this.innerHTML = "Add";
-                    }
-                    update_courses_display();
-                });
-            });
-        }).fail(function(err) {
-          console.log('Error: ' + err.status);
-        });
-        return false;
-    };
-    // document.getElementById('create schedule').onsubmit = function() {
-    //     var accepted_statuses = [];
-    //     for (var status of ['O', 'C', 'W'])
-    //         if (document.getElementById(status).checked)
-    //             accepted_statuses.push(status);
-    //     $.ajax({
-    //         url: '/get_schedules',
-    //         type: 'GET',
-    //         data: {
-    //             ids: Array.from(my_courses_ids),
-    //             accepted_statuses: accepted_statuses
-    //         },
-    //         contentType: "application/json",
-    //         complete: function(data) {
-    //             const {n_possibilities, top_schedules, courses} = data.responseJSON;
-    //             const sections_by_id = {};
-    //             courses.forEach(course => {
-    //                 course.sections.forEach(section => {
-    //                     sections_by_id[section.id] = section;
-    //                 });
-    //             });
-    //         }
-    //     });
-    //     return false;
-    // }
+    document.querySelector('#search_form').onsubmit = getSearchResults;
     var scheduleForm = document.getElementById('create schedule');
     scheduleForm.onsubmit = function() {
-
         var accepted_statuses = [];
         for (var status of ['O', 'C', 'W'])
             if (document.getElementById(status).checked)
                 accepted_statuses.push(status);
-        var data = {
-            ids: Array.from(my_courses_ids),
-            accepted_statuses: accepted_statuses
-        };
-
 
         var input1 = document.createElement("input");
         input1.type = "hidden";
         input1.name = "ids";
-        input1.value = JSON.stringify(data.ids);
+        input1.value = JSON.stringify(Array.from(my_courses_ids));
 
         var input2 = document.createElement("input");
         input2.type = "hidden";
         input2.name = "accepted_statuses";
-        input2.value = JSON.stringify(data.accepted_statuses);
-
+        input2.value = JSON.stringify(accepted_statuses);
 
         scheduleForm.appendChild(input1);
         scheduleForm.appendChild(input2);
 
-        // document.getElementById('create schedule').action = "/schedule" + 
-
-        // let urlEncodedData = "",
-        //     urlEncodedDataPairs = [],
-        //     name;
-        // for(name in data)
-        //     urlEncodedDataPairs.push(encodeURIComponent(name) + '=' + encodeURIComponent(data[name]));
-        // urlEncodedData = urlEncodedDataPairs.join('&').replace(/%20/g, '+');
-        // console.log(urlEncodedData);
-        // scheduleForm.action = "" + urlEncodedData;
-        // scheduleForm.action + '?' + urlEncodedData
-
-
         return true;
     }
-});
 
+    $("#time_range_slider").slider({
+        range: true,
+        min: minMaxTimes[0],
+        max: minMaxTimes[1],
+        step: 15,
+        values: minMaxTimes,
+        slide: function(event, ui) {
+            $("#time_range").text(minutesToTimeString12hr(ui.values[0]) + " - " + minutesToTimeString12hr(ui.values[1]))
+            minMaxTimes = ui.values;
+        }
+    })
+    $("#time_range").text(minutesToTimeString12hr($("#time_range_slider").slider("values", 0)) + " - " + minutesToTimeString12hr($("#time_range_slider").slider("values", 1)))
+});

@@ -44,8 +44,6 @@ app.get('/', function(req, res) {
 app.get('/schedule', function(req, res) {
     const ids = JSON.parse(req.query.ids).map(id => parseInt(id, 10));
     const accepted_statuses = JSON.parse(req.query.accepted_statuses);
-    console.log(ids);
-    console.log(accepted_statuses);
 
     // TODO: get this from the user
     const score_function = _ => Math.random();
@@ -54,29 +52,7 @@ app.get('/schedule', function(req, res) {
     const info = get_top_schedules_list(ids, accepted_statuses, score_function, k);
     toc('new version');
     console.log(`n schedules: ${info.n_possibilities}`);
-
-    // res.sendFile(path.resolve(__dirname, 'public/schedule.html'));
-
-    // res.send(info);
-
-    // res.sendFile(path.resolve(__dirname, 'public/schedule.html'));
     res.render('schedule', {data: JSON.stringify(info)});
-});
-
-app.get('/get_schedules', function(req, res) {
-    console.log("Got request to gnerate schedules");
-
-    const ids = req.query.ids.map(id => parseInt(id, 10));
-    const accepted_statuses = req.query.accepted_statuses;
-    // TODO: get this from the user
-    const score_function = _ => Math.random();
-    const k = 100;
-    tic('new version');
-    const info = get_top_schedules_list(ids, accepted_statuses, score_function, k);
-    toc('new version');
-    console.log(`n schedules: ${info.n_possibilities}`);
-    res.send(info);
-    // res.sendFile(path.resolve(__dirname, 'public/schedule.html'));
 });
 
 app.get('/search/:term', function(req, res) {

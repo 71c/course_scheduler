@@ -9,6 +9,7 @@
         <link rel="stylesheet" href="./roboto-css.css">
         <link rel="stylesheet" href="bootstrap-material-design/dist/css/bootstrap-material-design.min.css">
         <link rel="stylesheet" href="./main.css">
+        <link rel="stylesheet" href="/jquery-ui.min.css">
     </head>
     <body>
         <div class="container-fluid">
@@ -43,6 +44,9 @@
 
                     </fieldset>
 
+                    <span id="time_range"></span>
+                    <div id="time_range_slider"></div>
+
                     <form id="create schedule" method="GET" action="schedule">
                         <button class="btn btn-primary" type="submit" onmousedown="event.preventDefault()">Create Schedule</button>
                     </form>
@@ -50,6 +54,10 @@
             </div>
         </div>
         <script type="text/javascript" src="jquery/dist/jquery.min.js"></script>
+        <script type="text/javascript" src="popper.js/dist/umd/popper.min.js"></script>
+        <script type="text/javascript" src="bootstrap-material-design/dist/js/bootstrap-material-design.min.js"></script>
+        <script type="text/javascript" src="jquery-ui.min.js"></script>
+
         <script type="text/javascript" src="/index.js"></script>
     </body>
 </html>

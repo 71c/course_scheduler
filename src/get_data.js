@@ -14,7 +14,7 @@ const CACHE_DATA = true;
 // whether to use the cached data (assuming it exists) if cannot get data from the web
 const USE_CACHED_DATA_IF_FAIL = true;
 // whether to use the cached data always even if can get data from the web; this is helpful when developing
-const ALWAYS_USE_CACHED_DATA = false;
+const ALWAYS_USE_CACHED_DATA = true;
 
 const COURSES_PATH = 'courses_data/courses.json';
 const SUBJECTS_PATH = 'courses_data/subjects.json';

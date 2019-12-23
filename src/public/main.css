@@ -22,3 +22,7 @@ a {
     font-size: 19px !important;
     font-weight: 400!important;
 }
+
+.ui-state-focus {
+    outline: none;
+}
