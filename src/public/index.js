@@ -99,15 +99,27 @@ document.addEventListener('DOMContentLoaded', function() {
         var input1 = document.createElement("input");
         input1.type = "hidden";
         input1.name = "ids";
-        input1.value = JSON.stringify(Array.from(my_courses_ids));
+        input1.value = Array.from(my_courses_ids).join("-");
 
         var input2 = document.createElement("input");
         input2.type = "hidden";
         input2.name = "accepted_statuses";
-        input2.value = JSON.stringify(accepted_statuses);
+        input2.value = accepted_statuses.join("");
+
+        var input3 = document.createElement("input");
+        input3.type = "hidden";
+        input3.name = "min_time";
+        input3.value = minMaxTimes[0];
+
+        var input4 = document.createElement("input");
+        input4.type = "hidden";
+        input4.name = "max_time";
+        input4.value = minMaxTimes[1];
 
         scheduleForm.appendChild(input1);
         scheduleForm.appendChild(input2);
+        scheduleForm.appendChild(input3);
+        scheduleForm.appendChild(input4);
 
         return true;
     }

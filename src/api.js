@@ -73,7 +73,15 @@ function get_search_results(term) {
     return [];
 }
 
-function course_object_to_period_group(course, exclude_classes_with_no_days=true, accepted_statuses=['O'], cache=true, give_ids=false) {
+function course_object_to_period_group(course, exclude_classes_with_no_days, accepted_statuses, cache, give_ids, section_accept_function) {
+    /*
+        course: models.Course
+        exclude_classes_with_no_days: boolean
+        accepted_statuses: array of strings, no duplicates, each element can be either 'O', 'C', or 'W'
+        cache: boolean
+        give_ids: boolean
+        section_accept_function: function returning either true or false
+    */
     const period_dict = {};
     for (const section of course.sections) {
         if (! exclude_classes_with_no_days || section.periods.length !== 0) {
@@ -85,7 +93,7 @@ function course_object_to_period_group(course, exclude_classes_with_no_days=true
                 period_dict[assoc_class] = {[component]: []};
             else if (! (component in period_dict[assoc_class]))
                 period_dict[assoc_class][component] = [];
-            if (status_ok)
+            if (status_ok && section_accept_function(section))
                 period_dict[assoc_class][component].push(give_ids ? section.id : section);
         }
     }
@@ -117,4 +125,3 @@ module.exports = {
     get_search_results: get_search_results,
     course_object_to_period_group: course_object_to_period_group
 };
-    

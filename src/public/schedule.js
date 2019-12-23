@@ -28,9 +28,11 @@ var leftButton, rightButton;
 
 const {n_possibilities, top_schedules, courses} = data;
 const sections_by_id = {};
-    for (const course of courses)
-        for (const section of course.sections)
-            sections_by_id[section.id] = section;
+for (const course of courses) {
+    for (const section of course.sections) {
+        sections_by_id[section.id] = section;
+    }
+}
 
 function minutesToTimeString(minutes) {
     var minutePart = minutes % 60;
@@ -86,8 +88,7 @@ function newCalendar(element, events) {
             });
         },
         minTime: "07:00",
-        maxTime: "22:00",
-        contentHeight: 3000,
+        maxTime: "22:00"
     });
 }
 
@@ -127,7 +128,7 @@ function updateButtonsEnabled() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('heading').innerHTML = `${n_possibilities} Schedules Generated`;
+    document.getElementById('heading').innerHTML = `${n_possibilities} Schedule${n_possibilities===1?"":"s"} Generated`;
     if (n_possibilities !== 0) {
         calendarEl = document.getElementById('calendar');
         calendar = newCalendar(calendarEl, []);

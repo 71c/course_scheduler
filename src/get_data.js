@@ -1,3 +1,14 @@
+
+
+
+
+
+// todo
+// https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getCareers?callback=jQuery18206097945204799431_1577067419747&_=1577067420874
+
+
+
+
 const request = require('request').defaults({jar: true});
 const fs = require('fs');
 const models = require('./models');
@@ -18,7 +29,6 @@ const ALWAYS_USE_CACHED_DATA = true;
 
 const COURSES_PATH = 'courses_data/courses.json';
 const SUBJECTS_PATH = 'courses_data/subjects.json';
-
 
 const time = Date.now;
 const startTimes = {};

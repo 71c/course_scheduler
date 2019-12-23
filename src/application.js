@@ -42,15 +42,32 @@ app.get('/', function(req, res) {
 });
 
 app.get('/schedule', function(req, res) {
-    const ids = JSON.parse(req.query.ids).map(id => parseInt(id, 10));
-    const accepted_statuses = JSON.parse(req.query.accepted_statuses);
+    if (!/^((\d+-)+\d+|\d*)$/.test(req.query.ids)) {
+        res.send("Wrong format!!!");
+        return;
+    }
+    if (req.query.ids.length === 0) {
+        res.send("No schedules selected!");
+        return;
+    }
+    const ids = req.query.ids.split("-").map(id => parseInt(id, 10));
+    const accepted_statuses = req.query.accepted_statuses.split("");
+
+    const min_time = req.query.min_time;
+    const max_time = req.query.max_time;
 
     // TODO: get this from the user
     const score_function = _ => Math.random();
     const k = 100;
-    tic('new version');
-    const info = get_top_schedules_list(ids, accepted_statuses, score_function, k);
-    toc('new version');
+    var section_accept_function = function(section) {
+        for (var period of section.periods)
+            if (period.start < min_time || period.end > max_time)
+                return false
+        return true
+    }
+    tic('generate schedules');
+    const info = get_top_schedules_list(ids, accepted_statuses, score_function, k, section_accept_function);
+    toc('generate schedules');
     console.log(`n schedules: ${info.n_possibilities}`);
     res.render('schedule', {data: JSON.stringify(info)});
 });
@@ -82,13 +99,12 @@ http.listen(3000, function() {
     console.log('listening on *:3000');
 });
 
-
-function get_top_schedules_list(course_ids, accepted_statuses, score_function, k) {
+function get_top_schedules_list(course_ids, accepted_statuses, score_function, k, section_accept_function) {
     // array of Course objects
     const courses = course_ids.map(id => models.courses[id]);
     // generator of "schedules" which are represented as a 2D arrays.
     // Each element of a schedule is an array containing the IDs of Sections.
-    const schedules = get_schedules(courses, accepted_statuses);
+    const schedules = get_schedules(courses, accepted_statuses, section_accept_function);
     // generator of objects with schedules and their scores
     const schedules_and_scores = (function* () {
         for (const schedule of schedules) {
@@ -108,10 +124,10 @@ function get_top_schedules_list(course_ids, accepted_statuses, score_function, k
     };
 }
 
-function get_schedules(courses, accepted_statuses) {
+function get_schedules(courses, accepted_statuses, section_accept_function) {
     const pg = new course_scheduler.PeriodGroup(
         courses.map(course => {
-            return api.course_object_to_period_group(course, true, accepted_statuses, cache=false, give_ids=true)
+            return api.course_object_to_period_group(course, true, accepted_statuses, cache=false, give_ids=true, section_accept_function)
         }),
         'and', merge=false, cache=false
     );
