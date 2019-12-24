@@ -10,7 +10,6 @@
 
 
 const request = require('request').defaults({jar: true});
-const rp = require('request-promise-native').defaults({jar: true});
 const fs = require('fs');
 const models = require('./models');
 
@@ -18,7 +17,6 @@ const GET_SESSION_URL = 'https://sis.uit.tufts.edu/psc/paprd/EMPLOYEE/EMPL/s/WEB
 const SEARCH_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getSearchresultsAll3';
 const DETAILS_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getResultsDetails';
 const COURSE_SUBJECTS_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getSubjects';
-const TERMS_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getCareers';
 
 const term_parser = /(spring|summer|fall|spring|annual term) (\d{4})/i;
 
@@ -27,15 +25,10 @@ const CACHE_DATA = true;
 // whether to use the cached data (assuming it exists) if cannot get data from the web
 const USE_CACHED_DATA_IF_FAIL = true;
 // whether to use the cached data always even if can get data from the web; this is helpful when developing
-const ALWAYS_USE_CACHED_DATA = false;
+const ALWAYS_USE_CACHED_DATA = true;
 
 const COURSES_PATH = 'courses_data/courses.json';
 const SUBJECTS_PATH = 'courses_data/subjects.json';
-
-// const get_courses_path = term => `courses_data/courses_${term}.json`;
-// const get_subjects_path = term => `courses_data/subjects_${term}.json`;
-// const TERMS_PATH = 'courses_data/terms.json';
-
 
 const time = Date.now;
 const startTimes = {};
@@ -73,51 +66,99 @@ function get_course_subjects_url(term, career='ALL') {
     return `${COURSE_SUBJECTS_URL}?term=${get_term_number(term)}&career=${career}`;
 }
 
-async function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>{}) {
+function get_classes_data_and_course_subjects(term, callback, callbackFail) {
+    tic();
+
+    let courses;
+    let long_subject_dict;
+    let n = 0;
+    let nTriesCourses = 0;
+    let nTriesSubjects = 0;
+    let nTriesSession = 0;
+    let maxTries = 0;
+
+    get_session();
+
+    function get_session() {
+        request.get({
+            headers: {'user-agent': 'node.js'},
+            url: GET_SESSION_URL
+        }, callback_get_session);
+    }
+
+    function callback_get_session(error, response, body) {
+        if (error) {
+            console.log(error);
+            if (nTriesSession++ === maxTries) {
+                callbackFail();
+                return;
+            }
+            get_session();
+            return;
+        }
+        get_courses(response);
+        get_subjects(response);
+    }
+
+    function get_courses(response) {
+        request({
+            headers: {'user-agent': 'node.js'},
+            url: get_search_url(term),
+            header: response.headers,
+            json: true
+        }, callback_courses);
+    }
+    function get_subjects(response) {
+        request({
+            headers: {'user-agent': 'node.js'},
+            url: get_course_subjects_url(term),
+            header: response.headers,
+            json: true
+        }, callback_subjects);
+    }
+
+    function callback_courses(error, response, body) {
+        toc();
+        if (error) {
+            console.log(error);
+            if (nTriesCourses++ === maxTries) {
+                callbackFail();
+                return;
+            }
+            get_courses(response);
+            return;
+        }
+        console.log('got courses!');
+        courses = body.searchResults;
+        if (++n === 2) callback(courses, long_subject_dict);
+    }
+    function callback_subjects(error, response, body) {
+        toc();
+        if (error) {
+            console.log(error);
+            if (nTriesSubjects++ === maxTries) {
+                callbackFail();
+                return;
+            }
+            get_subjects(response);
+            return;
+        }
+        console.log('got subjects!');
+        long_subject_dict = {};
+        body.forEach(function(x) {
+            long_subject_dict[x.value] = x.desc.substring(x.value.length+3);
+        });
+        if (++n === 2) callback(courses, long_subject_dict);
+    }
+}
+
+function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>{}) {
     if (ALWAYS_USE_CACHED_DATA) {
         getCachedData();
         return;
     }
 
-    tic();
-    let courses;
-    let long_subject_dict;
-    try {
-        let response = await rp.get({
-            headers: {'user-agent': 'node.js'},
-            url: GET_SESSION_URL,
-            resolveWithFullResponse: true
-        });
-
-        await Promise.all([
-            (async function() {
-                let body = await rp({
-                    headers: {'user-agent': 'node.js'},
-                    url: get_search_url(term),
-                    header: response.headers,
-                    json: true
-                });
-                toc();
-                console.log('got courses!');
-                courses = body.searchResults;
-            })(),
-            (async function() {
-                let body = await rp({
-                    headers: {'user-agent': 'node.js'},
-                    url: get_course_subjects_url(term),
-                    header: response.headers,
-                    json: true
-                });
-                toc();
-                console.log('got subjects!');
-                long_subject_dict = {};
-                body.forEach(function(x) {
-                    long_subject_dict[x.value] = x.desc.substring(x.value.length+3);
-                });
-            })()
-        ]);
-    } catch(error) {
-        console.log(error);
+    get_classes_data_and_course_subjects(term, when_got_data, function() {
         if (USE_CACHED_DATA_IF_FAIL) {
             console.log("could not get data online; using cached data")
             getCachedData();
@@ -125,27 +166,48 @@ async function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>
             console.log("could not get data online; failed to get data");
             callbackFail();
         }
-        return;
-    }
-    when_got_data(courses, long_subject_dict);
+    });
 
     function getCachedData() {
-        try {
-            var coursesString = fs.readFileSync(COURSES_PATH);
-            var subjectsString = fs.readFileSync(SUBJECTS_PATH);
-        } catch(err) {
-            if (err.code === "ENOENT") {
-                console.log(err);
-                callbackFail();
-                return;
+        let n = 0;
+        let failed = false;
+        var coursesData, sectionsData;
+        fs.readFile(COURSES_PATH, function(err, data) {
+            if (err) {
+                if (failed)
+                    return;
+                if (err.code === "ENOENT") {
+                    failed = true;
+                    console.log(err);
+                    console.log(`file ${COURSES_PATH} does not exist. Failed to get data.`);
+                    callbackFail();
+                    return;
+                }
+                else {
+                    throw err;
+                }
             }
-            else {
-                throw err;
+            coursesData = JSON.parse(data);
+            if (++n === 2) when_got_data(coursesData, sectionsData);
+        });
+        fs.readFile(SUBJECTS_PATH, function(err, data) {
+            if (err) {
+                if (failed)
+                    return;
+                if (err.code === "ENOENT") {
+                    failed = true;
+                    console.log(err);
+                    console.log(`file ${SUBJECTS_PATH} does not exist. Failed to get data.`);
+                    callbackFail();
+                    return;
+                }
+                else {
+                    throw err;
+                }
             }
-        }
-        var coursesData = JSON.parse(coursesString);
-        var subjectsData = JSON.parse(subjectsString);
-        when_got_data(coursesData, subjectsData);
+            sectionsData = JSON.parse(data);
+            if (++n === 2) when_got_data(coursesData, sectionsData);
+        });
     }
     
     function when_got_data(courses, long_subject_dict) {

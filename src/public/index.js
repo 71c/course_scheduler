@@ -91,6 +91,11 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('#search_form').onsubmit = getSearchResults;
     var scheduleForm = document.getElementById('create schedule');
     scheduleForm.onsubmit = function() {
+        if (my_courses_ids.size === 0) {
+            alert("No schedules selected!");
+            return false;
+        }
+
         var accepted_statuses = [];
         for (var status of ['O', 'C', 'W'])
             if (document.getElementById(status).checked)
@@ -138,6 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
     $("#time_range").text(minutesToTimeString12hr($("#time_range_slider").slider("values", 0)) + " - " + minutesToTimeString12hr($("#time_range_slider").slider("values", 1)))
 });
 
+// this prevents Safari (as well as Firefox at least on Mac) from caching 
 // https://stackoverflow.com/a/13123626/9911203
 $(window).bind("pageshow", function(event) {
     if (event.originalEvent.persisted) {

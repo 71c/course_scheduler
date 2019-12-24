@@ -14,6 +14,7 @@ class Course {
     }
 }
 Course.currId = 0;
+// Course.currIds = {};
 
 Course.prototype.toString = function courseToString() {
   return `<Course ${this.id}>`;
@@ -55,6 +56,7 @@ class Section {
     }
 }
 Section.currId = 0;
+// Section.currIds = {};
 Section.prototype.toString = function sectionToString() {
   return `<Section ${this.id}>`;
 }
@@ -71,3 +73,16 @@ module.exports = {
         Section.currId = 0;
     }
 };
+
+// module.exports = {
+//     Course: Course,
+//     Section: Section,
+//     courses: {},
+//     sections: {},
+//     reset: function(term) {
+//         this.courses[term] = [];
+//         this.sections[term] = [];
+//         Course.currIds[term] = 0;
+//         Section.currIds[term] = 0;
+//     }
+// };
