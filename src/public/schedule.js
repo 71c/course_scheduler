@@ -84,7 +84,7 @@ function newCalendar(element, events) {
             $(info.el).attr({
                 'data-toggle': 'tooltip',
                 'data-placement': 'bottom',
-                'title': `${info.event.extendedProps.course_num}-${info.event.extendedProps.section_num}`
+                'title': info.event.extendedProps.course_title
             });
         },
         minTime: "07:00",
@@ -106,9 +106,10 @@ function setSchedule(element) {tic()
                     const startString = minutesToTimeString(period.start);
                     const endString = minutesToTimeString(period.end);
                     calendar.addEvent({
-                        title: `${current_course.title}  ${current_course.course_num}-${section.section_num}`,
+                        title: `${current_course.course_num}-${section.section_num}`,
                         course_num: current_course.course_num,
                         section_num: section.section_num,
+                        course_title: current_course.title,
                         start: `${date}T${startString}`,
                         end: `${date}T${endString}`,
                         color: colors[i],

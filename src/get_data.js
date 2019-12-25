@@ -27,14 +27,14 @@ const CACHE_DATA = true;
 // whether to use the cached data (assuming it exists) if cannot get data from the web
 const USE_CACHED_DATA_IF_FAIL = true;
 // whether to use the cached data always even if can get data from the web; this is helpful when developing
-const ALWAYS_USE_CACHED_DATA = false;
+const ALWAYS_USE_CACHED_DATA = true;
 
-const COURSES_PATH = 'courses_data/courses.json';
-const SUBJECTS_PATH = 'courses_data/subjects.json';
+// const COURSES_PATH = 'courses_data/courses.json';
+// const SUBJECTS_PATH = 'courses_data/subjects.json';
 
-// const get_courses_path = term => `courses_data/courses_${term}.json`;
-// const get_subjects_path = term => `courses_data/subjects_${term}.json`;
-// const TERMS_PATH = 'courses_data/terms.json';
+const get_courses_path = term => `courses_data/courses_${term}.json`;
+const get_subjects_path = term => `courses_data/subjects_${term}.json`;
+const TERMS_PATH = 'courses_data/terms.json';
 
 
 const time = Date.now;
@@ -131,8 +131,8 @@ async function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>
 
     function getCachedData() {
         try {
-            var coursesString = fs.readFileSync(COURSES_PATH);
-            var subjectsString = fs.readFileSync(SUBJECTS_PATH);
+            var coursesString = fs.readFileSync(get_courses_path(term));
+            var subjectsString = fs.readFileSync(get_subjects_path(term));
         } catch(err) {
             if (err.code === "ENOENT") {
                 console.log(err);
@@ -149,20 +149,20 @@ async function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>
     }
     
     function when_got_data(courses, long_subject_dict) {
-        models.reset();
+        models.reset(term);
         const subject_finder = /^[A-Z]+/;
         for (const course_data of courses) {
             const subject = subject_finder.exec(course_data.course_num)[0];
             const subject_long = long_subject_dict[subject];
             const course = new models.Course(course_data.course_num, subject,
-                subject_long, course_data.course_title, course_data.desc_long);
+                subject_long, course_data.course_title, course_data.desc_long, term);
             for (const section of course_data.sections) {
                 const comp_desc = section.comp_desc;
                 for (const component_data of section.components) {
                     const component_short = component_data.ssr_comp;
                     const section = new models.Section(component_data.class_num,
                         component_data.section_num, component_data.assoc_class,
-                        comp_desc, component_short, component_data.status);
+                        comp_desc, component_short, component_data.status, term);
                     for (const location of component_data.locations) {
                         for (const meeting of location.meetings) {
                             for (const day of meeting.days) {
@@ -173,19 +173,19 @@ async function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>
                         }
                     }
                     course.add_section(section);
-                    models.sections.push(section);
+                    models.sections[term].push(section);
                 }
             }
-            models.courses.push(course);
+            models.courses[term].push(course);
         }
         toc();
         if (CACHE_DATA) {
             let n = 0;
-            fs.writeFile(COURSES_PATH, JSON.stringify(courses), function(err) {
+            fs.writeFile(get_courses_path(term), JSON.stringify(courses), function(err) {
                 if (err) throw err;
                 if (++n === 2) console.log("saved data to disk");
             });
-            fs.writeFile(SUBJECTS_PATH, JSON.stringify(long_subject_dict), function(err) {
+            fs.writeFile(get_subjects_path(term), JSON.stringify(long_subject_dict), function(err) {
                 if (err) throw err;
                 if (++n === 2) console.log("saved data to disk");
             });

@@ -37,7 +37,7 @@ function getArrayDepth(arr) {
 }
 
 class PeriodGroup {
-    constructor(contents, kind, merge=false, cache=true, data=null) {
+    constructor(contents, kind, merge=false, cache=true, data=null, term=null) {
         this.contents = contents
         this.isAnd = kind === 'and' // kind should be either 'and' or 'or'
         this.merge = merge
@@ -45,6 +45,7 @@ class PeriodGroup {
         this.do_cache = cache
         this.cached_eval = null
         this.conflict_matrix = {}
+        this.term = term
     }
 
     evaluate() {
@@ -133,7 +134,7 @@ class PeriodGroup {
                     this.conflict_matrix[a_num][u_num] = !this.belongs_to_group(a, u)
                 } else {
                     this.conflict_matrix[a_num][u_num] = typeof a === "number" ?
-                        models.sections[a].intersects(models.sections[u]) :
+                        models.sections[this.term][a].intersects(models.sections[this.term][u]) :
                         a.intersects(u)
                 }
             }

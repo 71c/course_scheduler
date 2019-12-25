@@ -1,12 +1,15 @@
 const express = require('express');
 const app = express();
 
-// https://www.tiktip.com/a/1/4/15/1
-const mustacheExpress = require('mustache-express');
-app.engine('html', mustacheExpress());
+// // https://www.tiktip.com/a/1/4/15/1
+// const mustacheExpress = require('mustache-express');
+// app.engine('html', mustacheExpress());
+// app.set('view engine', 'html');
+
+app.set('view engine', 'ejs');
+
 app.use(express.static('src/public'));
 app.use(express.static('node_modules'));
-app.set('view engine', 'html');
 app.set('views', 'src/public');
 
 const http = require('http').createServer(app);
@@ -38,7 +41,8 @@ function toc(name) {
 
 
 app.get('/', function(req, res) {
-    res.sendFile(path.resolve(__dirname, 'public/index.html'));
+    // res.sendFile(path.resolve(__dirname, 'public/index.html'));
+    res.render('index', {terms: ['Spring 2020', 'Summer 2020']});
 });
 
 app.get('/schedule', function(req, res) {
@@ -66,7 +70,7 @@ app.get('/schedule', function(req, res) {
         return true
     }
     tic('generate schedules');
-    const info = get_top_schedules_list(ids, accepted_statuses, score_function, k, section_accept_function);
+    const info = get_top_schedules_list(ids, accepted_statuses, score_function, k, section_accept_function, 'Spring 2020');  // FIX !!
     toc('generate schedules');
     console.log(`n schedules: ${info.n_possibilities}`);
     res.render('schedule', {data: JSON.stringify(info)});
@@ -74,7 +78,7 @@ app.get('/schedule', function(req, res) {
 
 app.get('/search/:term', function(req, res) {
     console.log(`search term: ${req.params.term}`);
-    const search_results = api.get_search_results(req.params.term);
+    const search_results = api.get_search_results(req.params.term, 'Spring 2020'); // TODO: fix this !!
     const search_results_json = search_results.map(course => ({
             course_num: course.course_num,
             title: course.title,
@@ -99,12 +103,12 @@ http.listen(3000, function() {
     console.log('listening on *:3000');
 });
 
-function get_top_schedules_list(course_ids, accepted_statuses, score_function, k, section_accept_function) {
+function get_top_schedules_list(course_ids, accepted_statuses, score_function, k, section_accept_function, term) {
     // array of Course objects
-    const courses = course_ids.map(id => models.courses[id]);
+    const courses = course_ids.map(id => models.courses[term][id]);
     // generator of "schedules" which are represented as a 2D arrays.
     // Each element of a schedule is an array containing the IDs of Sections.
-    const schedules = get_schedules(courses, accepted_statuses, section_accept_function);
+    const schedules = get_schedules(courses, accepted_statuses, section_accept_function, term);
     // generator of objects with schedules and their scores
     const schedules_and_scores = (function* () {
         for (const schedule of schedules) {
@@ -124,12 +128,12 @@ function get_top_schedules_list(course_ids, accepted_statuses, score_function, k
     };
 }
 
-function get_schedules(courses, accepted_statuses, section_accept_function) {
+function get_schedules(courses, accepted_statuses, section_accept_function, term) {
     const pg = new course_scheduler.PeriodGroup(
         courses.map(course => {
-            return api.course_object_to_period_group(course, true, accepted_statuses, cache=false, give_ids=true, section_accept_function)
+            return api.course_object_to_period_group(course, true, accepted_statuses, cache=false, give_ids=true, section_accept_function, term)
         }),
-        'and', merge=false, cache=false
+        'and', merge=false, cache=false, null, term
     );
     return pg.evaluate();
 }

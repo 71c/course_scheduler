@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>Course Scheduler</title>
+        <!-- required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <link rel="stylesheet" href="./roboto-css.css">
+        
+        <!-- <link rel="stylesheet" href="bootstrap-material-design/dist/css/bootstrap-material-design.min.css"> -->
+        <link rel="stylesheet" href="bootstrap/dist/css/bootstrap.min.css">
+        <!-- <link rel="stylesheet" href="bootstrap-cerulean.min.css"> -->
+        <!-- <link rel="stylesheet" href="bootstrap-flatly.min.css"> -->
+        <!-- <link rel="stylesheet" href="bootstrap-materia.min.css"> -->
+
+        <link rel="stylesheet" href="./main.css">
+        <link rel="stylesheet" href="/jquery-ui.min.css">
+    </head>
+    <body>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <h1>Course Scheduler</h1>
+                    <button onmousedown="event.preventDefault()" id="update_data" type="submit" class="btn btn-primary btn-sm mb-2">update data</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-8">
+                    <!-- <form id="search_form" autocomplete="off" class="form-inline mt-2 mt-md-0">
+                        <input type="search" class="form-control mr-sm-2" placeholder="Search by course number, subject, or title" id="search_bar" style="width:100%">
+                    </form> -->
+
+                    <div class="input-group">
+                        <input type="search" class="form-control mr-sm-2" placeholder="Search by course number, subject, or title" id="search_bar">
+                        <div class="input-group-append">
+                            <select class="custom-select">
+                                <% terms.forEach(function(term){ %>
+                                    <option value="<%= term %>"><%= term %></option>
+                                <% }); %>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="results" class="accordion md-accordion accordion-blocks" role="tablist">
+                    </div>
+                </div>
+                <div class="col-4" id="right">
+                    <div id="my_courses"></div>
+
+                    <fieldset>
+                        <input type="checkbox" checked data-toggle="toggle" name="O" id="O">
+                        <label for="O">Include Open Classes</label>
+                        <br>
+
+                        <input type="checkbox" data-toggle="toggle" name="C" id="C">
+                        <label for="C">Include Closed Classes</label>
+                        <br>
+
+                        <input type="checkbox" data-toggle="toggle" name="W" id="W">
+                        <label for="W">Include Waitlist Classes</label>
+
+                    </fieldset>
+
+                    <span id="time_range"></span>
+                    <div id="time_range_slider"></div>
+
+                    <form id="create schedule" method="GET" action="schedule">
+                        <button class="btn btn-primary" type="submit" onmousedown="event.preventDefault()">Create Schedule</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript" src="jquery/dist/jquery.min.js"></script>
+        <script type="text/javascript" src="popper.js/dist/umd/popper.min.js"></script>
+        
+        <!-- <script type="text/javascript" src="bootstrap-material-design/dist/js/bootstrap-material-design.min.js"></script> -->
+        <script type="text/javascript" src="bootstrap/dist/js/bootstrap.min.js"></script>
+        
+        <script type="text/javascript" src="jquery-ui.min.js"></script>
+
+        <script type="text/javascript" src="/index.js"></script>
+    </body>
+</html>

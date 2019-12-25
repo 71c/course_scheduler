@@ -1,28 +1,28 @@
 class Course {
-    constructor(course_num, subject, subject_long, title, desc_long) {
-        this.id = Course.currId++;
+    constructor(course_num, subject, subject_long, title, desc_long, term) {
+        this.id = Course.currIds[term]++;
         this.course_num = course_num;
         this.subject = subject;
         this.subject_long = subject_long;
         this.title = title;
         this.desc_long = desc_long;
         this.sections = [];
+        this.term = term;
     }
 
     add_section(section) {
         this.sections.push(section);
     }
 }
-Course.currId = 0;
-// Course.currIds = {};
+Course.currIds = {};
 
 Course.prototype.toString = function courseToString() {
   return `<Course ${this.id}>`;
 }
 
 class Section {
-    constructor(class_num, section_num, assoc_class, component, component_short, status, periods=[]) {
-        this.id = Section.currId++;
+    constructor(class_num, section_num, assoc_class, component, component_short, status, term, periods=[]) {
+        this.id = Section.currIds[term]++;
         this.class_num = class_num;
         this.section_num = section_num;
         this.assoc_class = assoc_class;
@@ -30,6 +30,7 @@ class Section {
         this.component_short = component_short;
         this.status = status;
         this.periods = periods;
+        this.term = term;
     }
 
     add_period(day, start_minutes, end_minutes) {
@@ -55,8 +56,7 @@ class Section {
         return false;
     }
 }
-Section.currId = 0;
-// Section.currIds = {};
+Section.currIds = {};
 Section.prototype.toString = function sectionToString() {
   return `<Section ${this.id}>`;
 }
@@ -64,25 +64,12 @@ Section.prototype.toString = function sectionToString() {
 module.exports = {
     Course: Course,
     Section: Section,
-    courses: [],
-    sections: [],
-    reset: function() {
-        this.courses = [];
-        this.sections = [];
-        Course.currId = 0;
-        Section.currId = 0;
+    courses: {},
+    sections: {},
+    reset: function(term) {
+        this.courses[term] = [];
+        this.sections[term] = [];
+        Course.currIds[term] = 0;
+        Section.currIds[term] = 0;
     }
 };
-
-// module.exports = {
-//     Course: Course,
-//     Section: Section,
-//     courses: {},
-//     sections: {},
-//     reset: function(term) {
-//         this.courses[term] = [];
-//         this.sections[term] = [];
-//         Course.currIds[term] = 0;
-//         Section.currIds[term] = 0;
-//     }
-// };

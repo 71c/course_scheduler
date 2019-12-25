@@ -15,6 +15,8 @@ function update_courses_display() {
 }
 
 var renderSearchResults = function(res) {
+    if (res.length === 0)
+        return;
     const resultsDiv = document.getElementById('results');
     while (resultsDiv.firstChild)
         resultsDiv.removeChild(resultsDiv.firstChild);
@@ -88,7 +90,8 @@ document.addEventListener('DOMContentLoaded', function() {
           console.log('Error: ' + err.status);
         });
     });
-    document.querySelector('#search_form').onsubmit = getSearchResults;
+    // document.querySelector('#search_form').onsubmit = getSearchResults;
+    $("#search_bar").keyup(getSearchResults);
     var scheduleForm = document.getElementById('create schedule');
     scheduleForm.onsubmit = function() {
         if (my_courses_ids.size === 0) {
