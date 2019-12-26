@@ -1,13 +1,3 @@
-
-
-
-
-// todo
-// https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getCareers?callback=jQuery18206097945204799431_1577067419747&_=1577067420874
-
-
-
-
 const request = require('request').defaults({jar: true});
 const rp = require('request-promise-native').defaults({jar: true});
 const fs = require('fs');
@@ -21,20 +11,9 @@ const TERMS_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_
 
 const term_parser = /(spring|summer|fall|spring|annual term) (\d{4})/i;
 
-// whether to cache the data whenever we get it
-// const CACHE_DATA = true;
-// whether to use the cached data (assuming it exists) if cannot get data from the web
-const USE_CACHED_DATA_IF_FAIL = true;
-// whether to use the cached data always even if can get data from the web; this is helpful when developing
-const ALWAYS_USE_CACHED_DATA = false;
-
-// const COURSES_PATH = 'courses_data/courses.json';
-// const SUBJECTS_PATH = 'courses_data/subjects.json';
-
 const get_courses_path = term => `courses_data/courses_${term}.json`;
 const get_subjects_path = term => `courses_data/subjects_${term}.json`;
 const TERMS_PATH = 'courses_data/terms.json';
-
 
 const time = Date.now;
 const startTimes = {};
@@ -212,9 +191,6 @@ function load_course_data(terms, refresh=false, resolve, reject) {
                             }
                             else {
                                 let coursesJson = JSON.parse(coursesString);
-                                if (!Array.isArray(coursesJson)) {
-                                    throw new Error("courses should be array!");
-                                }
                                 console.log(`got data from disk for ${term}...`);
                                 resolve(coursesJson);
                             }
@@ -233,9 +209,6 @@ function load_course_data(terms, refresh=false, resolve, reject) {
                                 } else {
                                     console.log(`got courses data for ${term}`);
                                     const courses = body.searchResults;
-                                    if (!Array.isArray(courses)) {
-                                        throw new Error("courses should be array!");
-                                    }
                                     resolve(courses);
                                     // save the data to disk asynchronously but don't wait until it is saved
                                     fs.writeFile(courses_path, JSON.stringify(courses), err => {
@@ -256,9 +229,6 @@ function load_course_data(terms, refresh=false, resolve, reject) {
                             }
                             else {
                                 let subjectsJson = JSON.parse(subjectsString);
-                                if (Array.isArray(subjectsJson)) {
-                                    throw new Error("subjects should not be array!");
-                                }
                                 resolve(subjectsJson);
                             }
                         });
@@ -278,9 +248,6 @@ function load_course_data(terms, refresh=false, resolve, reject) {
                                     body.forEach(function(x) {
                                         subjects[x.value] = x.desc.substring(x.value.length+3);
                                     });
-                                    if (Array.isArray(subjects)) {
-                                        throw new Error("subjects should not be array!");
-                                    }
                                     resolve(subjects);
                                     // save the data to disk asynchronously but don't wait until it is saved
                                     fs.writeFile(subjects_path, JSON.stringify(subjects), err => {
@@ -295,12 +262,6 @@ function load_course_data(terms, refresh=false, resolve, reject) {
                 all([get_courses, get_subjects], vals => {
                     const courses = vals[0];
                     const subjects = vals[1];
-                    // if (Array.isArray(subjects)) {
-                    //     console.log(subjects);
-                    // }
-                    // if (!Array.isArray(courses)) {
-                    //     console.log(courses);
-                    // }
                     save_data(term, courses, subjects);
                     resolve(term);
                 }, reject);
