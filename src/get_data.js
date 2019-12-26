@@ -2,7 +2,6 @@
 
 
 
-
 // todo
 // https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getCareers?callback=jQuery18206097945204799431_1577067419747&_=1577067420874
 
@@ -73,419 +72,251 @@ function get_course_subjects_url(term, career='ALL') {
     return `${COURSE_SUBJECTS_URL}?term=${get_term_number(term)}&career=${career}`;
 }
 
-// function load_course_data(terms, refresh=false) {
-//     let response;
-//     function get_response_if_first() {
-//         if (response) {
-//             return Promise.resolve('resolve');
-//         } else {
-//             return new Promise((resolve, reject) => {
-//                 rp.get({
-//                     headers: {'user-agent': 'node.js'},
-//                     url: GET_SESSION_URL,
-//                     resolveWithFullResponse: true
-//                 }).then(r => {
-//                     response = r;
-//                     resolve();
-//                 }).catch(err => {
-//                     console.log(err);
-//                     reject();
-//                 });
-//             });
-//         }
-//     }
-
-//     if (fs.existsSync(TERMS_PATH) && !refresh) {
-//         const termsString = fs.readFileSync(TERMS_PATH);
-//         models.term_to_code = JSON.parse(termsString);
-//     } else {
-//         console.log("SECOND");
-
-//         // get terms from web
-//         get_response_if_first().then(() => {
-//             // refresh_terms(response)
-
-//             let body = rp({
-//                 headers: {'user-agent': 'node.js'},
-//                 url: TERMS_URL,
-//                 header: response.headers,
-//                 json: true
-//             });
-//             console.log("got terms");
-
-//             // load terms to memory
-//             for (const career of body) {
-//                 if (career.value === "ALL") {
-//                     for (const term of career.terms) {
-//                         models.term_to_code[term.desc] = term.value;
-//                     }
-//                 }
-//             }
-
-//             // save terms to disk asynchronously
-//             fs.writeFile(TERMS_PATH, JSON.stringify(models.term_to_code), function(err) {
-//                 if (err) {
-//                     throw err;
-//                 }
-//             });
-//         })
-
-//         console.log("THIRD");
-
-//         await refresh_terms(response);
-//         console.log("YEH")
-//     }
-
-
-// }
-
-
-
-
-
-async function get_session() {
-    let response = await rp.get({
-        headers: {'user-agent': 'node.js'},
-        url: GET_SESSION_URL,
-        resolveWithFullResponse: true
-    });
-    return response;
+function save_data(term, courses, long_subject_dict) {
+    // console.log(courses);
+    models.reset(term);
+    const subject_finder = /^[A-Z]+/;
+    for (const course_data of courses) {
+        const subject = subject_finder.exec(course_data.course_num)[0];
+        const subject_long = long_subject_dict[subject];
+        const course = new models.Course(course_data.course_num, subject,
+            subject_long, course_data.course_title, course_data.desc_long, term);
+        for (const section of course_data.sections) {
+            const comp_desc = section.comp_desc;
+            for (const component_data of section.components) {
+                const component_short = component_data.ssr_comp;
+                const section = new models.Section(component_data.class_num,
+                    component_data.section_num, component_data.assoc_class,
+                    comp_desc, component_short, component_data.status, term);
+                for (const location of component_data.locations) {
+                    for (const meeting of location.meetings) {
+                        for (const day of meeting.days) {
+                            section.add_period(day,
+                                meeting.meet_start_min,
+                                meeting.meet_end_min);
+                        }
+                    }
+                }
+                course.add_section(section);
+                models.sections[term].push(section);
+            }
+        }
+        models.courses[term].push(course);
+    }
 }
 
-async function refresh_terms(response) {
+function all(functions, resolve, reject) {
+    /* `functions` is an array; each element is a function of the functions (resolve, reject) */
+    var n = functions.length;
+    var nDone = 0;
+    var vals = [];
+    var done = false;
+    // console.log(`n to do: ${n}`);
+    for (let i = 0; i < functions.length; i++) {
+        const f = functions[i];
+        f(function(thing) {
+            // vals.push(thing);
+            vals[i] = thing;
+            // console.log(`n done: ${nDone}, n to do total: ${n}`)
+            if (++nDone === n) {
+                resolve(vals);
+            }
+        }, function(err) {
+            if (!done) {
+                reject(err);
+                done = true;
+            }
+        });
+    }
+}
+
+function refresh_terms(response, resolve, reject) {
     /* gets, loads, and saves */
-    let body = rp({
+    request({
         headers: {'user-agent': 'node.js'},
         url: TERMS_URL,
         header: response.headers,
         json: true
-    });
-    console.log("got terms");
-
-    // load terms to memory
-    for (const career of body) {
-        if (career.value === "ALL") {
-            for (const term of career.terms) {
-                models.term_to_code[term.desc] = term.value;
-            }
+    }, function(error, res, body) {
+        if (error) {
+            reject(error);
         }
-    }
 
-    // save terms to disk asynchronously
-    fs.writeFile(TERMS_PATH, JSON.stringify(models.term_to_code), function(err) {
-        if (err) {
-            throw err;
-        }
-    });
-}
-
-async function load_all_course_data() {
-    load_course_data();
-}
-
-async function refresh_everything() {
-
-    load_course_data(undefined, true);
-}
-
-async function load_course_data(terms, refresh=false) {
-    let response;
-    async function get_response_if_first() {
-        if (!response) {
-            response = await get_session();
-        }
-    }
-
-    console.log("FIRST ")
-
-    // Load terms into memory from file. If the file does not exist, try to get it from the server, load terms into memory, and save terms
-    // try {
-    //     const termsString = fs.readFileSync(TERMS_PATH);
-    //     models.term_to_code = JSON.parse(termsString);
-    // } catch (err) {
-    //     // if terms file does not exist, get it
-    //     if (err.code === "ENOENT") {
-    //         console.log(`File ${err.path} does not exist; getting from web...`);
-    //         // get terms from web
-    //         await get_response_if_first();
-    //         await refresh_terms(response);
-    //     }
-    //     else {
-    //         throw err;
-    //     }
-    // }
-
-    try {
-        // Load terms into memory from file. If the file does not exist, try to get it from the server, load terms into memory, and save terms
-        if (fs.existsSync(TERMS_PATH) && !refresh) {
-            const termsString = fs.readFileSync(TERMS_PATH);
-            models.term_to_code = JSON.parse(termsString);
-        } else {
-            console.log("SECOND");
-
-            // get terms from web
-            var yoe = await get_response_if_first();
-
-            console.log("THIRD");
-
-            await refresh_terms(response);
-            console.log("YEH")
-        }
-    } catch (err) {
-        console.error(err);
-    }
-    console.log("YOH")
-
-    if (terms === undefined)
-        terms = Object.keys(models.term_to_code);
-
-    const functions_to_execute = terms.map(function(term) {
-        console.log("yuh")
-        return (async function() {
-            const courses_path = get_courses_path(term);
-            const subjects_path = get_subjects_path(term);
-
-            let courses;
-            let subjects = {};
-
-            // function to get courses and set courses variable
-            const get_courses = async function() {
-                if (fs.existsSync(courses_path) && !refresh) {
-                    const coursesString = await fs.promises.readFile(courses_path);
-                    courses = JSON.parse(coursesString);
-                } else {
-                    await get_response_if_first();
-                    const body = await rp({
-                        headers: {'user-agent': 'node.js'},
-                        url: get_search_url(term),
-                        header: response.headers,
-                        json: true
-                    });
-                    console.log(`got courses data for ${term}`)
-                    courses = body.searchResults;
-
-                    // save the data to disk asynchronously but don't wait until it is saved
-                    fs.promises.writeFile(courses_path, JSON.stringify(courses));
+        // load terms to memory
+        for (const career of body) {
+            if (career.value === "ALL") {
+                for (const term of career.terms) {
+                    models.term_to_code[term.desc] = term.value;
                 }
             }
+        }
 
-            // function to get subjects and set subjects variable
-            const get_subjects = async function() {
-                if (fs.existsSync(subjects_path) && !refresh) {
-                    const subjectsString = await fs.promises.readFile(subjects_path);
-                    subjects = JSON.parse(subjectsString);
-                } else {
-                    await get_response_if_first();
-                    const body = await rp({
-                        headers: {'user-agent': 'node.js'},
-                        url: get_course_subjects_url(term),
-                        header: response.headers,
-                        json: true
-                    });
-                    console.log(`got subjects data for ${term}`)
-                    body.forEach(function(x) {
-                        subjects[x.value] = x.desc.substring(x.value.length+3);
-                    });
-
-                    // save the data to disk asynchronously but don't wait until it is saved
-                    fs.promises.writeFile(subjects_path, JSON.stringify(subjects));
-                }
+        // save terms to disk asynchronously
+        fs.writeFile(TERMS_PATH, JSON.stringify(models.term_to_code), function(err) {
+            if (err) {
+                throw err;
             }
-
-            try {
-                // get courses and subjects, wait until we got both
-                await Promise.all([get_courses(), get_subjects()]);
-                // when we got courses and subjects, put the courses in memory in our format
-                save_data_new(term, courses, subjects);
-            } catch (err) {
-                if (err.error.code === "ENOTFOUND") {
-                    console.log("can't get data from internet!");
-                } else {
-                    console.error(err);
-                }
-            }
-        })() // right now, this function has started executing
-    });
-
-    console.log("yooh")
-
-    // wait for them all to finish
-    await Promise.all(functions_to_execute);
-    console.log("actualy done");
-
-}
-
-
-async function get_and_save_data(term, callbackSuccess=()=>{}, callbackFail=()=>{}) {
-    if (ALWAYS_USE_CACHED_DATA) {
-        getCachedData(term, callbackSuccess, callbackFail);
-        return;
-    }
-
-    tic();
-    let courses;
-    let long_subject_dict = {};
-    try {
-        let response = await rp.get({
-            headers: {'user-agent': 'node.js'},
-            url: GET_SESSION_URL,
-            resolveWithFullResponse: true
         });
 
-        await Promise.all([
-            (async function() {
-                let body = await rp({
-                    headers: {'user-agent': 'node.js'},
-                    url: get_search_url(term),
-                    header: response.headers,
-                    json: true
-                });
-                toc();
-                console.log('got courses!');
-                courses = body.searchResults;
-            })(),
-            (async function() {
-                let body = await rp({
-                    headers: {'user-agent': 'node.js'},
-                    url: get_course_subjects_url(term),
-                    header: response.headers,
-                    json: true
-                });
-                toc();
-                console.log('got subjects!');
-                body.forEach(function(x) {
-                    long_subject_dict[x.value] = x.desc.substring(x.value.length+3);
-                });
-            })(),
-            (async function() {
-                let body = await rp({
-                    headers: {'user-agent': 'node.js'},
-                    url: TERMS_URL,
-                    header: response.headers,
-                    json: true
-                });
-                toc();
-                console.log('got terms!');
-                for (const career of body) {
-                    if (career.value === "ALL") {
-                        for (const term of career.terms) {
-                            models.term_number_dict[term.desc] = term.value;
-                        }
-                    }
+        resolve();
+    });
+}
+
+function load_course_data(terms, refresh=false, resolve, reject) {
+    console.log("loading course data.");
+    let response;
+    function get_response_if_first(resolve, reject) {
+        if (!response) {
+            request.get({
+                headers: {'user-agent': 'node.js'},
+                url: GET_SESSION_URL,
+            }, (error, res, body) => {
+                if (error) {
+                    reject(error);
                 }
-            })()
-        ]);
-    } catch(error) {
-        console.log(error);
-        if (USE_CACHED_DATA_IF_FAIL) {
-            console.log("could not get data online; using cached data")
-            getCachedData(term, callbackSuccess, callbackFail);
+                response = res;
+                resolve();
+            })
         } else {
-            console.log("could not get data online; failed to get data");
-            callbackFail();
-        }
-        return;
-    }
-    save_data(term, courses, long_subject_dict, callbackSuccess);
-}
-
-function getCachedData(term, callbackSuccess, callbackFail) {
-    try {
-        var coursesString = fs.readFileSync(get_courses_path(term));
-        var subjectsString = fs.readFileSync(get_subjects_path(term));
-    } catch(err) {
-        if (err.code === "ENOENT") {
-            console.log(err);
-            callbackFail();
-            return;
-        }
-        else {
-            throw err;
+            resolve();
         }
     }
-    var coursesData = JSON.parse(coursesString);
-    var subjectsData = JSON.parse(subjectsString);
-    save_data(term, coursesData, subjectsData, callbackSuccess);
-}
 
-function save_data_new(term, courses, long_subject_dict) {
-    models.reset(term);
-    const subject_finder = /^[A-Z]+/;
-    for (const course_data of courses) {
-        const subject = subject_finder.exec(course_data.course_num)[0];
-        const subject_long = long_subject_dict[subject];
-        const course = new models.Course(course_data.course_num, subject,
-            subject_long, course_data.course_title, course_data.desc_long, term);
-        for (const section of course_data.sections) {
-            const comp_desc = section.comp_desc;
-            for (const component_data of section.components) {
-                const component_short = component_data.ssr_comp;
-                const section = new models.Section(component_data.class_num,
-                    component_data.section_num, component_data.assoc_class,
-                    comp_desc, component_short, component_data.status, term);
-                for (const location of component_data.locations) {
-                    for (const meeting of location.meetings) {
-                        for (const day of meeting.days) {
-                            section.add_period(day,
-                                meeting.meet_start_min,
-                                meeting.meet_end_min);
-                        }
+    if (fs.existsSync(TERMS_PATH) && !refresh) {
+        const termsString = fs.readFileSync(TERMS_PATH);
+        models.term_to_code = JSON.parse(termsString);
+        next();
+    } else {
+        // get terms from web
+        get_response_if_first(() => {
+            refresh_terms(response, next, console.error);
+        }, console.error);
+    }
+
+
+    function next() {
+        if (terms === undefined)
+            terms = Object.keys(models.term_to_code);
+
+        const functions_to_execute = terms.map(function(term) {
+            return function(resolve, reject) {
+                const courses_path = get_courses_path(term);
+                const subjects_path = get_subjects_path(term);
+
+                // function to get courses and set courses variable
+                const get_courses = function(resolve, reject) {
+                    if (fs.existsSync(courses_path) && !refresh) {
+                        fs.readFile(courses_path, (err, coursesString) => {
+                            if (err) {
+                                reject(err);
+                            }
+                            else {
+                                let coursesJson = JSON.parse(coursesString);
+                                if (!Array.isArray(coursesJson)) {
+                                    throw new Error("courses should be array!");
+                                }
+                                console.log(`got data from disk for ${term}...`);
+                                resolve(coursesJson);
+                            }
+                        });
+                    } else {
+                        get_response_if_first(() => {
+                            console.log(`getting data for ${term}`);
+                            request({
+                                headers: {'user-agent': 'node.js'},
+                                url: get_search_url(term),
+                                header: response.headers,
+                                json: true
+                            }, (error, res, body) => {
+                                if (error) {
+                                    reject(error);
+                                } else {
+                                    console.log(`got courses data for ${term}`);
+                                    const courses = body.searchResults;
+                                    if (!Array.isArray(courses)) {
+                                        throw new Error("courses should be array!");
+                                    }
+                                    resolve(courses);
+                                    // save the data to disk asynchronously but don't wait until it is saved
+                                    fs.writeFile(courses_path, JSON.stringify(courses), err => {
+                                        if (err) throw err;
+                                    });
+                                }
+                            });
+                        }, reject);
                     }
                 }
-                course.add_section(section);
-                models.sections[term].push(section);
+
+                // function to get subjects and set subjects variable
+                const get_subjects = function(resolve, reject) {
+                    if (fs.existsSync(subjects_path) && !refresh) {
+                        fs.readFile(subjects_path, (err, subjectsString) => {
+                            if (err) {
+                                reject(err);
+                            }
+                            else {
+                                let subjectsJson = JSON.parse(subjectsString);
+                                if (Array.isArray(subjectsJson)) {
+                                    throw new Error("subjects should not be array!");
+                                }
+                                resolve(subjectsJson);
+                            }
+                        });
+                    } else {
+                        get_response_if_first(() => {
+                            request({
+                                headers: {'user-agent': 'node.js'},
+                                url: get_course_subjects_url(term),
+                                header: response.headers,
+                                json: true
+                            }, (error, res, body) => {
+                                if (error) {
+                                    reject(error);
+                                } else {
+                                    console.log(`got courses data for ${term}`);
+                                    const subjects = {};
+                                    body.forEach(function(x) {
+                                        subjects[x.value] = x.desc.substring(x.value.length+3);
+                                    });
+                                    if (Array.isArray(subjects)) {
+                                        throw new Error("subjects should not be array!");
+                                    }
+                                    resolve(subjects);
+                                    // save the data to disk asynchronously but don't wait until it is saved
+                                    fs.writeFile(subjects_path, JSON.stringify(subjects), err => {
+                                        if (err) throw err;
+                                    });
+                                }
+                            });
+                        }, reject);
+                    }
+                }
+
+                all([get_courses, get_subjects], vals => {
+                    const courses = vals[0];
+                    const subjects = vals[1];
+                    // if (Array.isArray(subjects)) {
+                    //     console.log(subjects);
+                    // }
+                    // if (!Array.isArray(courses)) {
+                    //     console.log(courses);
+                    // }
+                    save_data(term, courses, subjects);
+                    resolve(term);
+                }, reject);
             }
-        }
-        models.courses[term].push(course);
+        });
+        
+        // wait for them all to finish
+        all(functions_to_execute, resolve, reject);
     }
 }
 
-function save_data(term, courses, long_subject_dict, callback) {
-    models.reset(term);
-    const subject_finder = /^[A-Z]+/;
-    for (const course_data of courses) {
-        const subject = subject_finder.exec(course_data.course_num)[0];
-        const subject_long = long_subject_dict[subject];
-        const course = new models.Course(course_data.course_num, subject,
-            subject_long, course_data.course_title, course_data.desc_long, term);
-        for (const section of course_data.sections) {
-            const comp_desc = section.comp_desc;
-            for (const component_data of section.components) {
-                const component_short = component_data.ssr_comp;
-                const section = new models.Section(component_data.class_num,
-                    component_data.section_num, component_data.assoc_class,
-                    comp_desc, component_short, component_data.status, term);
-                for (const location of component_data.locations) {
-                    for (const meeting of location.meetings) {
-                        for (const day of meeting.days) {
-                            section.add_period(day,
-                                meeting.meet_start_min,
-                                meeting.meet_end_min);
-                        }
-                    }
-                }
-                course.add_section(section);
-                models.sections[term].push(section);
-            }
-        }
-        models.courses[term].push(course);
-    }
-
-    let n = 0;
-    fs.writeFile(get_courses_path(term), JSON.stringify(courses), function(err) {
-        if (err) throw err;
-        if (++n === 2) console.log("saved data to disk");
-    });
-    fs.writeFile(get_subjects_path(term), JSON.stringify(long_subject_dict), function(err) {
-        if (err) throw err;
-        if (++n === 2) console.log("saved data to disk");
-    });
-
-    console.log('done getting data!!!');
-    callback();
+function load_all_course_data(resolve, reject) {
+    load_course_data(undefined, false, resolve, reject);
 }
 
 module.exports = {
-    get_and_save_data: get_and_save_data,
-    load_all_course_data: load_all_course_data
+    load_course_data: load_course_data,
+    load_all_course_data: load_all_course_data,
 };

@@ -40,8 +40,8 @@ function toc(name) {
 }
 
 
-const rp = require('request-promise-native').defaults({jar: true});
-var g= 'https://sis.uit.tufts.edu/psc/paprd/EMPLOYEE/EMPL/s/WEBLIB_TFP_PG.ISCRIPT2.FieldFormula.IScript_AutoLogOut';
+// const rp = require('request-promise-native').defaults({jar: true});
+// var g = 'https://sis.uit.tufts.edu/psc/paprd/EMPLOYEE/EMPL/s/WEBLIB_TFP_PG.ISCRIPT2.FieldFormula.IScript_AutoLogOut';
 // rp(g)
 //     .catch(err => {console.log(err)})
 //     .then(ti => {console.log(ti)})
@@ -56,25 +56,14 @@ var g= 'https://sis.uit.tufts.edu/psc/paprd/EMPLOYEE/EMPL/s/WEBLIB_TFP_PG.ISCRIP
 
 
 
-// tic('load the data')
-// get_data.load_all_course_data()
-//     .catch(err => {
-//         console.error(err)
-//     })
-//     .then(() => {
-//         toc('load the data');
-//         console.log("all data loaded");
-//     })
+tic('load the data')
+get_data.load_all_course_data(vals => {
+    toc('load the data');
+    console.log("Hey");
+    console.log(vals);
+}, console.error);
 
-(async function() {
-    try {
-        await get_data.load_all_course_data();
-        console.log("all data loaded");
-    } catch (err) {
-        console.error(err);
-    }
 
-})();
 
 app.get('/', function(req, res) {
     res.render('index', {terms: ['Spring 2020', 'Summer 2020']});
