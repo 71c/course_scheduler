@@ -142,7 +142,6 @@ function refresh_terms(response, resolve, reject) {
 }
 
 function load_course_data(terms, refresh=false, resolve, reject) {
-    console.log("loading course data.");
     let response;
     function get_response_if_first(resolve, reject) {
         if (!response) {
@@ -191,7 +190,6 @@ function load_course_data(terms, refresh=false, resolve, reject) {
                             }
                             else {
                                 let coursesJson = JSON.parse(coursesString);
-                                console.log(`got data from disk for ${term}...`);
                                 resolve(coursesJson);
                             }
                         });
@@ -243,7 +241,7 @@ function load_course_data(terms, refresh=false, resolve, reject) {
                                 if (error) {
                                     reject(error);
                                 } else {
-                                    console.log(`got courses data for ${term}`);
+                                    console.log(`got subjects data for ${term}`);
                                     const subjects = {};
                                     body.forEach(function(x) {
                                         subjects[x.value] = x.desc.substring(x.value.length+3);

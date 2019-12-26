@@ -39,137 +39,122 @@ function toc(name) {
     return dt;
 }
 
-
-// const rp = require('request-promise-native').defaults({jar: true});
-// var g = 'https://sis.uit.tufts.edu/psc/paprd/EMPLOYEE/EMPL/s/WEBLIB_TFP_PG.ISCRIPT2.FieldFormula.IScript_AutoLogOut';
-// rp(g)
-//     .catch(err => {console.log(err)})
-//     .then(ti => {console.log(ti)})
-
-// (async function() {
-//     try {
-//         await rp(g)
-//     } catch (err) {
-//         console.log(err)
-//     }
-// })();
-
-
-
 tic('load the data')
 get_data.load_all_course_data(vals => {
     toc('load the data');
-    console.log("Hey");
+    console.log("Done loading the data");
     console.log(vals);
+    console.log(Object.keys(models.term_to_code));
+    startServer();
 }, console.error);
 
-
-
-app.get('/', function(req, res) {
-    res.render('index', {terms: ['Spring 2020', 'Summer 2020']});
-});
-
-app.get('/schedule', function(req, res) {
-    if (!/^((\d+-)+\d+|\d*)$/.test(req.query.ids)) {
-        res.send("Wrong format!");
-        return;
-    }
-    if (req.query.ids.length === 0) {
-        res.send("No schedules selected!");
-        return;
-    }
-    const ids = req.query.ids.split("-").map(id => parseInt(id, 10));
-    const accepted_statuses = req.query.accepted_statuses.split("");
-
-    const min_time = req.query.min_time;
-    const max_time = req.query.max_time;
-
-    // TODO: get this from the user
-    const score_function = _ => Math.random();
-    const k = 100;
-    var section_accept_function = function(section) {
-        for (var period of section.periods)
-            if (period.start < min_time || period.end > max_time)
-                return false
-        return true
-    }
-    tic('generate schedules');
-    const info = get_top_schedules_list(ids, accepted_statuses, score_function, k, section_accept_function, 'Spring 2020');  // FIX !!
-    toc('generate schedules');
-    console.log(`n schedules: ${info.n_possibilities}`);
-    res.render('schedule', {data: JSON.stringify(info)});
-});
-
-app.get('/search', function(req, res) {
-    console.log(`search term: ${req.query.query}, term: ${req.query.term}`);
-    const search_results = api.get_search_results(req.query.query, req.query.term);
-    const search_results_json = search_results.map(course => ({
-            course_num: course.course_num,
-            title: course.title,
-            desc_long: course.desc_long,
-            id: course.id
-    }));
-    res.send(search_results_json);
-});
-
-// app.get('/search/:term', function(req, res) {
-//     console.log(`search term: ${req.params.term}`);
-//     const search_results = api.get_search_results(req.params.term, 'Spring 2020'); // TODO: fix this !!
-//     const search_results_json = search_results.map(course => ({
-//             course_num: course.course_num,
-//             title: course.title,
-//             desc_long: course.desc_long,
-//             id: course.id
-//     }));
-//     res.send(search_results_json);
-// });
-
-app.get('/updatedata', function(req, res) {
-    console.log('going to update data...');
-    get_data.get_and_save_data('Spring 2020', function() {
-        console.log("success...will send message that data was updated");
-        res.send('updated data');
-    }, function() {
-        console.log("failure...will send message that data was not updated");
-        res.send('failed to update data');
+function startServer() {
+    app.get('/', function(req, res) {
+        res.render('index', {terms: ['Spring 2020', 'Summer 2020']});
     });
-});
 
-http.listen(3000, function() {
-    console.log('listening on *:3000');
-});
-
-function get_top_schedules_list(course_ids, accepted_statuses, score_function, k, section_accept_function, term) {
-    // array of Course objects
-    const courses = course_ids.map(id => models.courses[term][id]);
-    // generator of "schedules" which are represented as a 2D arrays.
-    // Each element of a schedule is an array containing the IDs of Sections.
-    const schedules = get_schedules(courses, accepted_statuses, section_accept_function, term);
-    // generator of objects with schedules and their scores
-    const schedules_and_scores = (function* () {
-        for (const schedule of schedules) {
-            yield {
-                schedule: schedule,
-                score: score_function(schedule)
-            };
+    app.get('/schedule', function(req, res) {
+        if (!/^((\d+-)+\d+|\d*)$/.test(req.query.ids)) {
+            res.send("Wrong format!");
+            return;
         }
-    })();
-    // object that gets the k schedules with the highest scores and sorts them
-    const sorter = new PartialSorter((a, b) => default_compare(b.score, a.score), k);
-    sorter.insertAll(schedules_and_scores);
-    return {
-        n_possibilities: sorter.numPassed,
-        top_schedules: sorter.getMinArray(),
-        courses: courses
-    };
-}
+        if (req.query.ids.length === 0) {
+            res.send("No schedules selected!");
+            return;
+        }
+        const ids = req.query.ids.split("-").map(id => parseInt(id, 10));
+        const accepted_statuses = req.query.accepted_statuses.split("");
 
-function get_schedules(courses, accepted_statuses, section_accept_function, term) {
-    const pg = new course_scheduler.PeriodGroup(
-        courses.map(course => {
-            return api.course_object_to_period_group(course, true, accepted_statuses, cache=false, give_ids=true, section_accept_function, term)
-        }),
-        'and', merge=false, cache=false, null, term
-    );
-    return pg.evaluate();
+        const min_time = req.query.min_time;
+        const max_time = req.query.max_time;
+
+        // TODO: get this from the user
+        const score_function = _ => Math.random();
+        const k = 100;
+        var section_accept_function = function(section) {
+            for (var period of section.periods)
+                if (period.start < min_time || period.end > max_time)
+                    return false
+            return true
+        }
+        tic('generate schedules');
+        const info = get_top_schedules_list(ids, accepted_statuses, score_function, k, section_accept_function, 'Spring 2020');  // FIX !!
+        toc('generate schedules');
+        console.log(`n schedules: ${info.n_possibilities}`);
+        res.render('schedule', {data: JSON.stringify(info)});
+    });
+
+    app.get('/search', function(req, res) {
+        console.log(`search term: ${req.query.query}, term: ${req.query.term}`);
+        const search_results = api.get_search_results(req.query.query, req.query.term);
+        const search_results_json = search_results.map(course => ({
+                course_num: course.course_num,
+                title: course.title,
+                desc_long: course.desc_long,
+                id: course.id
+        }));
+        res.send(search_results_json);
+    });
+
+    // app.get('/search/:term', function(req, res) {
+    //     console.log(`search term: ${req.params.term}`);
+    //     const search_results = api.get_search_results(req.params.term, 'Spring 2020'); // TODO: fix this !!
+    //     const search_results_json = search_results.map(course => ({
+    //             course_num: course.course_num,
+    //             title: course.title,
+    //             desc_long: course.desc_long,
+    //             id: course.id
+    //     }));
+    //     res.send(search_results_json);
+    // });
+
+    app.get('/updatedata', function(req, res) {
+        console.log('going to update data...');
+        get_data.get_and_save_data('Spring 2020', function() {
+            console.log("success...will send message that data was updated");
+            res.send('updated data');
+        }, function() {
+            console.log("failure...will send message that data was not updated");
+            res.send('failed to update data');
+        });
+    });
+
+    http.listen(3000, function() {
+        console.log('listening on *:3000');
+    });
+
+    function get_top_schedules_list(course_ids, accepted_statuses, score_function, k, section_accept_function, term) {
+        // array of Course objects
+        const courses = course_ids.map(id => models.courses[term][id]);
+        // generator of "schedules" which are represented as a 2D arrays.
+        // Each element of a schedule is an array containing the IDs of Sections.
+        const schedules = get_schedules(courses, accepted_statuses, section_accept_function, term);
+        // generator of objects with schedules and their scores
+        const schedules_and_scores = (function* () {
+            for (const schedule of schedules) {
+                yield {
+                    schedule: schedule,
+                    score: score_function(schedule)
+                };
+            }
+        })();
+        // object that gets the k schedules with the highest scores and sorts them
+        const sorter = new PartialSorter((a, b) => default_compare(b.score, a.score), k);
+        sorter.insertAll(schedules_and_scores);
+        return {
+            n_possibilities: sorter.numPassed,
+            top_schedules: sorter.getMinArray(),
+            courses: courses
+        };
+    }
+
+    function get_schedules(courses, accepted_statuses, section_accept_function, term) {
+        const pg = new course_scheduler.PeriodGroup(
+            courses.map(course => {
+                return api.course_object_to_period_group(course, true, accepted_statuses, cache=false, give_ids=true, section_accept_function, term)
+            }),
+            'and', merge=false, cache=false, null, term
+        );
+        return pg.evaluate();
+    }
 }
