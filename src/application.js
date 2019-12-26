@@ -43,14 +43,48 @@ tic('load the data')
 get_data.load_all_course_data(vals => {
     toc('load the data');
     console.log("Done loading the data");
-    console.log(vals);
-    console.log(Object.keys(models.term_to_code));
+
+
+    tic("refresh terms");
+    get_data.refresh_terms(() => {
+        toc("refresh terms");
+    }, console.error);
+
+    tic("get session");
+    get_data.get_response(res => {
+        toc("get session");
+        tic("refresh terms with res");
+        get_data.refresh_terms(() => {
+            toc("refresh terms with res");
+        }, console.error, res);
+    }, console.error);
+
+    console.log(Object.keys(models.courses));
+    console.log(models.courses['Spring 2017']);
+
     startServer();
-}, console.error);
+
+    // console.log("finding duplicate courses...");
+    // for (const term in models.term_to_code) {
+    //     console.log(`${term}:`);
+    //     const course_name_to_count = {};
+    //     for (const course of models.courses[term]) {
+    //         const course_num = course.course_num + course.title;
+    //         if (course_num in course_name_to_count)
+    //             course_name_to_count[course_num] += 1;
+    //         else
+    //             course_name_to_count[course_num] = 1;
+    //     }
+    //     for (const course_num in course_name_to_count) {
+    //         if (course_name_to_count[course_num] > 1)
+    //             console.log(`\t${course_num}`);
+    //     }
+    // }
+}, console.error, true);
 
 function startServer() {
     app.get('/', function(req, res) {
-        res.render('index', {terms: ['Spring 2020', 'Summer 2020']});
+        res.render('index', {terms: Object.keys(models.term_to_code)});
     });
 
     app.get('/schedule', function(req, res) {
@@ -78,7 +112,7 @@ function startServer() {
             return true
         }
         tic('generate schedules');
-        const info = get_top_schedules_list(ids, accepted_statuses, score_function, k, section_accept_function, 'Spring 2020');  // FIX !!
+        const info = get_top_schedules_list(ids, accepted_statuses, score_function, k, section_accept_function, req.query.term);  // FIX !
         toc('generate schedules');
         console.log(`n schedules: ${info.n_possibilities}`);
         res.render('schedule', {data: JSON.stringify(info)});
@@ -95,18 +129,6 @@ function startServer() {
         }));
         res.send(search_results_json);
     });
-
-    // app.get('/search/:term', function(req, res) {
-    //     console.log(`search term: ${req.params.term}`);
-    //     const search_results = api.get_search_results(req.params.term, 'Spring 2020'); // TODO: fix this !!
-    //     const search_results_json = search_results.map(course => ({
-    //             course_num: course.course_num,
-    //             title: course.title,
-    //             desc_long: course.desc_long,
-    //             id: course.id
-    //     }));
-    //     res.send(search_results_json);
-    // });
 
     app.get('/updatedata', function(req, res) {
         console.log('going to update data...');

@@ -1,6 +1,7 @@
 const my_courses_ids = new Set();
 const classes_by_id = {};
 let minMaxTimes = [450, 1290];
+let resultsDiv;
 
 function update_courses_display() {
     const courses_container = document.getElementById("my_courses");
@@ -14,12 +15,15 @@ function update_courses_display() {
     }
 }
 
-var renderSearchResults = function(res) {
-    if (res.length === 0)
-        return;
-    const resultsDiv = document.getElementById('results');
+function clearSearchResults() {
     while (resultsDiv.firstChild)
         resultsDiv.removeChild(resultsDiv.firstChild);
+}
+
+var renderSearchResults = function(res, clearResultsIfNoResults) {
+    if (res.length === 0 && !clearResultsIfNoResults)
+        return;
+    clearSearchResults();
     resultsDiv.innerHTML = res.map(
         // The onmousedown="event.preventDefault()" part prevents the buttons from staying focused https://stackoverflow.com/a/45851915
         function(course) {
@@ -58,13 +62,15 @@ return`<div class="card">
     });
 }
 
-var getSearchResults = function() {
+var getSearchResults = function(clearResultsIfNoResults) {
     var searchTerm = document.getElementById('search_bar').value;
     if (searchTerm.length === 0)
         return;
     $.ajax({
         url: `/search?query=${searchTerm}&term=${document.querySelector(".custom-select").value}`
-    }).done(renderSearchResults).fail(function(err) {
+    }).done(function(res) {
+        renderSearchResults(res, clearResultsIfNoResults);
+    }).fail(function(err) {
       console.log('Error: ' + err.status);
     });
     return false;
@@ -84,6 +90,7 @@ function minutesToTimeString12hr(minutes) {
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('page loaded');
+    resultsDiv = document.getElementById('results');
     document.getElementById('update_data').addEventListener('click', function() {
         $.ajax({
           url: '/updatedata',
@@ -94,7 +101,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     // document.querySelector('#search_form').onsubmit = getSearchResults;
-    $("#search_bar").keyup(getSearchResults);
+    $("#search_bar").keyup(function() {
+        getSearchResults(false);
+    });
+    $('#term-select').change(function() {
+        getSearchResults(true);
+    });
     var scheduleForm = document.getElementById('create schedule');
     scheduleForm.onsubmit = function() {
         if (my_courses_ids.size === 0) {
@@ -127,10 +139,17 @@ document.addEventListener('DOMContentLoaded', function() {
         input4.name = "max_time";
         input4.value = minMaxTimes[1];
 
+        var input5 = document.createElement("input");
+        input5.type = "hidden";
+        input5.name = "term";
+        input5.value = document.querySelector('.custom-select').value;
+
+
         scheduleForm.appendChild(input1);
         scheduleForm.appendChild(input2);
         scheduleForm.appendChild(input3);
         scheduleForm.appendChild(input4);
+        scheduleForm.appendChild(input5);
 
         return true;
     }

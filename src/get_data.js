@@ -109,68 +109,96 @@ function all(functions, resolve, reject) {
     }
 }
 
-function refresh_terms(response, resolve, reject) {
+function refresh_terms(resolve, reject, response) {
     /* gets, loads, and saves */
-    request({
-        headers: {'user-agent': 'node.js'},
-        url: TERMS_URL,
-        header: response.headers,
-        json: true
-    }, function(error, res, body) {
-        if (error) {
-            reject(error);
-        }
 
-        // load terms to memory
-        for (const career of body) {
-            if (career.value === "ALL") {
-                for (const term of career.terms) {
-                    models.term_to_code[term.desc] = term.value;
+    if (response) {
+        next(response);
+    } else {
+        get_response(next, reject);
+    }
+
+    function next(response) {
+        request({
+            headers: {'user-agent': 'node.js'},
+            url: TERMS_URL,
+            header: response.headers,
+            json: true
+        }, function(error, res, body) {
+            if (error) {
+                reject(error);
+            }
+
+            // load terms to memory
+            for (const career of body) {
+                if (career.value === "ALL") {
+                    for (const term of career.terms) {
+                        models.term_to_code[term.desc] = term.value;
+                    }
                 }
             }
-        }
 
-        // save terms to disk asynchronously
-        fs.writeFile(TERMS_PATH, JSON.stringify(models.term_to_code), function(err) {
-            if (err) {
-                throw err;
-            }
+            // save terms to disk asynchronously
+            fs.writeFile(TERMS_PATH, JSON.stringify(models.term_to_code), function(err) {
+                if (err) {
+                    throw err;
+                }
+            });
+
+            resolve();
         });
+    }
+}
 
-        resolve();
+function get_response(resolve, reject) {
+    request.get({
+        headers: {'user-agent': 'node.js'},
+        url: GET_SESSION_URL
+    }, (error, res, body) => {
+        if (error)
+            reject(error);
+        else
+            resolve(res);
     });
 }
 
-function load_course_data(terms, refresh=false, resolve, reject) {
+function load_course_data(terms, resolve, reject, refresh=false, do_refresh_terms=false) {
     let response;
     function get_response_if_first(resolve, reject) {
         if (!response) {
-            request.get({
-                headers: {'user-agent': 'node.js'},
-                url: GET_SESSION_URL,
-            }, (error, res, body) => {
-                if (error) {
-                    reject(error);
-                }
+            get_response(res => {
                 response = res;
                 resolve();
-            })
+            }, reject);
         } else {
             resolve();
         }
     }
 
-    if (fs.existsSync(TERMS_PATH) && !refresh) {
-        const termsString = fs.readFileSync(TERMS_PATH);
-        models.term_to_code = JSON.parse(termsString);
-        next();
-    } else {
-        // get terms from web
+    if (!fs.existsSync(TERMS_PATH)) {
+        // get terms from web because we don't have them
         get_response_if_first(() => {
-            refresh_terms(response, next, console.error);
+            refresh_terms(next, console.error, response);
         }, console.error);
+    } else {
+        if (refresh || do_refresh_terms) {
+            // try to update terms from web as requested
+            get_response_if_first(() => {
+                refresh_terms(next, console.error, response);
+            }, err => {
+                // but if we can't, it's OK because we have them already. get terms from disk
+                console.log("Cannot refresh terms from internet as requested, so loading cached version instead");
+                const termsString = fs.readFileSync(TERMS_PATH);
+                models.term_to_code = JSON.parse(termsString);
+                next();
+            });
+        } else {
+            // get terms from disk
+            const termsString = fs.readFileSync(TERMS_PATH);
+            models.term_to_code = JSON.parse(termsString);
+            next();
+        }
     }
-
 
     function next() {
         if (terms === undefined)
@@ -271,11 +299,13 @@ function load_course_data(terms, refresh=false, resolve, reject) {
     }
 }
 
-function load_all_course_data(resolve, reject) {
-    load_course_data(undefined, false, resolve, reject);
+function load_all_course_data(resolve, reject, do_refresh_terms=false) {
+    load_course_data(undefined, resolve, reject, false, do_refresh_terms);
 }
 
 module.exports = {
-    load_course_data: load_course_data,
-    load_all_course_data: load_all_course_data,
+    load_course_data,
+    load_all_course_data,
+    refresh_terms,
+    get_response,
 };

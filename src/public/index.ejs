@@ -30,7 +30,7 @@
                     <div class="input-group">
                         <input type="text" autocomplete="off" class="form-control mr-sm-2" placeholder="Search by course number, subject, or title" id="search_bar">
                         <div class="input-group-append">
-                            <select class="custom-select">
+                            <select class="custom-select" id="term-select">
                                 <% terms.forEach(function(term){ %>
                                     <option value="<%= term %>"><%= term %></option>
                                 <% }); %>
