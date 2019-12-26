@@ -40,8 +40,43 @@ function toc(name) {
 }
 
 
+const rp = require('request-promise-native').defaults({jar: true});
+var g= 'https://sis.uit.tufts.edu/psc/paprd/EMPLOYEE/EMPL/s/WEBLIB_TFP_PG.ISCRIPT2.FieldFormula.IScript_AutoLogOut';
+// rp(g)
+//     .catch(err => {console.log(err)})
+//     .then(ti => {console.log(ti)})
+
+// (async function() {
+//     try {
+//         await rp(g)
+//     } catch (err) {
+//         console.log(err)
+//     }
+// })();
+
+
+
+// tic('load the data')
+// get_data.load_all_course_data()
+//     .catch(err => {
+//         console.error(err)
+//     })
+//     .then(() => {
+//         toc('load the data');
+//         console.log("all data loaded");
+//     })
+
+(async function() {
+    try {
+        await get_data.load_all_course_data();
+        console.log("all data loaded");
+    } catch (err) {
+        console.error(err);
+    }
+
+})();
+
 app.get('/', function(req, res) {
-    // res.sendFile(path.resolve(__dirname, 'public/index.html'));
     res.render('index', {terms: ['Spring 2020', 'Summer 2020']});
 });
 
@@ -76,9 +111,9 @@ app.get('/schedule', function(req, res) {
     res.render('schedule', {data: JSON.stringify(info)});
 });
 
-app.get('/search/:term', function(req, res) {
-    console.log(`search term: ${req.params.term}`);
-    const search_results = api.get_search_results(req.params.term, 'Spring 2020'); // TODO: fix this !!
+app.get('/search', function(req, res) {
+    console.log(`search term: ${req.query.query}, term: ${req.query.term}`);
+    const search_results = api.get_search_results(req.query.query, req.query.term);
     const search_results_json = search_results.map(course => ({
             course_num: course.course_num,
             title: course.title,
@@ -87,6 +122,18 @@ app.get('/search/:term', function(req, res) {
     }));
     res.send(search_results_json);
 });
+
+// app.get('/search/:term', function(req, res) {
+//     console.log(`search term: ${req.params.term}`);
+//     const search_results = api.get_search_results(req.params.term, 'Spring 2020'); // TODO: fix this !!
+//     const search_results_json = search_results.map(course => ({
+//             course_num: course.course_num,
+//             title: course.title,
+//             desc_long: course.desc_long,
+//             id: course.id
+//     }));
+//     res.send(search_results_json);
+// });
 
 app.get('/updatedata', function(req, res) {
     console.log('going to update data...');

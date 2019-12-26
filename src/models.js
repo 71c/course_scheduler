@@ -66,6 +66,7 @@ module.exports = {
     Section: Section,
     courses: {},
     sections: {},
+    term_to_code: {},
     reset: function(term) {
         this.courses[term] = [];
         this.sections[term] = [];

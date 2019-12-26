@@ -59,8 +59,11 @@ return`<div class="card">
 }
 
 var getSearchResults = function() {
+    var searchTerm = document.getElementById('search_bar').value;
+    if (searchTerm.length === 0)
+        return;
     $.ajax({
-        url: '/search/' + document.getElementById('search_bar').value
+        url: `/search?query=${searchTerm}&term=${document.querySelector(".custom-select").value}`
     }).done(renderSearchResults).fail(function(err) {
       console.log('Error: ' + err.status);
     });
