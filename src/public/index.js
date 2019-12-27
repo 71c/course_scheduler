@@ -113,15 +113,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('page loaded');
     resultsDiv = document.getElementById('results');
-    document.getElementById('update_data').addEventListener('click', function() {
-        $.ajax({
-          url: '/updatedata',
-        }).done(function(res) {
-          console.log(res);
-        }).fail(function(err) {
-          console.log('Error: ' + err.status);
-        });
-    });
     // document.querySelector('#search_form').onsubmit = getSearchResults;
     $("#search_bar").keyup(function() {
         getSearchResults(false);

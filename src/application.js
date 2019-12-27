@@ -118,17 +118,6 @@ function startServer() {
         res.send(search_results_json);
     });
 
-    app.get('/updatedata', function(req, res) {
-        console.log('going to update data...');
-        get_data.get_and_save_data('Spring 2020', function() {
-            console.log("success...will send message that data was updated");
-            res.send('updated data');
-        }, function() {
-            console.log("failure...will send message that data was not updated");
-            res.send('failed to update data');
-        });
-    });
-
     http.listen(3000, function() {
         console.log('listening on *:3000');
     });

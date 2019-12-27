@@ -110,10 +110,6 @@ function all(functions, resolve, reject) {
     }
 }
 
-function make_courses_data_folder() {
-
-}
-
 function refresh_terms(resolve, reject, response) {
     /* gets, loads, and saves */
 
