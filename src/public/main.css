@@ -18,8 +18,7 @@ select
 }
 
 a {
-    font-size: 14px;
-    margin-top: 7px;
+    margin-top: 7.5px; /* 15px / 2 = 7.5px */
 }
 .card-title {
     font-size: 19px !important;
@@ -34,8 +33,6 @@ a {
     width: 100%;
 }
 
-#left {
-    /*padding: 1rem;*/
-    /*border: solid #f8f9fa;*/
-    /*background-color: #f8f8f8;*/
+* {
+    font-size: 15px;
 }
