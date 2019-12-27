@@ -89,6 +89,28 @@ function minutesToTimeString12hr(minutes) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+
+    $("#time_range_slider").slider({
+        range: true,
+        min: minMaxTimes[0],
+        max: minMaxTimes[1],
+        step: 15,
+        values: minMaxTimes,
+        slide: function(event, ui) {
+            $("#time_range").text(minutesToTimeString12hr(ui.values[0]) + " - " + minutesToTimeString12hr(ui.values[1]))
+            minMaxTimes = ui.values;
+        }
+    })
+    $("#time_range").text(minutesToTimeString12hr($("#time_range_slider").slider("values", 0)) + " - " + minutesToTimeString12hr($("#time_range_slider").slider("values", 1)));
+
+    for (const id of ["#mornings-slider", "#nights-slider", "#consecutive-classes-slider"]) {
+        $(id).slider({
+            min: -100,
+            max: 100,
+            value: 0
+        });
+    }
+
     console.log('page loaded');
     resultsDiv = document.getElementById('results');
     document.getElementById('update_data').addEventListener('click', function() {
@@ -153,20 +175,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         return true;
     }
-
-    $("#time_range_slider").slider({
-        range: true,
-        min: minMaxTimes[0],
-        max: minMaxTimes[1],
-        step: 15,
-        values: minMaxTimes,
-        slide: function(event, ui) {
-            $("#time_range").text(minutesToTimeString12hr(ui.values[0]) + " - " + minutesToTimeString12hr(ui.values[1]))
-            minMaxTimes = ui.values;
-        }
-    })
-    $("#time_range").text(minutesToTimeString12hr($("#time_range_slider").slider("values", 0)) + " - " + minutesToTimeString12hr($("#time_range_slider").slider("values", 1)))
 });
+
+document.documentElement.style.display = 'block';
 
 // this prevents Safari (as well as Firefox at least on Mac) from caching 
 // https://stackoverflow.com/a/13123626/9911203

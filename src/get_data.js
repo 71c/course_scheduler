@@ -11,9 +11,14 @@ const TERMS_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_
 
 const term_parser = /(spring|summer|fall|spring|annual term) (\d{4})/i;
 
-const get_courses_path = term => `courses_data/courses_${term}.json`;
-const get_subjects_path = term => `courses_data/subjects_${term}.json`;
-const TERMS_PATH = 'courses_data/terms.json';
+const COURSES_DATA_DIR = 'courses_data';
+const get_courses_path = term => `${COURSES_DATA_DIR}/courses_${term}.json`;
+const get_subjects_path = term => `${COURSES_DATA_DIR}/subjects_${term}.json`;
+const TERMS_PATH = `${COURSES_DATA_DIR}/terms.json`;
+
+if (!fs.existsSync(COURSES_DATA_DIR)) {
+    fs.mkdirSync(COURSES_DATA_DIR);
+}
 
 const time = Date.now;
 const startTimes = {};
@@ -52,7 +57,6 @@ function get_course_subjects_url(term, career='ALL') {
 }
 
 function save_data(term, courses, long_subject_dict) {
-    // console.log(courses);
     models.reset(term);
     const subject_finder = /^[A-Z]+/;
     for (const course_data of courses) {
@@ -90,13 +94,10 @@ function all(functions, resolve, reject) {
     var nDone = 0;
     var vals = [];
     var done = false;
-    // console.log(`n to do: ${n}`);
     for (let i = 0; i < functions.length; i++) {
         const f = functions[i];
         f(function(thing) {
-            // vals.push(thing);
             vals[i] = thing;
-            // console.log(`n done: ${nDone}, n to do total: ${n}`)
             if (++nDone === n) {
                 resolve(vals);
             }
@@ -107,6 +108,10 @@ function all(functions, resolve, reject) {
             }
         });
     }
+}
+
+function make_courses_data_folder() {
+
 }
 
 function refresh_terms(resolve, reject, response) {
@@ -223,7 +228,6 @@ function load_course_data(terms, resolve, reject, refresh=false, do_refresh_term
                         });
                     } else {
                         get_response_if_first(() => {
-                            console.log(`getting data for ${term}`);
                             request({
                                 headers: {'user-agent': 'node.js'},
                                 url: get_search_url(term),
@@ -233,7 +237,6 @@ function load_course_data(terms, resolve, reject, refresh=false, do_refresh_term
                                 if (error) {
                                     reject(error);
                                 } else {
-                                    console.log(`got courses data for ${term}`);
                                     const courses = body.searchResults;
                                     resolve(courses);
                                     // save the data to disk asynchronously but don't wait until it is saved
@@ -269,7 +272,6 @@ function load_course_data(terms, resolve, reject, refresh=false, do_refresh_term
                                 if (error) {
                                     reject(error);
                                 } else {
-                                    console.log(`got subjects data for ${term}`);
                                     const subjects = {};
                                     body.forEach(function(x) {
                                         subjects[x.value] = x.desc.substring(x.value.length+3);

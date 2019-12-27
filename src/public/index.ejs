@@ -15,7 +15,17 @@
         <!-- <link rel="stylesheet" href="bootstrap-materia.min.css"> -->
 
         <link rel="stylesheet" href="./main.css">
-        <link rel="stylesheet" href="/jquery-ui.min.css">
+        <link rel="stylesheet" href="jquery-ui.min.css">
+
+        <script type="text/javascript" src="jquery/dist/jquery.min.js"></script>
+        <script type="text/javascript" src="popper.js/dist/umd/popper.min.js"></script>
+        
+        <script type="text/javascript" src="jquery-ui.min.js"></script>
+
+        <!-- <script type="text/javascript" src="bootstrap-material-design/dist/js/bootstrap-material-design.min.js"></script> -->
+        <script type="text/javascript" src="bootstrap/dist/js/bootstrap.min.js"></script>
+
+        <script type="text/javascript" src="index.js"></script>
     </head>
     <body>
         <div class="container-fluid">
@@ -26,55 +36,99 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-8">
-                    <div class="input-group">
-                        <input type="text" autocomplete="off" class="form-control mr-sm-2" placeholder="Search by course number, subject, or title" id="search_bar">
-                        <div class="input-group-append">
-                            <select class="custom-select" id="term-select">
-                                <% terms.forEach(function(term){ %>
-                                    <option value="<%= term %>"><%= term %></option>
-                                <% }); %>
-                            </select>
+                <div class="col-9" id="left">
+                    <div class="card">
+                        <!-- <div class="card-header">
+                            Search
+                        </div> -->
+
+                        <div class="card-body">
+                            <div class="input-group mb-3">
+                                <input type="text" autocomplete="off" class="form-control mr-sm-2" placeholder="Search by course number, subject, or title" id="search_bar">
+                                <div class="input-group-append">
+                                    <select class="custom-select" id="term-select">
+                                        <% terms.forEach(function(term){ %>
+                                            <option value="<%= term %>"><%= term %></option>
+                                        <% }); %>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="results" class="accordion md-accordion accordion-blocks" role="tablist"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3" id="right">
+                    <div id="my_courses"></div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            Preferences
+                        </div>
+
+                        <div class="card-body">
+                            <fieldset>
+                                <input type="checkbox" checked data-toggle="toggle" name="O" id="O">
+                                <label for="O">Include Open Classes</label>
+                                <br>
+
+                                <input type="checkbox" data-toggle="toggle" name="C" id="C">
+                                <label for="C">Include Closed Classes</label>
+                                <br>
+
+                                <input type="checkbox" data-toggle="toggle" name="W" id="W">
+                                <label for="W">Include Waitlist Classes</label>
+                            </fieldset>
+
+                            <div class="form-group">
+                                <label>Only Allow Courses Between</label>
+                                <div id="time_range_slider"></div>
+                                <small id="time_range"></small>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="d-flex justify-content-center">
+                                    <label>Morning Classes</label>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div class="pr-2">Hate</div>
+                                    <div id="mornings-slider" class="my-slider"></div>
+                                    <div class="pl-2">Love</div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="d-flex justify-content-center">
+                                    <label>Night Classes</label>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div class="pr-2">Hate</div>
+                                    <div id="nights-slider" class="my-slider"></div>
+                                    <div class="pl-2">Love</div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="d-flex justify-content-center">
+                                    <label>Consecutive Classes</label>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <div class="pr-2">Hate</div>
+                                    <div id="consecutive-classes-slider" class="my-slider"></div>
+                                    <div class="pl-2">Love</div>
+                                </div>
+                            </div>
+
+                            <form id="create schedule" method="GET" action="schedule">
+                                <button class="btn btn-primary" type="submit" onmousedown="event.preventDefault()">Create Schedule</button>
+                            </form>
                         </div>
                     </div>
 
-                    <div id="results" class="accordion md-accordion accordion-blocks" role="tablist">
-                    </div>
-                </div>
-                <div class="col-4" id="right">
-                    <div id="my_courses"></div>
-
-                    <fieldset>
-                        <input type="checkbox" checked data-toggle="toggle" name="O" id="O">
-                        <label for="O">Include Open Classes</label>
-                        <br>
-
-                        <input type="checkbox" data-toggle="toggle" name="C" id="C">
-                        <label for="C">Include Closed Classes</label>
-                        <br>
-
-                        <input type="checkbox" data-toggle="toggle" name="W" id="W">
-                        <label for="W">Include Waitlist Classes</label>
-
-                    </fieldset>
-
-                    <span id="time_range"></span>
-                    <div id="time_range_slider"></div>
-
-                    <form id="create schedule" method="GET" action="schedule">
-                        <button class="btn btn-primary" type="submit" onmousedown="event.preventDefault()">Create Schedule</button>
-                    </form>
+                    
                 </div>
             </div>
         </div>
-        <script type="text/javascript" src="jquery/dist/jquery.min.js"></script>
-        <script type="text/javascript" src="popper.js/dist/umd/popper.min.js"></script>
         
-        <!-- <script type="text/javascript" src="bootstrap-material-design/dist/js/bootstrap-material-design.min.js"></script> -->
-        <script type="text/javascript" src="bootstrap/dist/js/bootstrap.min.js"></script>
-        
-        <script type="text/javascript" src="jquery-ui.min.js"></script>
-
-        <script type="text/javascript" src="/index.js"></script>
     </body>
 </html>

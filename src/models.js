@@ -62,8 +62,8 @@ Section.prototype.toString = function sectionToString() {
 }
 
 module.exports = {
-    Course: Course,
-    Section: Section,
+    Course,
+    Section,
     courses: {},
     sections: {},
     term_to_code: {},

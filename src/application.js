@@ -44,21 +44,6 @@ get_data.load_all_course_data(vals => {
     toc('load the data');
     console.log("Done loading the data");
 
-
-    // tic("refresh terms");
-    // get_data.refresh_terms(() => {
-    //     toc("refresh terms");
-    // }, console.error);
-
-    // tic("get session");
-    // get_data.get_response(res => {
-    //     toc("get session");
-    //     tic("refresh terms with res");
-    //     get_data.refresh_terms(() => {
-    //         toc("refresh terms with res");
-    //     }, console.error, res);
-    // }, console.error);
-
     startServer();
 
     // console.log("finding duplicate courses...");
@@ -84,7 +69,7 @@ function startServer() {
     setInterval(function() {
         console.log("Updating all data...");
         get_data.load_course_data(undefined, ()=>{console.log("Successfully updated all data!")}, console.error, true);
-    }, 60 * 1000 * 5);
+    }, 60 * 5 * 1000);
 
     app.get('/', function(req, res) {
         res.render('index', {terms: Object.keys(models.term_to_code)});
