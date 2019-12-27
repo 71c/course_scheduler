@@ -1,4 +1,5 @@
-const my_courses_ids = new Set();
+"use strict";
+let my_courses_ids = new Set();
 const classes_by_id = {};
 let minMaxTimes = [450, 1290];
 let resultsDiv;
@@ -118,6 +119,8 @@ document.addEventListener('DOMContentLoaded', function() {
         getSearchResults(false);
     });
     $('#term-select').change(function() {
+        my_courses_ids = new Set();
+        update_courses_display();
         getSearchResults(true);
     });
     var scheduleForm = document.getElementById('create schedule');
@@ -132,38 +135,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (document.getElementById(status).checked)
                 accepted_statuses.push(status);
 
-        var input1 = document.createElement("input");
-        input1.type = "hidden";
-        input1.name = "ids";
-        input1.value = Array.from(my_courses_ids).join("-");
-
-        var input2 = document.createElement("input");
-        input2.type = "hidden";
-        input2.name = "accepted_statuses";
-        input2.value = accepted_statuses.join("");
-
-        var input3 = document.createElement("input");
-        input3.type = "hidden";
-        input3.name = "min_time";
-        input3.value = minMaxTimes[0];
-
-        var input4 = document.createElement("input");
-        input4.type = "hidden";
-        input4.name = "max_time";
-        input4.value = minMaxTimes[1];
-
-        var input5 = document.createElement("input");
-        input5.type = "hidden";
-        input5.name = "term";
-        input5.value = document.querySelector('.custom-select').value;
-
-
-        scheduleForm.appendChild(input1);
-        scheduleForm.appendChild(input2);
-        scheduleForm.appendChild(input3);
-        scheduleForm.appendChild(input4);
-        scheduleForm.appendChild(input5);
-
+        var params = {
+            ids: Array.from(my_courses_ids).join("-"),
+            accepted_statuses: accepted_statuses.join(""),
+            min_time: minMaxTimes[0],
+            max_time: minMaxTimes[1],
+            term: document.getElementById('term-select').value,
+            pref_morning: $("#mornings-slider").slider("value"),
+            pref_night: $("#nights-slider").slider("value"),
+            pref_consecutive: $("#consecutive-classes-slider").slider("value")
+        };
+        for (var name in params) {
+            let input = document.createElement("input");
+            input.type = "hidden";
+            input.name = name;
+            input.value = params[name];
+            scheduleForm.appendChild(input);
+        }
         return true;
     }
 });
