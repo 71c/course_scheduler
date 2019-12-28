@@ -124,7 +124,5 @@ module.exports = {
     get_search_results: get_search_results,
     course_object_to_period_group: course_object_to_period_group
 };
-// 193+143+42+39+168+138+121+77+310+173+210+127
-// 1156+1220+1320+58+696+138+201+195
-
-
+// 193+143+42+39+168+138+121+77+310+173+210+127=1741
+// 1156+1220+1320+58+696+138+201+195=4984

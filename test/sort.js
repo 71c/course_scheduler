@@ -35,7 +35,7 @@ function sortArr(arr, {key, reverse=false, compare_function=default_compare}={})
        Similar to https://github.com/Pimm/mapsort
        Modifies the array. */
     if (key === undefined) {
-        arr.sort(compare_function);
+        return arr.sort(compare_function);
     } else {
         const indices = [], sortables = [];
         arr.forEach((item, index) => {

@@ -1,6 +1,6 @@
 {
   "name": "course-scheduler",
-  "version": "1.0",
+  "version": "1.0.0",
   "description": "schedule courses at Tufts with ease",
   "dependencies": {
     "@fullcalendar/bootstrap": "^4.3.0",
