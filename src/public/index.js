@@ -121,7 +121,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    console.log('page loaded');
     resultsDiv = document.getElementById('results');
     // document.querySelector('#search_form').onsubmit = getSearchResults;
     $("#search_bar").keyup(function() {
@@ -137,6 +136,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (my_courses_ids.size === 0) {
             alert("No schedules selected!");
             return false;
+        }
+        // remove the hidden inputs that were added when submitting before;
+        // they would still be there if the create schedule button was new-tab-clicked.
+        while (scheduleForm.children.length > 1) {
+            scheduleForm.removeChild(scheduleForm.lastChild);
         }
 
         var accepted_statuses = [];

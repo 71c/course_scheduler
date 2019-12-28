@@ -172,7 +172,9 @@ function get_stats(periods) {
         for (let i = 0; i < day_periods.length - 1; i++) {
             const gap_time = day_periods[i + 1].start - day_periods[i].end;
             if (gap_time < MAX_SHORT_GAP_TIME) {
-                total_consecutiveness += 1 - gap_time / MAX_SHORT_GAP_TIME;
+                // total_consecutiveness += 1 - gap_time / MAX_SHORT_GAP_TIME;
+                // total_consecutiveness += MAX_SHORT_GAP_TIME - gap_time;
+                total_consecutiveness += 2 * (1 - gap_time / MAX_SHORT_GAP_TIME);
             }
         }
     }
@@ -184,6 +186,8 @@ function get_score(schedule, term, weights) {
     const periods = schedule_to_period_list(schedule, term);
     const stats = get_stats(periods);
     // return [-stats.total_class_time, stats.morningness * weights.morningness_weight + stats.eveningness * weights.eveningness_weight + stats.total_consecutiveness * weights.consecutiveness_weight];
+
+    console.log(stats.morningness, stats.eveningness, stats.total_consecutiveness);
     return stats.morningness * weights.morningness_weight + stats.eveningness * weights.eveningness_weight + stats.total_consecutiveness * weights.consecutiveness_weight;
 }
 
