@@ -1,35 +1,59 @@
-const sections = require('./models').sections;
+const models = require('./models');
 
-var weekdays = ['Mo', 'Tu', 'We', 'Th', 'Fr'];
+const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr'];
+
+// if a class starts at or before this many minutes after midnight, it is considered a morning class
+const MORNING_CLASS_THRESHOLD = 12 * 60; // 12:00
+const MORNING_SLOPE = 1/105; // morningness score change per minute
+const MORNING_BIAS = 1; // morningness score when start time = MORNING_CLASS_THRESHOLD
+
+const EVENING_CLASS_THRESHOLD = 17 * 60; // 17:00
+const EVENING_SLOPE = 1/105;
+const EVENING_BIAS = 1;
+
+const MAX_SHORT_GAP_TIME = 60;
+
+// min start: 7:45AM
+// min end: 9:00AM
+// max start: 7:30PM
+// max end: 10:00PM
 
 function arraySum(arr) {
     return arr.reduce((a, b) => a + b, 0);
 }
 
-function schedule_to_period_list(schedule) {
+function schedule_to_period_list(schedule, term) {
+    /*
+        Gets all the periods in a schedule
+        Inputs:
+            schedule:
+                a 2D array. Each element of schedule is a 1D array containing the IDs of Sections or the Sections themselves.
+                The Sections in each schedule are grouped together by course: schedule looks like
+                [[ID of course A section, ID of course A section, ...], [ID of course B section, ID of course B section, ...], ...]
+            term:
+                the term (e.g. Fall 2019)
+    */
 	var periods = [];
     for (var sectionids_or_sections of schedule) {
         for (var sectionid_or_section of sectionids_or_sections) {
             var section_periods = typeof sectionid_or_section === "number" ?
-                sections[sectionid_or_section].periods :
-                sectionid_or_section;
+                models.sections[term][sectionid_or_section].periods :
+                sectionid_or_section.periods;
             periods.push(...section_periods);
         }
     }
     return periods;
 }
 
-function get_mean_mad(schedule, time_range) {
+function get_mean_mad(periods, time_range) {
     /*
         Purpose of function:
         get the mean of all the mean absolute deviations from the mean of whether classes meet for each time point
         across all days in a schedule.
 
         Inputs:
-            schedule:
-                a 2D array. Each element of schedule is a 1D array containing the IDs of Sections.
-                The Sections in each schedule are grouped together by course: schedule looks like
-                [[ID of course A section, ID of course A section, ...], [ID of course B section, ID of course B section, ...], ...]
+            periods:
+                a list of periods in the schedule that can be obtained from the function schedule_to_period_list
             time_range (optional):
                 the requested time range in the day to average over. This quantity is assumed to be greater than
                 or equal to the latest class ending time minus the earliest class starting time in the schedule. It
@@ -64,18 +88,14 @@ function get_mean_mad(schedule, time_range) {
             ∆t_i is the duration of this time interval.
     */
 
-    // get all periods from schedule
-    var start_and_end_times = [];
+    const start_and_end_times = [];
     const days_set = new Set();
-    for (var sectionids of schedule) {
-        for (var sectionid of sectionids) {
-        	for (var period of sections[sectionid].periods) {
-        		start_and_end_times.append({time: period.start, kind: "start"});
-        		start_and_end_times.append({time: period.end, kind: "end"});
-        		days_set.add(period.day);
-        	}
-        }
+    for (const period of periods) {
+        start_and_end_times.push({time: period.start, kind: "start"});
+        start_and_end_times.push({time: period.end, kind: "end"});
+        days_set.add(period.day);
     }
+
     // sort times by time
     start_and_end_times.sort((a, b) => a.time < b.time ? -1 : a.time > b.time ? 1 : 0);
     // number of days
@@ -85,7 +105,7 @@ function get_mean_mad(schedule, time_range) {
     var current_time = beginning_time;
     var n_classes_at_once = 1;
     var total_mad = 0;
-    for (const t of start_and_end_times[1:]) {
+    for (const t of start_and_end_times.slice(1)) {
     	const new_time = t.time
         const dt = new_time - current_time
         if (dt !== 0) {
@@ -100,13 +120,13 @@ function get_mean_mad(schedule, time_range) {
     return total_mad;
 }
 
-function get_day_class_lengths(class_time_list, normalize=true) {
+function get_day_class_lengths(periods, normalize=true) {
     /* returns total number of minutes of class time each day from a schedule,
     optionally normalized to sum to 1 */
     var minute_counts = [0, 0, 0, 0, 0];
-    for (const class_time of class_time_list) {
-        const index = weekdays.indexOf(class_time.day);
-        minute_counts[index] += class_time.end_time - class_time.start_time;
+    for (const period of periods) {
+        const index = WEEKDAYS.indexOf(period.day);
+        minute_counts[index] += period.end - period.start;
     }
     if (normalize) {
         const total_minutes = arraySum(minute_counts);
@@ -114,3 +134,59 @@ function get_day_class_lengths(class_time_list, normalize=true) {
     }
     return minute_counts
 }
+
+function get_schedule_by_day(periods) {
+    var schedule_by_day = {};
+    for (var period of periods) {
+        if (period.day in schedule_by_day) {
+            schedule_by_day[period.day].push(period);
+        } else {
+            schedule_by_day[period.day] = [period];
+        }
+    }
+    for (var day in schedule_by_day) {
+        schedule_by_day[day].sort((a, b) => a.start < b.start ? -1 : a.start > b.start ? 1 : 0);
+    }
+    return schedule_by_day;
+}
+
+function get_stats(periods) {
+    let morningness = 0;
+    let eveningness = 0;
+    let total_class_time = 0;
+    for (const period of periods) {
+        if (period.start <= MORNING_CLASS_THRESHOLD) {
+            morningness += MORNING_SLOPE * (MORNING_CLASS_THRESHOLD - period.start) + MORNING_BIAS;
+        }
+        if (period.start >= EVENING_CLASS_THRESHOLD) {
+            eveningness += EVENING_SLOPE * (period.start - EVENING_CLASS_THRESHOLD) + EVENING_BIAS;
+        }
+        // total_class_time += period.end - period.start;
+    }
+    const schedule_by_day = get_schedule_by_day(periods);
+    // const day_lengths = {};
+    let total_consecutiveness = 0;
+    for (const day in schedule_by_day) {
+        const day_periods = schedule_by_day[day];
+        // day_lengths[day] = day_periods[day_periods.length - 1].end - day_periods[0].start;
+        for (let i = 0; i < day_periods.length - 1; i++) {
+            const gap_time = day_periods[i + 1].start - day_periods[i].end;
+            if (gap_time < MAX_SHORT_GAP_TIME) {
+                total_consecutiveness += 1 - gap_time / MAX_SHORT_GAP_TIME;
+            }
+        }
+    }
+    // const mean_mad = get_mean_mad(periods);
+    return {morningness, eveningness, total_consecutiveness};
+}
+
+function get_score(schedule, term, weights) {
+    const periods = schedule_to_period_list(schedule, term);
+    const stats = get_stats(periods);
+    // return [-stats.total_class_time, stats.morningness * weights.morningness_weight + stats.eveningness * weights.eveningness_weight + stats.total_consecutiveness * weights.consecutiveness_weight];
+    return stats.morningness * weights.morningness_weight + stats.eveningness * weights.eveningness_weight + stats.total_consecutiveness * weights.consecutiveness_weight;
+}
+
+module.exports = {
+    get_score
+};

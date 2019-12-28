@@ -22,6 +22,7 @@ const api = require('./api');
 const get_data = require('./get_data');
 const course_scheduler = require('./course_scheduler');
 const evaluation_timing_test = require('./some_tests').evaluation_timing_test;
+const schedule_stats = require('./schedule_stats');
 
 const {default_compare, basic_compare, PartialSorter} = require('./partial_sort');
 
@@ -37,6 +38,18 @@ function toc(name) {
     const dt = time() - startTimes[name];
     console.log(`${name === undefined ? "" : name + " "}time: ${dt}`);
     return dt;
+}
+
+function minutesToTimeString12hr(minutes) {
+    var minutePart = minutes % 60;
+    var hourPart = Math.floor(minutes / 60) % 24;
+    var amPm = hourPart >= 12 ? "PM" : "AM";
+    hourPart = hourPart % 12;
+    if (hourPart === 0)
+        hourPart = 12;
+    var hourPartString = hourPart.toString();
+    var minutePartString = minutePart > 9 ? minutePart.toString() : "0" + minutePart.toString();
+    return hourPartString + ":" + minutePartString + amPm;
 }
 
 tic('load the data')
@@ -62,6 +75,29 @@ get_data.load_all_course_data(vals => {
     //             console.log(`\t${course_num}`);
     //     }
     // }
+
+    // let min_start = 1440;
+    // let min_end = 1440;
+    // let max_start = 0;
+    // let max_end = 0;
+    // for (const section of models.sections['Spring 2020']) {
+    //     for (const period of section.periods) {
+    //         if (period.start < min_start && period.start !== 0)
+    //             min_start = period.start;
+    //         if (period.end < min_end && period.end !== 0)
+    //             min_end = period.end;
+    //         if (period.start > max_start)
+    //             max_start = period.start;
+    //         if (period.end > max_end)
+    //             max_end = period.end;
+    //         if (period.start < 300)
+    //             console.log(section);
+    //     }
+    // }
+    // console.log(`min start: ${minutesToTimeString12hr(min_start)}`);
+    // console.log(`min end: ${minutesToTimeString12hr(min_end)}`);
+    // console.log(`max start: ${minutesToTimeString12hr(max_start)}`);
+    // console.log(`max end: ${minutesToTimeString12hr(max_end)}`);
 }, console.error, false);
 
 function startServer() {
@@ -76,6 +112,9 @@ function startServer() {
     });
 
     app.get('/schedule', function(req, res) {
+        console.log(req.query);
+
+
         if (!/^((\d+-)+\d+|\d*)$/.test(req.query.ids)) {
             res.send("Wrong format!");
             return;
@@ -89,9 +128,15 @@ function startServer() {
 
         const min_time = req.query.min_time;
         const max_time = req.query.max_time;
+        const weights = {
+            morningness_weight: parseInt(req.query.pref_morning, 10) / 100,
+            eveningness_weight: parseInt(req.query.pref_night, 10) / 100,
+            consecutiveness_weight: parseInt(req.query.pref_consecutive, 10) / 100,
+        };
 
         // TODO: get this from the user
-        const score_function = _ => Math.random();
+        // const score_function = _ => Math.random();
+        const score_function = schedule => schedule_stats.get_score(schedule, req.query.term, weights)
         const k = 100;
         var section_accept_function = function(section) {
             for (var period of section.periods)
@@ -100,7 +145,7 @@ function startServer() {
             return true
         }
         tic('generate schedules');
-        const info = get_top_schedules_list(ids, accepted_statuses, score_function, k, section_accept_function, req.query.term);  // FIX !
+        const info = get_top_schedules_list(ids, accepted_statuses, score_function, k, section_accept_function, req.query.term);
         toc('generate schedules');
         console.log(`n schedules: ${info.n_possibilities}`);
         res.render('schedule', {data: JSON.stringify(info)});
@@ -138,7 +183,12 @@ function startServer() {
             }
         })();
         // object that gets the k schedules with the highest scores and sorts them
-        const sorter = new PartialSorter((a, b) => default_compare(b.score, a.score), k);
+        const sorter = new PartialSorter((a, b) => {
+            var cmp = default_compare(b.score, a.score);
+            if (cmp === 0)
+                return Math.random() - 0.5;
+            return cmp;
+        }, k);
         sorter.insertAll(schedules_and_scores);
         return {
             n_possibilities: sorter.numPassed,

@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 document.documentElement.style.display = 'block';
 
-// this prevents Safari (as well as Firefox at least on Mac) from caching 
+// this prevents Safari (as well as Firefox at least on Mac) from caching the page when we go back from schedules page
 // https://stackoverflow.com/a/13123626/9911203
 $(window).bind("pageshow", function(event) {
     if (event.originalEvent.persisted) {
