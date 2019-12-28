@@ -2,16 +2,30 @@ const models = require('./models');
 
 const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr'];
 
+// The scoring system is of course arbitrary and is determined by what seems reasonable and logical,
+// and what seems to give good results.
+
 // if a class starts at or before this many minutes after midnight, it is considered a morning class
 const MORNING_CLASS_THRESHOLD = 12 * 60; // 12:00
-const MORNING_SLOPE = 1/105; // morningness score change per minute
-const MORNING_BIAS = 1; // morningness score when start time = MORNING_CLASS_THRESHOLD
+const MORNING_SLOPE = 1/105; // morningness score increase per increase in number of minutes before MORNING_CLASS_THRESHOLD
+const MORNING_BIAS = 0.429; // morningness score when time = MORNING_CLASS_THRESHOLD
 
-const EVENING_CLASS_THRESHOLD = 17 * 60; // 17:00
-const EVENING_SLOPE = 1/105;
-const EVENING_BIAS = 1;
+// if a class starts at or after this many minutes after midnight, it is considered an evening class
+const EVENING_CLASS_THRESHOLD = 16 * 60; // 16:00
+const EVENING_SLOPE = 1/105; // eveningness score increase per increase in number of minutes after EVENING_CLASS_THRESHOLD
+const EVENING_BIAS = 0.429; // eveningness score when time = EVENING_CLASS_THRESHOLD
 
+// maximum time between two classes such that those classes are considered consecutive
+// (though the scoring function gives no points for gaps of this length)
 const MAX_SHORT_GAP_TIME = 60;
+// this number is always multiplied by the consecutiveness score to compensate for it being too low compared to other values
+const CONSECUTIVENESS_WEIGHT = 2.0;
+
+// maximum time between two classes that is considered definitely too short
+const MAX_TOO_SHORT_GAP_TIME = 5;
+// this number is always multiplied by the short-gapness score because these cases are important
+const TOO_SHORT_GAPNESS_WEIGHT = 4.0;
+
 
 // min start: 7:45AM
 // min end: 9:00AM
@@ -150,10 +164,12 @@ function get_schedule_by_day(periods) {
     return schedule_by_day;
 }
 
-function get_stats(periods) {
+function get_score(schedule, term, weights) {
+    const periods = schedule_to_period_list(schedule, term);
+    
     let morningness = 0;
     let eveningness = 0;
-    let total_class_time = 0;
+    // let total_class_time = 0;
     for (const period of periods) {
         if (period.start <= MORNING_CLASS_THRESHOLD) {
             morningness += MORNING_SLOPE * (MORNING_CLASS_THRESHOLD - period.start) + MORNING_BIAS;
@@ -166,29 +182,37 @@ function get_stats(periods) {
     const schedule_by_day = get_schedule_by_day(periods);
     // const day_lengths = {};
     let total_consecutiveness = 0;
+    let total_too_short_gapness = 0;
     for (const day in schedule_by_day) {
         const day_periods = schedule_by_day[day];
         // day_lengths[day] = day_periods[day_periods.length - 1].end - day_periods[0].start;
         for (let i = 0; i < day_periods.length - 1; i++) {
             const gap_time = day_periods[i + 1].start - day_periods[i].end;
-            if (gap_time < MAX_SHORT_GAP_TIME) {
+            if (gap_time <= MAX_SHORT_GAP_TIME) {
                 // total_consecutiveness += 1 - gap_time / MAX_SHORT_GAP_TIME;
                 // total_consecutiveness += MAX_SHORT_GAP_TIME - gap_time;
-                total_consecutiveness += 2 * (1 - gap_time / MAX_SHORT_GAP_TIME);
+                total_consecutiveness += 1 - gap_time / MAX_SHORT_GAP_TIME;
+            }
+            if (gap_time <= MAX_TOO_SHORT_GAP_TIME) {
+                total_too_short_gapness += 1 - gap_time / MAX_SHORT_GAP_TIME;
             }
         }
     }
+
     // const mean_mad = get_mean_mad(periods);
-    return {morningness, eveningness, total_consecutiveness};
-}
 
-function get_score(schedule, term, weights) {
-    const periods = schedule_to_period_list(schedule, term);
-    const stats = get_stats(periods);
-    // return [-stats.total_class_time, stats.morningness * weights.morningness_weight + stats.eveningness * weights.eveningness_weight + stats.total_consecutiveness * weights.consecutiveness_weight];
+    // scale all weights such that the one with the greatest magnitude equals 1
+    const max_weight_magnitude = Math.max(...Object.values(weights).map(Math.abs));
+    if (max_weight_magnitude !== 0)
+        for (const key in weights)
+            weights[key] = weights[key] / max_weight_magnitude;
 
-    console.log(stats.morningness, stats.eveningness, stats.total_consecutiveness);
-    return stats.morningness * weights.morningness_weight + stats.eveningness * weights.eveningness_weight + stats.total_consecutiveness * weights.consecutiveness_weight;
+
+    console.log(morningness, eveningness, total_consecutiveness, total_too_short_gapness);
+    return weights.morningness_weight * morningness
+        + weights.eveningness_weight * eveningness
+        + weights.consecutiveness_weight * CONSECUTIVENESS_WEIGHT * total_consecutiveness
+        - TOO_SHORT_GAPNESS_WEIGHT * total_too_short_gapness;
 }
 
 module.exports = {
