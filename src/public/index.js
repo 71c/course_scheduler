@@ -105,10 +105,19 @@ document.addEventListener('DOMContentLoaded', function() {
     $("#time_range").text(minutesToTimeString12hr($("#time_range_slider").slider("values", 0)) + " - " + minutesToTimeString12hr($("#time_range_slider").slider("values", 1)));
 
     for (const id of ["#mornings-slider", "#nights-slider", "#consecutive-classes-slider"]) {
-        $(id).slider({
+        const jSlider = $(id);
+        jSlider.slider({
             min: -100,
             max: 100,
-            value: 0
+            value: 0,
+            slide: function(event, ui) {
+                // https://stackoverflow.com/a/4808375/9911203
+                if (ui.value > -15 && ui.value < 15 && ui.value != 0) {
+                    jSlider.slider('value', 0);
+                    return false;
+                }
+                return true;
+            }
         });
     }
 

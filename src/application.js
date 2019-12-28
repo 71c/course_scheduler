@@ -199,9 +199,9 @@ function startServer() {
 
     function get_schedules(courses, accepted_statuses, section_accept_function, term) {
         const pg = new course_scheduler.PeriodGroup(
-            courses.map(course => {
-                return api.course_object_to_period_group(course, true, accepted_statuses, cache=false, give_ids=true, section_accept_function, term)
-            }),
+            courses.map(course => 
+                api.course_object_to_period_group(course, true, accepted_statuses, cache=false, give_ids=true, section_accept_function, term)
+            ),
             'and', merge=false, cache=false, null, term
         );
         return pg.evaluate();
