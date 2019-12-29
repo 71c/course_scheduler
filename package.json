@@ -28,7 +28,6 @@
   "devDependencies": {},
   "scripts": {
     "start": "node .",
-    "build": "webpack"
   },
   "repository": {
     "type": "git",
