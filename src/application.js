@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 
+const PORT = process.env.PORT || 5000;
+
 // // https://www.tiktip.com/a/1/4/15/1
 // const mustacheExpress = require('mustache-express');
 // app.engine('html', mustacheExpress());
@@ -163,8 +165,8 @@ function startServer() {
         res.send(search_results_json);
     });
 
-    http.listen(3000, function() {
-        console.log('listening on *:3000');
+    http.listen(PORT, function() {
+        console.log(`Listening on ${PORT}`);
     });
 
     function get_top_schedules_list(course_ids, accepted_statuses, score_function, k, section_accept_function, term) {
