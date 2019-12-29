@@ -56,6 +56,7 @@ function schedule_to_period_list(schedule, term) {
             periods.push(...section_periods);
         }
     }
+    periods.sort((a, b) => a.start < b.start ? -1 : a.start > b.start ? 1 : 0);
     return periods;
 }
 
@@ -158,9 +159,6 @@ function get_schedule_by_day(periods) {
             schedule_by_day[period.day] = [period];
         }
     }
-    for (var day in schedule_by_day) {
-        schedule_by_day[day].sort((a, b) => a.start < b.start ? -1 : a.start > b.start ? 1 : 0);
-    }
     return schedule_by_day;
 }
 
@@ -179,7 +177,11 @@ function get_score(schedule, term, weights) {
         }
         // total_class_time += period.end - period.start;
     }
+
+
     const schedule_by_day = get_schedule_by_day(periods);
+
+
     // const day_lengths = {};
     let total_consecutiveness = 0;
     let total_too_short_gapness = 0;
