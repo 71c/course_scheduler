@@ -146,9 +146,9 @@ function startServer() {
                     return false
             return true
         }
-        tic('generate schedules');
+        // tic('generate schedules');
         const info = get_top_schedules_list(ids, accepted_statuses, score_function, k, section_accept_function, req.query.term);
-        toc('generate schedules');
+        // toc('generate schedules');
         console.log(`n schedules: ${info.n_possibilities}`);
         res.render('schedule', {data: JSON.stringify(info)});
     });
@@ -169,12 +169,12 @@ function startServer() {
         console.log(`Listening on ${PORT}`);
     });
 
-    function get_top_schedules_list(course_ids, accepted_statuses, score_function, k, section_accept_function, term) {
+    function get_top_schedules_list(course_ids, accepted_statuses, score_function, k, section_accept_function, term) {   tic('generate schedules');
         // array of Course objects
         const courses = course_ids.map(id => models.courses[term][id]);
         // generator of "schedules" which are represented as a 2D arrays.
         // Each element of a schedule is an array containing the IDs of Sections.
-        const schedules = get_schedules(courses, accepted_statuses, section_accept_function, term);
+        const schedules = get_schedules(courses, accepted_statuses, section_accept_function, term);                      toc('generate schedules');  tic('sort schedules');
         // generator of objects with schedules and their scores
         const schedules_and_scores = (function* () {
             for (const schedule of schedules) {
@@ -191,7 +191,7 @@ function startServer() {
                 return Math.random() - 0.5;
             return cmp;
         }, k);
-        sorter.insertAll(schedules_and_scores);
+        sorter.insertAll(schedules_and_scores);                                                                          toc('sort schedules');
         return {
             n_possibilities: sorter.numPassed,
             top_schedules: sorter.getMinArray(),
