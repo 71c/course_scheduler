@@ -49,12 +49,46 @@ function minutesToTimeString12hr(minutes) {
     return hourPartString + ":" + minutePartString + amPm;
 }
 
+function groupBy(items, groupFunction) {
+    const map = new Map();
+    for (const item of items) {
+        const value = groupFunction(item);
+        if (map.has(value)) {
+            map.get(value).push(item);
+        } else {
+            map.set(value, [item]);
+        }
+    }
+    return [...map.values()];
+}
+
 tic('load the data')
 get_data.load_all_course_data(vals => {
     toc('load the data');
     console.log("Done loading the data");
 
     startServer();
+
+    // let lens = {};
+    // for (const course of models.courses['Spring 2020']) {
+    //     const len = course.sections.length;
+    //     if (len in lens) {
+    //         lens[len]++;
+    //     } else {
+    //         lens[len] = 1;
+    //     }
+    // }
+    // console.log(lens);
+    // lens = {};
+    // for (const section of models.sections['Spring 2020']) {
+    //     const len = section.periods.length;
+    //     if (len in lens) {
+    //         lens[len]++;
+    //     } else {
+    //         lens[len] = 1;
+    //     }
+    // }
+    // console.log(lens);
 
     // console.log("finding duplicate courses...");
     // for (const term in models.term_to_code) {

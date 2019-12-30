@@ -9,8 +9,6 @@ const DETAILS_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLI
 const COURSE_SUBJECTS_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getSubjects';
 const TERMS_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getCareers';
 
-const term_parser = /(spring|summer|fall|spring|annual term) (\d{4})/i;
-
 const COURSES_DATA_DIR = 'courses_data';
 const get_courses_path = term => `${COURSES_DATA_DIR}/courses_${term}.json`;
 const get_subjects_path = term => `${COURSES_DATA_DIR}/subjects_${term}.json`;
@@ -32,16 +30,7 @@ function toc(name) {
 }
 
 function get_term_number(term) {
-    term = term.toLowerCase();
-    const thing = term_parser.exec(term);
-    const period = thing[1];
-    const year = thing[2];
-    return year[0] + year.substring(2) + {
-        'spring': '2',
-        'annual term': '4',
-        'summer': '5',
-        'fall': '8'
-    }[period];
+    return models.term_to_code[term];
 }
 
 function get_search_url(term, career='ALL') {
@@ -80,6 +69,8 @@ function save_data(term, courses, long_subject_dict) {
                         }
                     }
                 }
+                // sort section's periods by start time
+                section.periods.sort((a, b) => a.start < b.start ? -1 : a.start > b.start ? 1 : 0);
                 course.add_section(section);
                 models.sections[term].push(section);
             }

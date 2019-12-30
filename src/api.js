@@ -99,13 +99,13 @@ function course_object_to_period_group(course, exclude_classes_with_no_days, acc
     }
     let class_components_group_9999 = null
     const assoc_class_period_groups = []
-    for (const key in period_dict) {
+    for (const assoc_class in period_dict) {
         const class_components = []
-        const assoc_class_dict = period_dict[key]
-        for (const key2 in assoc_class_dict)
-            class_components.push(new course_scheduler.PeriodGroup(assoc_class_dict[key2], 'or', merge=false, cache=false, null, term))
+        const assoc_class_dict = period_dict[assoc_class]
+        for (const component in assoc_class_dict)
+            class_components.push(new course_scheduler.PeriodGroup(assoc_class_dict[component], 'or', merge=false, cache=false, null, term))
         const class_components_group = new course_scheduler.PeriodGroup(class_components, 'and', merge=true, cache=false, null, term)
-        if (key === '9999')
+        if (assoc_class === '9999')
             class_components_group_9999 = class_components_group
         else
             assoc_class_period_groups.push(class_components_group)

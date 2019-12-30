@@ -92,7 +92,7 @@ function newCalendar(element, events) {
     });
 }
 
-function setSchedule(element) {tic()
+function setSchedule(element) {
     var schedule = top_schedules[scheduleIndex].schedule;
     calendar.batchRendering(function() {
         for (var event of calendar.getEvents())
@@ -121,7 +121,7 @@ function setSchedule(element) {tic()
     $(function () {
         $('[data-toggle="tooltip"]').tooltip()
     })
-toc()}
+}
 
 function updateButtonsEnabled() {
     leftButton.disabled = scheduleIndex === 0;
