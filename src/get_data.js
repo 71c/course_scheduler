@@ -14,6 +14,8 @@ const get_courses_path = term => `${COURSES_DATA_DIR}/courses_${term}.json`;
 const get_subjects_path = term => `${COURSES_DATA_DIR}/subjects_${term}.json`;
 const TERMS_PATH = `${COURSES_DATA_DIR}/terms.json`;
 
+const USE_SECTION_GROUPS = true;
+
 if (!fs.existsSync(COURSES_DATA_DIR)) {
     fs.mkdirSync(COURSES_DATA_DIR);
 }
@@ -45,6 +47,40 @@ function get_course_subjects_url(term, career='ALL') {
     return `${COURSE_SUBJECTS_URL}?term=${get_term_number(term)}&career=${career}`;
 }
 
+// function save_data(term, courses, long_subject_dict) {
+//     models.reset(term);
+//     const subject_finder = /^[A-Z]+/;
+//     for (const course_data of courses) {
+//         const subject = subject_finder.exec(course_data.course_num)[0];
+//         const subject_long = long_subject_dict[subject];
+//         const course = new models.Course(course_data.course_num, subject,
+//             subject_long, course_data.course_title, course_data.desc_long, term);
+//         for (const section of course_data.sections) {
+//             const comp_desc = section.comp_desc;
+//             for (const component_data of section.components) {
+//                 const component_short = component_data.ssr_comp;
+//                 const section = new models.Section(component_data.class_num,
+//                     component_data.section_num, component_data.assoc_class,
+//                     comp_desc, component_short, component_data.status, term);
+//                 for (const location of component_data.locations) {
+//                     for (const meeting of location.meetings) {
+//                         for (const day of meeting.days) {
+//                             section.add_period(day,
+//                                 meeting.meet_start_min,
+//                                 meeting.meet_end_min);
+//                         }
+//                     }
+//                 }
+//                 // sort section's periods by start time
+//                 section.periods.sort((a, b) => a.start < b.start ? -1 : a.start > b.start ? 1 : 0);
+//                 course.add_section(section);
+//                 models.sections[term].push(section);
+//             }
+//         }
+//         models.courses[term].push(course);
+//     }
+// }
+
 function save_data(term, courses, long_subject_dict) {
     models.reset(term);
     const subject_finder = /^[A-Z]+/;
@@ -53,6 +89,7 @@ function save_data(term, courses, long_subject_dict) {
         const subject_long = long_subject_dict[subject];
         const course = new models.Course(course_data.course_num, subject,
             subject_long, course_data.course_title, course_data.desc_long, term);
+        const sections = [];
         for (const section of course_data.sections) {
             const comp_desc = section.comp_desc;
             for (const component_data of section.components) {
@@ -71,12 +108,41 @@ function save_data(term, courses, long_subject_dict) {
                 }
                 // sort section's periods by start time
                 section.periods.sort((a, b) => a.start < b.start ? -1 : a.start > b.start ? 1 : 0);
-                course.add_section(section);
-                models.sections[term].push(section);
+                sections.push(section);
             }
+        }
+        if (USE_SECTION_GROUPS) {
+            course.sections = groupBy(sections, section => 
+                section.assoc_class + section.component +
+                    JSON.stringify(section.periods)
+            ).map(sections => {
+                const sectionGroup = new models.SectionGroup(sections);
+                models.sections[term].push(sectionGroup);
+                return sectionGroup;
+            });
+
+            // sectionGroups = sections.map(section => new models.SectionGroup([section]));
+            // models.sections[term].push(...sectionGroups);
+            // course.sections = sectionGroups;
+        } else {
+            models.sections[term].push(...sections);
+            course.sections = sections;
         }
         models.courses[term].push(course);
     }
+}
+
+function groupBy(items, groupFunction) {
+    const map = new Map();
+    for (const item of items) {
+        const value = groupFunction(item);
+        if (map.has(value)) {
+            map.get(value).push(item);
+        } else {
+            map.set(value, [item]);
+        }
+    }
+    return [...map.values()];
 }
 
 function all(functions, resolve, reject) {
@@ -297,4 +363,5 @@ module.exports = {
     load_all_course_data,
     refresh_terms,
     get_response,
+    USE_SECTION_GROUPS
 };

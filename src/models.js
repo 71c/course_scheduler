@@ -63,12 +63,12 @@ Section.prototype.toString = function sectionToString() {
 
 class SectionGroup {
     constructor(sections) {
-        this.id = SectionGroup.currIds[term]++;
         this.assoc_class = sections[0].assoc_class;
         this.component = sections[0].component;
         this.component_short = sections[0].component_short;
         this.periods = sections[0].periods;
         this.term = sections[0].term;
+        this.id = SectionGroup.currIds[this.term]++;
         this.sections = sections.map(section => ({
             class_num: section.class_num,
             section_num: section.section_num,
@@ -99,14 +99,13 @@ SectionGroup.prototype.toString = function sectionGroupToString() {
 module.exports = {
     Course,
     Section,
+    SectionGroup,
     courses: {},
     sections: {},
-    sectionGroups: {},
     term_to_code: {},
     reset: function(term) {
         this.courses[term] = [];
         this.sections[term] = [];
-        this.sectionGroups[term] = [];
         Course.currIds[term] = 0;
         Section.currIds[term] = 0;
         SectionGroup.currIds[term] = 0;

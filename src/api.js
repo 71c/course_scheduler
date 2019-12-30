@@ -1,6 +1,7 @@
 const models = require('./models');
 const course_scheduler = require('./course_scheduler');
 const course_num_regex = /^([A-Za-z]{2,4})(?:-|\s*)([A-Za-z]{0,2})(\d{1,4})([A-Za-z]{0,2})$/;
+const {USE_SECTION_GROUPS} = require('./get_data');
 
 function get_classes_by_course_num(course_num, term) {
     return models.courses[term].filter(course => course.course_num === course_num);
@@ -84,8 +85,7 @@ function course_object_to_period_group(course, exclude_classes_with_no_days, acc
     */
     const period_dict = {};
     for (const section of course.sections) {
-        if (! exclude_classes_with_no_days || section.periods.length !== 0) {
-            const status_ok = accepted_statuses.includes(section.status);
+        if (!exclude_classes_with_no_days || section.periods.length !== 0) {
             const assoc_class = section.assoc_class;
             const component = section.component;
             if (! (assoc_class in period_dict))
@@ -93,8 +93,15 @@ function course_object_to_period_group(course, exclude_classes_with_no_days, acc
                 period_dict[assoc_class] = {[component]: []};
             else if (! (component in period_dict[assoc_class]))
                 period_dict[assoc_class][component] = [];
-            if (status_ok && section_accept_function(section))
-                period_dict[assoc_class][component].push(give_ids ? section.id : section);
+            if (!USE_SECTION_GROUPS) {
+                const status_ok = accepted_statuses.includes(section.status);
+                if (status_ok && section_accept_function(section))
+                    period_dict[assoc_class][component].push(give_ids ? section.id : section);
+            } else {
+                // const sections_with_status_ok = section.sections.filter(s => accepted_statuses.includes(s.status));
+                // if (sections_with_status_ok.length !== 0 && section_accept_function(section))
+                    period_dict[assoc_class][component].push(give_ids ? section.id : section);
+            }
         }
     }
     let class_components_group_9999 = null
@@ -124,5 +131,3 @@ module.exports = {
     get_search_results: get_search_results,
     course_object_to_period_group: course_object_to_period_group
 };
-// 193+143+42+39+168+138+121+77+310+173+210+127=1741
-// 1156+1220+1320+58+696+138+201+195=4984

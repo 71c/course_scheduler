@@ -49,19 +49,6 @@ function minutesToTimeString12hr(minutes) {
     return hourPartString + ":" + minutePartString + amPm;
 }
 
-function groupBy(items, groupFunction) {
-    const map = new Map();
-    for (const item of items) {
-        const value = groupFunction(item);
-        if (map.has(value)) {
-            map.get(value).push(item);
-        } else {
-            map.set(value, [item]);
-        }
-    }
-    return [...map.values()];
-}
-
 tic('load the data')
 get_data.load_all_course_data(vals => {
     toc('load the data');
