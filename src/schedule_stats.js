@@ -26,7 +26,6 @@ const MAX_TOO_SHORT_GAP_TIME = 5;
 // this number is always multiplied by the short-gapness score because these cases are important
 const TOO_SHORT_GAPNESS_WEIGHT = 4.0;
 
-
 // min start: 7:45AM
 // min end: 9:00AM
 // max start: 7:30PM
@@ -34,30 +33,6 @@ const TOO_SHORT_GAPNESS_WEIGHT = 4.0;
 
 function arraySum(arr) {
     return arr.reduce((a, b) => a + b, 0);
-}
-
-function schedule_to_period_list(schedule, term) {
-    /*
-        Gets all the periods in a schedule
-        Inputs:
-            schedule:
-                a 2D array. Each element of schedule is a 1D array containing the IDs of Sections or the Sections themselves.
-                The Sections in each schedule are grouped together by course: schedule looks like
-                [[ID of course A section, ID of course A section, ...], [ID of course B section, ID of course B section, ...], ...]
-            term:
-                the term (e.g. Fall 2019)
-    */
-	var periods = [];
-    for (var sectionids_or_sections of schedule) {
-        for (var sectionid_or_section of sectionids_or_sections) {
-            var section_periods = typeof sectionid_or_section === "number" ?
-                models.sections[term][sectionid_or_section].periods :
-                sectionid_or_section.periods;
-            periods.push(...section_periods);
-        }
-    }
-    periods.sort((a, b) => a.start < b.start ? -1 : a.start > b.start ? 1 : 0);
-    return periods;
 }
 
 function get_mean_mad(periods, time_range) {
@@ -150,36 +125,91 @@ function get_day_class_lengths(periods, normalize=true) {
     return minute_counts
 }
 
-function get_schedule_by_day(periods) {
+function get_schedule_by_day(schedule, term) {
     var schedule_by_day = {};
-    for (var period of periods) {
-        if (period.day in schedule_by_day) {
-            schedule_by_day[period.day].push(period);
-        } else {
-            schedule_by_day[period.day] = [period];
+    for (var sectionids_or_sections of schedule) {
+        for (var sectionid_or_section of sectionids_or_sections) {
+            var section_periods = typeof sectionid_or_section === "number" ?
+                models.sections[term][sectionid_or_section].periods :
+                sectionid_or_section.periods;
+            for (var period of section_periods) {
+                var day = period.day;
+                var daySchedule = schedule_by_day[day];
+                if (!(day in schedule_by_day)) {
+                    schedule_by_day[day] = [period];
+                } else {
+                    var i = 0;
+                    while (i < daySchedule.length) {
+                        if (daySchedule[i].start > period.start)
+                            break;
+                        i++;
+                    }
+                    daySchedule.splice(i, 0, period);
+                }
+            }
         }
     }
     return schedule_by_day;
 }
 
+// function insertionSort(arr) {
+//     var ret=[];
+//     for (var x of arr) {
+//         if (ret.length === 0) {
+//             ret.push(x);
+//             continue;
+//         }
+//         var i = 0;
+//         while (i < ret.length) {
+//             if (ret[i] > x)
+//                 break;
+//             i++;
+//         }
+//         ret.splice(i, 0, x);
+//     }
+//     return ret;
+// }
+
+
 function get_score(schedule, term, weights) {
-    const periods = schedule_to_period_list(schedule, term);
+
+
+
+    // const periods = schedule_to_period_list(schedule, term);
+
+    const schedule_by_day = get_schedule_by_day(schedule, term);
+
+
     
     let morningness = 0;
     let eveningness = 0;
-    // let total_class_time = 0;
-    for (const period of periods) {
-        if (period.start <= MORNING_CLASS_THRESHOLD) {
-            morningness += MORNING_SLOPE * (MORNING_CLASS_THRESHOLD - period.start) + MORNING_BIAS;
+    
+    let total_class_time = 0;
+  
+    // for (const period of periods) {
+    //     if (period.start <= MORNING_CLASS_THRESHOLD) {
+    //         morningness += MORNING_SLOPE * (MORNING_CLASS_THRESHOLD - period.start) + MORNING_BIAS;
+    //     }
+    //     if (period.start >= EVENING_CLASS_THRESHOLD) {
+    //         eveningness += EVENING_SLOPE * (period.start - EVENING_CLASS_THRESHOLD) + EVENING_BIAS;
+    //     }
+    //     // total_class_time += period.end - period.start;
+    // }
+
+    for (const day in schedule_by_day) {
+        for (const period of schedule_by_day[day]) {
+            if (period.start <= MORNING_CLASS_THRESHOLD) {
+                morningness += MORNING_SLOPE * (MORNING_CLASS_THRESHOLD - period.start) + MORNING_BIAS;
+            }
+            if (period.start >= EVENING_CLASS_THRESHOLD) {
+                eveningness += EVENING_SLOPE * (period.start - EVENING_CLASS_THRESHOLD) + EVENING_BIAS;
+            }
+            // total_class_time += period.end - period.start;
         }
-        if (period.start >= EVENING_CLASS_THRESHOLD) {
-            eveningness += EVENING_SLOPE * (period.start - EVENING_CLASS_THRESHOLD) + EVENING_BIAS;
-        }
-        // total_class_time += period.end - period.start;
     }
 
 
-    const schedule_by_day = get_schedule_by_day(periods);
+    // const schedule_by_day = get_schedule_by_day_from_periods(periods);
 
 
     // const day_lengths = {};

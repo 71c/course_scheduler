@@ -18,7 +18,6 @@ const models = require('./models');
 const api = require('./api');
 const get_data = require('./get_data');
 const course_scheduler = require('./course_scheduler');
-const evaluation_timing_test = require('./some_tests').evaluation_timing_test;
 const schedule_stats = require('./schedule_stats');
 
 const {default_compare, basic_compare, PartialSorter} = require('./partial_sort');
