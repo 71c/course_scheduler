@@ -170,9 +170,8 @@ function setSchedule() {
         }
     });
     $('[data-toggle="tooltip"]').tooltip();
+    document.getElementById("score").innerHTML = `Score: ${Math.round(top_schedules[scheduleIndex].score * 100) / 100}`;
 }
-
-
 
 function updateButtonsEnabled() {
     leftButton.disabled = scheduleIndex === 0;
