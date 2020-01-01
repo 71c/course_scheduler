@@ -46,6 +46,18 @@ function minutesToTimeString(minutes) {
     return hourPartString + ":" + minutePartString;
 }
 
+function minutesToTimeString12hr(minutes) {
+    var minutePart = minutes % 60;
+    var hourPart = Math.floor(minutes / 60) % 24;
+    var amPm = hourPart >= 12 ? "PM" : "AM";
+    hourPart = hourPart % 12;
+    if (hourPart === 0)
+        hourPart = 12;
+    var hourPartString = hourPart.toString();
+    var minutePartString = minutePart > 9 ? minutePart.toString() : "0" + minutePart.toString();
+    return hourPartString + ":" + minutePartString + amPm;
+}
+
 function newCalendar(element, events) {
     if (events === undefined)
         events = [];
@@ -90,11 +102,13 @@ function newCalendar(element, events) {
             $(info.el).attr({
                 'data-toggle': 'tooltip',
                 'data-placement': 'bottom',
-                'title': info.event.extendedProps.course_title
+                'data-html': true,
+                'title': `${info.event.extendedProps.course_title}<br>${info.event.extendedProps.timeString}`
             });
         },
         minTime: "07:00",
-        maxTime: "22:00"
+        maxTime: "22:00",
+        displayEventTime: false
     });
 }
 
@@ -158,12 +172,12 @@ function setSchedule() {
                     const startString = minutesToTimeString(period.start);
                     const endString = minutesToTimeString(period.end);
                     calendar.addEvent({
-                        // title: `${current_course.course_num}-${section.section_num}`,
                         title: `${current_course.course_num}-${subsection.section_num}`,
                         course_title: current_course.title,
                         start: `${date}T${startString}`,
                         end: `${date}T${endString}`,
                         color: colors[i],
+                        timeString: `${minutesToTimeString12hr(period.start)} - ${minutesToTimeString12hr(period.end)}`,
                     });
                 }
             }
