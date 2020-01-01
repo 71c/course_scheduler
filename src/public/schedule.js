@@ -198,11 +198,18 @@ document.addEventListener('DOMContentLoaded', function() {
         calendarEl = document.getElementById('calendar');
         calendar = newCalendar(calendarEl, []);
         calendar.render();
+
+        sectionSelectDiv = document.getElementById('section-select');
+
+        var scoreHolder = document.createElement('h5');
+        scoreHolder.style = "width: 120px;";
+        scoreHolder.id = "score";
+        document.querySelector('.fc-right').appendChild(scoreHolder);
+
         setSchedule();
         leftButton = document.querySelector('.fc-left-button');
         rightButton = document.querySelector('.fc-right-button');
         updateButtonsEnabled();
-        sectionSelectDiv = document.getElementById('section-select');
         makeSectionSelects();
     }
 });
