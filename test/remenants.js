@@ -56,3 +56,21 @@ function schedule_to_period_list(schedule, term) {
     // var periods = mergeKArrays(arrs, (a, b) => a.start < b.start ? -1 : a.start > b.start ? 1 : 0);
     // return periods;
 }
+
+function insertionSort(arr) {
+    var ret=[];
+    for (var x of arr) {
+        if (ret.length === 0) {
+            ret.push(x);
+            continue;
+        }
+        var i = 0;
+        while (i < ret.length) {
+            if (ret[i] > x)
+                break;
+            i++;
+        }
+        ret.splice(i, 0, x);
+    }
+    return ret;
+}

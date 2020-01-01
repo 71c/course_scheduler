@@ -98,8 +98,8 @@ function course_object_to_period_group(course, exclude_classes_with_no_days, acc
                 if (status_ok && section_accept_function(section))
                     period_dict[assoc_class][component].push(give_ids ? section.id : section);
             } else {
-                // const sections_with_status_ok = section.sections.filter(s => accepted_statuses.includes(s.status));
-                // if (sections_with_status_ok.length !== 0 && section_accept_function(section))
+                const sections_with_status_ok = section.sections.filter(s => accepted_statuses.includes(s.status));
+                if (sections_with_status_ok.length !== 0 && section_accept_function(section))
                     period_dict[assoc_class][component].push(give_ids ? section.id : section);
             }
         }

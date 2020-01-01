@@ -14,7 +14,7 @@ const get_courses_path = term => `${COURSES_DATA_DIR}/courses_${term}.json`;
 const get_subjects_path = term => `${COURSES_DATA_DIR}/subjects_${term}.json`;
 const TERMS_PATH = `${COURSES_DATA_DIR}/terms.json`;
 
-const USE_SECTION_GROUPS = false;
+const USE_SECTION_GROUPS = true;
 
 if (!fs.existsSync(COURSES_DATA_DIR)) {
     fs.mkdirSync(COURSES_DATA_DIR);

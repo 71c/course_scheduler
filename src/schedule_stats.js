@@ -152,49 +152,13 @@ function get_schedule_by_day(schedule, term) {
     return schedule_by_day;
 }
 
-// function insertionSort(arr) {
-//     var ret=[];
-//     for (var x of arr) {
-//         if (ret.length === 0) {
-//             ret.push(x);
-//             continue;
-//         }
-//         var i = 0;
-//         while (i < ret.length) {
-//             if (ret[i] > x)
-//                 break;
-//             i++;
-//         }
-//         ret.splice(i, 0, x);
-//     }
-//     return ret;
-// }
-
-
 function get_score(schedule, term, weights) {
-
-
-
-    // const periods = schedule_to_period_list(schedule, term);
-
     const schedule_by_day = get_schedule_by_day(schedule, term);
-
-
     
     let morningness = 0;
     let eveningness = 0;
     
-    let total_class_time = 0;
-  
-    // for (const period of periods) {
-    //     if (period.start <= MORNING_CLASS_THRESHOLD) {
-    //         morningness += MORNING_SLOPE * (MORNING_CLASS_THRESHOLD - period.start) + MORNING_BIAS;
-    //     }
-    //     if (period.start >= EVENING_CLASS_THRESHOLD) {
-    //         eveningness += EVENING_SLOPE * (period.start - EVENING_CLASS_THRESHOLD) + EVENING_BIAS;
-    //     }
-    //     // total_class_time += period.end - period.start;
-    // }
+    // let total_class_time = 0;
 
     for (const day in schedule_by_day) {
         for (const period of schedule_by_day[day]) {
@@ -207,10 +171,6 @@ function get_score(schedule, term, weights) {
             // total_class_time += period.end - period.start;
         }
     }
-
-
-    // const schedule_by_day = get_schedule_by_day_from_periods(periods);
-
 
     // const day_lengths = {};
     let total_consecutiveness = 0;

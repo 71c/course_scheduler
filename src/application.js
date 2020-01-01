@@ -47,6 +47,18 @@ function minutesToTimeString12hr(minutes) {
     var minutePartString = minutePart > 9 ? minutePart.toString() : "0" + minutePart.toString();
     return hourPartString + ":" + minutePartString + amPm;
 }
+function groupBy(items, groupFunction) {
+    const map = new Map();
+    for (const item of items) {
+        const value = groupFunction(item);
+        if (map.has(value)) {
+            map.get(value).push(item);
+        } else {
+            map.set(value, [item]);
+        }
+    }
+    return [...map.values()];
+}
 
 tic('load the data')
 get_data.load_all_course_data(vals => {
@@ -54,6 +66,21 @@ get_data.load_all_course_data(vals => {
     console.log("Done loading the data");
 
     startServer();
+
+    // tic();
+    // var n = 0;
+    // for (const course of models.courses['Spring 2019']) {
+    //     groupBy(course.sections, section => 
+    //         section.assoc_class + section.component +
+    //             JSON.stringify(section.periods)
+    //     ).forEach(sections => {
+    //         const sectionGroup = new models.SectionGroup(sections);
+    //     });
+    //     n++;
+    // }
+    // console.log(n);
+    // toc();
+
 
     // let lens = {};
     // for (const course of models.courses['Spring 2020']) {
@@ -204,11 +231,38 @@ function get_top_schedules_list(course_ids, accepted_statuses, score_function, k
         return cmp;
     }, k);
     sorter.insertAll(schedules_and_scores);
-    return {
-        n_possibilities: sorter.numPassed,
-        top_schedules: sorter.getMinArray(),
-        courses: courses
-    };
+
+    if (get_data.USE_SECTION_GROUPS) {
+        return {
+            n_possibilities: sorter.numPassed,
+            top_schedules: sorter.getMinArray(),
+            courses: courses.map(course => ({
+                id: course.id,
+                course_num: course.course_num,
+                subject: course.subject,
+                subject_long: course.subject_long,
+                title: course.title,
+                // desc_long: course.desc_long,
+                sections: course.sections.map(section => 
+                    ({
+                        assoc_class: section.assoc_class,
+                        component: section.component,
+                        component_short: section.component_short,
+                        periods: section.periods,
+                        term: section.term,
+                        id: section.id,
+                        sections: section.sections.filter(s => accepted_statuses.includes(s.status))
+                    })
+                ).filter(section => section.sections.length !== 0)
+            }))
+        };
+    } else {
+        return {
+            n_possibilities: sorter.numPassed,
+            top_schedules: sorter.getMinArray(),
+            courses: courses
+        };
+    }
 }
 
 function get_schedules(courses, accepted_statuses, section_accept_function, term) {
