@@ -28,11 +28,15 @@ var leftButton, rightButton;
 
 const {n_possibilities, top_schedules, courses} = data;
 const sections_by_id = {};
+const section_indices_by_id = {};
 for (const course of courses) {
     for (const section of course.sections) {
         sections_by_id[section.id] = section;
+        section_indices_by_id[section.id] = 0;
     }
 }
+
+var sectionSelectDiv;
 
 function minutesToTimeString(minutes) {
     var minutePart = minutes % 60;
@@ -57,8 +61,9 @@ function newCalendar(element, events) {
                 click: function() {
                     if (scheduleIndex !== 0) {
                         scheduleIndex--;
-                        setSchedule(calendarEl);
+                        setSchedule();
                         updateButtonsEnabled();
+                        makeSectionSelects();
                     }
                 }
             },
@@ -67,8 +72,9 @@ function newCalendar(element, events) {
                 click: function() {
                     if (scheduleIndex !== top_schedules.length - 1) {
                         scheduleIndex++;
-                        setSchedule(calendarEl);
+                        setSchedule();
                         updateButtonsEnabled();
+                        makeSectionSelects();
                     }
                 }
             }
@@ -92,23 +98,68 @@ function newCalendar(element, events) {
     });
 }
 
-function setSchedule(element) {
+function makeSectionSelects() {
+    while (sectionSelectDiv.firstChild)
+        sectionSelectDiv.removeChild(sectionSelectDiv.firstChild);
     var schedule = top_schedules[scheduleIndex].schedule;
+    for (let i = 0; i < schedule.length; i++) {
+        const current_course = courses[i];
+        for (const section_id of schedule[i]) {
+            const section = sections_by_id[section_id];
+            const labelText = `${current_course.course_num} ${section.component}: `;
+
+            const row = document.createElement("tr");
+            
+            const desc = document.createElement("td");
+            desc.innerHTML = labelText;
+            row.appendChild(desc);
+
+            const val = document.createElement("td");
+            row.appendChild(val);
+            
+            if (section.sections.length > 1) {
+                const select = document.createElement("select");
+                for (let i = 0; i < section.sections.length; i++) {
+                    const option = document.createElement("option");
+                    option.innerHTML = section.sections[i].section_num;
+                    option.value = i;
+                    select.appendChild(option);
+                }
+                val.appendChild(select);
+
+                select.onchange = function() {
+                    section_indices_by_id[section.id] = parseInt(this.value, 10);
+                    setSchedule();
+                };
+            } else {
+                const text = document.createElement("span");
+                text.innerHTML = section.sections[0].section_num;
+                val.appendChild(text);
+            }
+
+            sectionSelectDiv.appendChild(row);
+        }
+    }
+}
+
+function setSchedule() {
+    var schedule = top_schedules[scheduleIndex].schedule;
+    
     calendar.batchRendering(function() {
-        for (var event of calendar.getEvents())
+        for (const event of calendar.getEvents())
             event.remove();
         for (let i = 0; i < schedule.length; i++) {
             const current_course = courses[i];
             for (const section_id of schedule[i]) {
                 const section = sections_by_id[section_id];
+                const subsection = section.sections[section_indices_by_id[section_id]];
                 for (const period of section.periods) {
                     const date = dayToDate[period.day];
                     const startString = minutesToTimeString(period.start);
                     const endString = minutesToTimeString(period.end);
                     calendar.addEvent({
-                        title: `${current_course.course_num}-${section.section_num}`,
-                        course_num: current_course.course_num,
-                        section_num: section.section_num,
+                        // title: `${current_course.course_num}-${section.section_num}`,
+                        title: `${current_course.course_num}-${subsection.section_num}`,
                         course_title: current_course.title,
                         start: `${date}T${startString}`,
                         end: `${date}T${endString}`,
@@ -118,10 +169,10 @@ function setSchedule(element) {
             }
         }
     });
-    $(function () {
-        $('[data-toggle="tooltip"]').tooltip()
-    })
+    $('[data-toggle="tooltip"]').tooltip();
 }
+
+
 
 function updateButtonsEnabled() {
     leftButton.disabled = scheduleIndex === 0;
@@ -134,9 +185,11 @@ document.addEventListener('DOMContentLoaded', function() {
         calendarEl = document.getElementById('calendar');
         calendar = newCalendar(calendarEl, []);
         calendar.render();
-        setSchedule(calendarEl);
+        setSchedule();
         leftButton = document.querySelector('.fc-left-button');
         rightButton = document.querySelector('.fc-right-button');
         updateButtonsEnabled();
+        sectionSelectDiv = document.getElementById('section-select');
+        makeSectionSelects();
     }
 });
