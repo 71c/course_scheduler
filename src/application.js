@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 
 const PORT = process.env.PORT || 5000;
+const UPDATE_INTERVAL = 30; // every UPDATE_INTERVAL minutes it updates all the course data
 
 app.set('view engine', 'ejs');
 
@@ -149,7 +150,7 @@ function startServer() {
     setInterval(function() {
         console.log("Updating all data...");
         get_data.load_course_data(undefined, ()=>{console.log("Successfully updated all data!")}, console.error, true);
-    }, 60 * 10 * 1000);
+    }, UPDATE_INTERVAL * 60*1000);
 
     app.get('/', function(req, res) {
         res.render('index', {terms: Object.keys(models.term_to_code)});

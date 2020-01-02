@@ -7,4 +7,4 @@ git clone https://github.com/71c/course_scheduler.git
 cd course_scheduler
 npm install
 ```
-and enter `node .`.
+then enter `node .`.
