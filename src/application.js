@@ -178,7 +178,7 @@ function startServer() {
 
         // const score_function = _ => Math.random();
         const score_function = schedule => schedule_stats.get_score(schedule, req.query.term, weights)
-        const k = 100;
+        const k = 300;
         var section_accept_function = function(section) {
             for (var period of section.periods)
                 if (period.start < min_time || period.end > max_time)
@@ -189,7 +189,7 @@ function startServer() {
         const info = get_top_schedules_list(ids, accepted_statuses, score_function, k, section_accept_function, req.query.term);
         toc('generate schedules');
         console.log(`n schedules: ${info.n_possibilities}`);
-        res.render('schedule', {data: JSON.stringify(info)});
+        res.render('schedule', {data: JSON.stringify(info), n_possibilities: info.n_possibilities, k: k});
     });
 
     app.get('/search', function(req, res) {

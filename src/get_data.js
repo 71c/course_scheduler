@@ -120,10 +120,6 @@ function save_data(term, courses, long_subject_dict) {
                 models.sections[term].push(sectionGroup);
                 return sectionGroup;
             });
-
-            // sectionGroups = sections.map(section => new models.SectionGroup([section]));
-            // models.sections[term].push(...sectionGroups);
-            // course.sections = sectionGroups;
         } else {
             models.sections[term].push(...sections);
             course.sections = sections;

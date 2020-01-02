@@ -28,6 +28,9 @@
             .fc-time > span, .fc-title {
                 font-size: 11px;
             }
+            textarea {
+                font-size: 11px;
+            }
         </style>
 
         <!-- <script src="jquery/dist/jquery.min.js" defer></script> -->
@@ -56,9 +59,12 @@
         <div class="container-fluid">
             <div class="row pt-3">
                 <div class="col-4" id="left">
-                    <h2 id="heading">Course Scheduler</h2>
+                    <h2 id="heading"><%= n_possibilities %> Schedule<%= n_possibilities==1?"":"s" %> Generated</h2>
+                    <% if (k < n_possibilities) { %><div>(Showing first <%= k %>)</div><% } %>
                     <h5>Sections:</h5>
                     <table id="section-select"></table>
+                    <h5>Script to add sections:</h5>
+                    <div>Copy and paste this script into the console when signed into SIS on the search for classes page. (The Console can be opend with option+command+J on Mac and Control+Shift+J on Windows/Linux.)</div>
                 </div>
                 <div class="col-8">
                     <div id="calendar"></div>

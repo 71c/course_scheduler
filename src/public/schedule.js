@@ -41,6 +41,9 @@ var scriptBox;
 
 var sectionSelectDiv;
 
+var rankHolder;
+var scoreHolder;
+
 function minutesToTimeString(minutes) {
     var minutePart = minutes % 60;
     var hourPart = Math.floor(minutes / 60);
@@ -147,6 +150,7 @@ function makeSectionSelects() {
                 select.onchange = function() {
                     section_indices_by_id[section.id] = parseInt(this.value, 10);
                     setSchedule();
+                    updateScript();
                 };
             } else {
                 const text = document.createElement("span");
@@ -187,12 +191,18 @@ function setSchedule() {
         }
     });
     $('[data-toggle="tooltip"]').tooltip();
-    document.getElementById("score").innerHTML = `Score: ${Math.round(top_schedules[scheduleIndex].score * 100) / 100}`;
+    scoreHolder.innerHTML = `Score: ${Math.round(top_schedules[scheduleIndex].score * 100) / 100}`;
+    rankHolder.innerHTML = 'rank: ' + (scheduleIndex+1);
+    updateScript();
 }
 
 function updateButtonsEnabled() {
     leftButton.disabled = scheduleIndex === 0;
     rightButton.disabled = scheduleIndex === top_schedules.length - 1;
+}
+
+function updateScript() {
+    scriptBox.value = getJavascript("ASE");
 }
 
 function getJavascript(career) {
@@ -232,7 +242,6 @@ function getJavascript(career) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('heading').innerHTML = `${n_possibilities} Schedule${n_possibilities===1?"":"s"} Generated`;
     if (n_possibilities !== 0) {
         calendarEl = document.getElementById('calendar');
         calendar = newCalendar(calendarEl, []);
@@ -240,25 +249,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
         sectionSelectDiv = document.getElementById('section-select');
 
-        var scoreHolder = document.createElement('h5');
+        scoreHolder = document.createElement('h5');
         scoreHolder.style = "width: 120px;";
-        scoreHolder.id = "score";
         document.querySelector('.fc-right').appendChild(scoreHolder);
+
+        rankHolder = document.createElement('h5');
+        rankHolder.innerHTML = 'rank: 1';
+        document.querySelector('.fc-center').appendChild(rankHolder);
+
+
+        // scriptButton = document.createElement('button');
+        // scriptButton.innerHTML = "get script";
+        scriptBox = document.createElement('textarea');
+        scriptBox.rows = "50";
+        scriptBox.cols = "40";
+
+        var left = document.getElementById('left');
+        // left.appendChild(scriptButton);
+        left.appendChild(scriptBox);
 
         setSchedule();
         leftButton = document.querySelector('.fc-left-button');
         rightButton = document.querySelector('.fc-right-button');
         updateButtonsEnabled();
         makeSectionSelects();
-
-        scriptButton = document.createElement('button');
-        scriptButton.innerHTML = "get script";
-        scriptBox = document.createElement('textarea');
-        scriptButton.onclick = function() {
-            scriptBox.value = getJavascript("ASE");
-        };
-        var left = document.getElementById('left');
-        left.appendChild(scriptButton);
-        left.appendChild(scriptBox);
     }
 });
