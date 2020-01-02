@@ -254,13 +254,15 @@ function get_top_schedules_list(course_ids, accepted_statuses, score_function, k
                         sections: section.sections.filter(s => accepted_statuses.includes(s.status))
                     })
                 ).filter(section => section.sections.length !== 0)
-            }))
+            })),
+            term_code: get_data.get_term_number(term)
         };
     } else {
         return {
             n_possibilities: sorter.numPassed,
             top_schedules: sorter.getMinArray(),
-            courses: courses
+            courses: courses,
+            term_code: get_data.get_term_number(term)
         };
     }
 }

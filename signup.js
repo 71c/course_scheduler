@@ -248,19 +248,26 @@ function getJavascript(term, career) {
     "    return function(callback) {\n"+
     "        window.location.href = '"+baseURL+"/term/"+term+"/career/"+career+"/subject/' + subject + '/course/' + num + '/attr/keyword/instructor';\n"+
     "        waitFor(function() {\n"+
-    "            return !jQuery('.tfp-results-overlay')[0] && !jQuery('.tfp_cls_srch_loading')[0] && jQuery('.accorion-head')[0]\n"+
+    "            return !jQuery('.tfp-results-overlay')[0] && !jQuery('.tfp_cls_srch_loading')[0] && jQuery('.accorion-head')[0] && jQuery('td:contains(' + classNums[0] + ')')[0]\n"+
     "        }, function() {\n"+
-    "            jQuery('.tfp-show-result-sect').click();\n"+
-    "            for (var classNum of classNums) {\n"+
-    "                // click on bubble with that class num\n"+
-    "            }\n"+
-    "            setTimeout(callback, 2000);\n"+
+    "           jQuery('.tfp-show-result-sect').click();\n"+
+    "           for (var classNum of classNums) {\n"+
+    "               jQuery('td:contains(' + classNum + ')')[0].parentElement.children[6].children[0].click();// click on bubble with that class num\n"+
+    "           }\n"+
+    "           jQuery('button:contains(Add to Cart)').click();\n"+
+    "           setTimeout(callback, 0);\n"+
     "        });\n"+
     "    };\n"+
     "}\n";
     for (let i = 0; i < schedule.length; i++) {
         const current_course = courses[i];
-        js += 'functions.push(addClass("' + current_course.subject + '", "' + /(?<=-).*/.exec(current_course.course_num) + '"))\n';
+        const classNums = [];
+        for (const section_id of schedule[i]) {
+            const section = sections_by_id[section_id];
+            const subsection = section.sections[section_indices_by_id[section_id]];
+            classNums.push(subsection.class_num);
+        }
+        js += 'functions.push(addClass("' + current_course.subject + '", "' + /(?<=-).*/.exec(current_course.course_num) + '", ' + JSON.stringify(classNums) + '))\n';
     }
     js += "executeSequentially(functions, function() {console.log('done');});";
     return js;

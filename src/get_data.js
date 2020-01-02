@@ -363,5 +363,6 @@ module.exports = {
     load_all_course_data,
     refresh_terms,
     get_response,
-    USE_SECTION_GROUPS
+    USE_SECTION_GROUPS,
+    get_term_number
 };
