@@ -43,7 +43,9 @@
                 if (localStorage.getItem("script")) {
                     var e = document.createElement("input");
                     e.type = "hidden";
+                    e.id = "thescript";
                     e.value = localStorage.getItem("script");
+                    document.body.appendChild(e);
                 }
             })();
         </script>
