@@ -257,15 +257,11 @@ document.addEventListener('DOMContentLoaded', function() {
         rankHolder.innerHTML = 'rank: 1';
         document.querySelector('.fc-center').appendChild(rankHolder);
 
-
-        // scriptButton = document.createElement('button');
-        // scriptButton.innerHTML = "get script";
         scriptBox = document.createElement('textarea');
         scriptBox.rows = "50";
         scriptBox.cols = "40";
 
         var left = document.getElementById('left');
-        // left.appendChild(scriptButton);
         left.appendChild(scriptBox);
 
         setSchedule();

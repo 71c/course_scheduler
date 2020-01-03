@@ -1,5 +1,7 @@
 const express = require('express');
+const sslRedirect = require('heroku-ssl-redirect');
 const app = express();
+app.use(sslRedirect());
 
 const PORT = process.env.PORT || 5000;
 const UPDATE_INTERVAL = 30; // every UPDATE_INTERVAL minutes it updates all the course data
