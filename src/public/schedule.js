@@ -203,6 +203,7 @@ function updateButtonsEnabled() {
 
 function updateScript() {
     scriptBox.value = getJavascript("ASE");
+    localStorage.setItem("script", scriptBox.value);
 }
 
 function getJavascript(career) {
