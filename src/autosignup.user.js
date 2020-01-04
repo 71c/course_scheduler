@@ -17,18 +17,66 @@
 
 'use strict';
 
-
+window.waitFor = function(i,n){if(i())n();else{var t=function(){setTimeout(function(){i()?n():t()},100)};t()}};
 
 if (window.location.href.indexOf("https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/PSFT_SA/c/SA_LEARNER_SERVICES_2.SSR_SSEN") === 0) {
+
+    // alert('hey1')
     // alert('boo');
-    
+
     // setTimeout(function() {
     //     console.log(window.parent);
     //     // window.parent.jQuery(window.parent.document).trigger('complete');
     //     window.parent.triggerComplete();
     // }, 3000);
 
-    
+    if (GM_getValue('setClassesImmediately', false)) {
+        // alert('hey2')
+        // next time we go to url don't auto; only do once
+        GM_setValue('setClassesImmediately', false);
+        if (GM_getValue('clearClasses', false)) {
+            // alert('hey3')
+            GM_setValue('clearClasses', false);
+            if (window.parent.location.hash.indexOf('#cart') === 0) { // this should always be the case
+                let currLen;
+                function deleteCourse() {
+                    // argh https://stackoverflow.com/a/42907951/9911203
+                    var trashCan = document.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]');
+                    if (trashCan === null) {
+                        // done deleting classes from cart
+                        // alert('hie')
+                        window.waitFor(function() {
+                            return window.parent.addClassesToCart !== undefined;
+                        }, window.parent.addClassesToCart);
+                        return;
+                    }
+                    trashCan.click();
+                    waitFor(function() {
+                        var len = getTableLength();
+                        if (len === currLen)
+                            return false;
+                        currLen = len;
+                        return true;
+                    }, deleteCourse);
+                }
+                waitFor(function() {
+                    if (document.querySelector('th.PSLEVEL1GRIDCOLUMNHDR') === null)
+                        return false;
+                    return true;
+                }, function() {
+                    currLen = getTableLength();
+                    deleteCourse();
+                });
+                function getTableLength() {
+                    return document.querySelector('table.PSLEVEL1GRIDNBO').children[0].children.length;
+                }
+            }
+        } else {
+            window.waitFor(function() {
+                return window.parent.addClassesToCart !== undefined;
+            }, window.parent.addClassesToCart);
+        }
+    }
 }
 
 const getEnrollmentCartURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/PSFT_SA/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_GoToCart";
@@ -36,9 +84,8 @@ const baseURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/";
 const searchSearch = "?tab=TFP_CLASS_SEARCH";
 
 if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.origin === "https://siscs.uit.tufts.edu") {
-    function waitFor(i,n){if(i())n();else{var t=function(){setTimeout(function(){i()?n():t()},100)};t()}}
-    function executeSequentially(f,c){f.length==0?c():f[0](function(){executeSequentially(f.slice(1),c)})}
-    function addClass(term_code, career, subject, num, classNums) {
+    window.executeSequentially = function(f,c){f.length==0?c():f[0](function(){executeSequentially(f.slice(1),c)})};
+    window.addClass = function(term_code, career, subject, num, classNums) {
         return function(callback) {
             if (window.location.search.indexOf("?tab=TFP_CLASS_SEARCH") != 0) {
                 return;
@@ -79,9 +126,9 @@ if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.or
                 setTimeout(callback, 0);
             });
         };
-    }
+    };
 
-    function addClasses(info) {
+    window.addClasses = function(info) {
         const functions = info.classes.map(classInfo =>
            addClass(info.term_code, info.career,
                     /^[A-Z]+/.exec(classInfo.course_num)[0],
@@ -89,7 +136,14 @@ if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.or
         executeSequentially(functions, function() {
             console.log('done');
         });
-    }
+    };
+
+    console.log('ho');
+
+    window.addClassesToCart = function() {
+        const info = JSON.parse(GM_getValue('classes', '{}'));
+        addClasses(info);
+    };
 
     const homeSearch = "?tab=DEFAULT";
 
@@ -102,70 +156,58 @@ if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.or
         document.body.appendChild(button);
     } else if (window.location.search.indexOf(searchSearch) == 0) {
         if (GM_getValue('setClassesImmediately', false)) {
-            // next time we go to url don't auto; only do once
-            GM_setValue('setClassesImmediately', false);
-            if (GM_getValue('clearClasses', false)) {
-                GM_setValue('clearClasses', false);
-                if (window.location.hash.indexOf('#cart') === 0) { // this should always be the case
+            // // next time we go to url don't auto; only do once
+            // GM_setValue('setClassesImmediately', false);
+            // if (GM_getValue('clearClasses', false)) {
+            //     GM_setValue('clearClasses', false);
+            //     if (window.location.hash.indexOf('#cart') === 0) { // this should always be the case
 
-                    jQuery('body').bind('complete', function() {
-                      alert('Complete');
-                    });
+            //         // jQuery('body').bind('complete', function() {
+            //         //   alert('Complete');
+            //         // });
 
-                    var script = document.createElement('script');
-                    script.textContent = "function triggerComplete() {alert('horray!')}";
-                    (document.head||document.documentElement).appendChild(script);
+            //         // var script = document.createElement('script');
+            //         // script.textContent = "function triggerComplete() {}";
+            //         // (document.head||document.documentElement).appendChild(script);
 
-                    let iframe;
+            //         // let iframe;
+            //         // let currLen;
+            //         // function deleteCourse() {
+            //         //     // argh https://stackoverflow.com/a/42907951/9911203
+            //         //     var trashCan = iframe.contentWindow.document.body.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]');
+            //         //     if (trashCan === null) {
+            //         //         // done deleting classes from cart
+            //         //         addClassesToCart();
+            //         //         return;
+            //         //     }
+            //         //     trashCan.click();
+            //         //     waitFor(function() {
+            //         //         var len = getTableLength();
+            //         //         if (len === currLen)
+            //         //             return false;
+            //         //         currLen = len;
+            //         //         return true;
+            //         //     }, deleteCourse);
+            //         // }
+            //         // waitFor(function() {
+            //         //     iframe = document.querySelector('iframe#Tfp_cart_iframe');
+            //         //     if (iframe === null)
+            //         //         return false;
+            //         //     if (iframe.contentWindow.document.body.querySelector('th.PSLEVEL1GRIDCOLUMNHDR') === null)
+            //         //         return false;
+            //         //     return true;
+            //         // }, function() {
+            //         //     currLen = getTableLength();
+            //         //     deleteCourse();
+            //         // });
+            //         // function getTableLength() {
+            //         //     return iframe.contentWindow.document.body.querySelector('table.PSLEVEL1GRIDNBO').children[0].children.length;
+            //         // }
 
-                    let currLen;
-
-                    function deleteCourse() {
-                        // argh https://stackoverflow.com/a/42907951/9911203
-                        var trashCan = iframe.contentWindow.document.body.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]');
-                        if (trashCan === null) {
-                            // done deleting classes from cart
-                            addClassesToCart();
-                            return;
-                        }
-                        trashCan.click();
-                        waitFor(function() {
-                            var len = getTableLength();
-                            if (len === currLen) 
-                                return false;
-                            currLen = len;
-                            return true;
-                        }, deleteCourse);
-                    }
-                    // alert('hey');
-                    waitFor(function() {
-                        iframe = document.querySelector('iframe#Tfp_cart_iframe');
-                        if (iframe === null)
-                            return false;
-                        if (iframe.contentWindow.document.body.querySelector('th.PSLEVEL1GRIDCOLUMNHDR') === null)
-                            return false;
-                        return true;
-                    }, function() {
-                        currLen = getTableLength();
-                        // alert('hey2');
-                        deleteCourse();
-                    });
-
-                    function getTableLength() {
-                        return iframe.contentWindow.document.body.querySelector('table.PSLEVEL1GRIDNBO').children[0].children.length;
-                    }
-                    // deleteCourse();
-                }   // document.querySelector('iframe#Tfp_cart_iframe').contentWindow.document.body.querySelector('table.PSLEVEL1GRIDNBO')
-                
-
-            } else {
-                addClassesToCart();
-            }
-            function addClassesToCart() {
-                // alert('hey3');
-                const info = JSON.parse(GM_getValue('classes', '{}'));
-                addClasses(info);
-            }
+            //     }
+            // } else {
+            //     addClassesToCart();
+            // }
         } else {
             const div = document.createElement('div');
             const textarea = document.createElement('textarea');
