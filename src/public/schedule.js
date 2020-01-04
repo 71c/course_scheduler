@@ -202,29 +202,7 @@ function updateButtonsEnabled() {
 }
 
 function updateScript() {
-    scriptBox.value = getInfoForAddClasses("ASE");
-}
-
-function getInfoForAddClasses(career) {
-    var schedule = top_schedules[scheduleIndex].schedule;
-    var classes = [];
-    for (let i = 0; i < schedule.length; i++) {
-        const current_course = courses[i];
-        const classNums = schedule[i].map(section_id => {
-            const section = sections_by_id[section_id];
-            const subsection = section.sections[section_indices_by_id[section_id]];
-            return subsection.class_num;
-        });
-        classes.push({
-            course_num: current_course.course_num,
-            classNums: classNums
-        });
-    }
-    return JSON.stringify({
-        term_code: term_code,
-        career: career,
-        classes: classes
-    });
+    document.dispatchEvent(new Event('updateClasses'));
 }
 
 document.addEventListener('DOMContentLoaded', function() {
