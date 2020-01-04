@@ -37,7 +37,6 @@ for (const course of courses) {
 }
 
 var scriptButton;
-var scriptBox;
 
 var sectionSelectDiv;
 
@@ -220,13 +219,6 @@ document.addEventListener('DOMContentLoaded', function() {
         rankHolder = document.createElement('h5');
         rankHolder.innerHTML = 'rank: 1';
         document.querySelector('.fc-center').appendChild(rankHolder);
-
-        scriptBox = document.createElement('textarea');
-        scriptBox.rows = "50";
-        scriptBox.cols = "40";
-
-        var left = document.getElementById('left');
-        left.appendChild(scriptBox);
 
         setSchedule();
         leftButton = document.querySelector('.fc-left-button');

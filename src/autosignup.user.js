@@ -8,6 +8,8 @@
 // @match        http://localhost:5000/schedule*
 // @match        https://tuftscoursescheduler.com/schedule*
 // @match        https://www.tuftscoursescheduler.com/schedule*
+// @match        https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/PSFT_SA/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_GoToCart
+// @match        https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/PSFT_SA/c/SA_LEARNER_SERVICES_2.SSR_SSENRL_CART.GBL???Page=SSR_SSENRL_CART&Action=A&INSTITUTION=TUFTS&TargetFrameName=Tfp_cart_iframe&ACAD_CAREER=ASEU&STRM=2202
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @require http://code.jquery.com/jquery-latest.js
@@ -15,17 +17,33 @@
 
 'use strict';
 
-if (location.origin === "https://sis.uit.tufts.edu") {
-    const baseURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/";
 
+
+if (window.location.href.indexOf("https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/PSFT_SA/c/SA_LEARNER_SERVICES_2.SSR_SSEN") === 0) {
+    // alert('boo');
+    
+    // setTimeout(function() {
+    //     console.log(window.parent);
+    //     // window.parent.jQuery(window.parent.document).trigger('complete');
+    //     window.parent.triggerComplete();
+    // }, 3000);
+
+    
+}
+
+const getEnrollmentCartURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/PSFT_SA/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_GoToCart";
+const baseURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/";
+const searchSearch = "?tab=TFP_CLASS_SEARCH";
+
+if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.origin === "https://siscs.uit.tufts.edu") {
     function waitFor(i,n){if(i())n();else{var t=function(){setTimeout(function(){i()?n():t()},100)};t()}}
     function executeSequentially(f,c){f.length==0?c():f[0](function(){executeSequentially(f.slice(1),c)})}
     function addClass(term_code, career, subject, num, classNums) {
         return function(callback) {
-            if (location.search.indexOf("?tab=TFP_CLASS_SEARCH") != 0) {
+            if (window.location.search.indexOf("?tab=TFP_CLASS_SEARCH") != 0) {
                 return;
             }
-            location.hash = "#search_results/term/" + term_code + "/career/" + career + "/subject/" + subject + "/course/" + num + "/attr/keyword/instructor";
+            window.location.hash = "#search_results/term/" + term_code + "/career/" + career + "/subject/" + subject + "/course/" + num + "/attr/keyword/instructor";
             waitFor(function() {
                 return !jQuery('.tfp-results-overlay')[0] && !jQuery('.tfp_cls_srch_loading')[0] && jQuery('.accorion-head')[0] && jQuery('td:contains(' + classNums[0] + ')')[0]
             }, function() {
@@ -73,58 +91,169 @@ if (location.origin === "https://sis.uit.tufts.edu") {
         });
     }
 
-    const searchSearch = "?tab=TFP_CLASS_SEARCH";
     const homeSearch = "?tab=DEFAULT";
 
-    // location.search starts with "?tab=DEFAULT"
-    if (location.search.indexOf(homeSearch) == 0) {
+    if (window.location.search.indexOf(homeSearch) == 0) {
         const button = document.createElement('button');
         button.innerHTML = 'auto sign up';
         button.onclick = function() {
-            location.href = baseURL + searchSearch;
+            window.location.href = baseURL + searchSearch;
         };
         document.body.appendChild(button);
-    } else if (location.search.indexOf(searchSearch) == 0) {
-        const div = document.createElement('div');
-        const textarea = document.createElement('textarea');
-        const button = document.createElement('button');
-        button.innerHTML = 'add classes';
-        button.onclick = function() {
-            // extensive error checking
-            try {
-                var info = JSON.parse(textarea.value);
-            } catch (e) {
-                alert('invalid JSON');
-                return;
+    } else if (window.location.search.indexOf(searchSearch) == 0) {
+        if (GM_getValue('setClassesImmediately', false)) {
+            // next time we go to url don't auto; only do once
+            GM_setValue('setClassesImmediately', false);
+            if (GM_getValue('clearClasses', false)) {
+                GM_setValue('clearClasses', false);
+                if (window.location.hash.indexOf('#cart') === 0) { // this should always be the case
+
+                    jQuery('body').bind('complete', function() {
+                      alert('Complete');
+                    });
+
+                    var script = document.createElement('script');
+                    script.textContent = "function triggerComplete() {alert('horray!')}";
+                    (document.head||document.documentElement).appendChild(script);
+
+                    let iframe;
+
+                    let currLen;
+
+                    function deleteCourse() {
+                        // argh https://stackoverflow.com/a/42907951/9911203
+                        var trashCan = iframe.contentWindow.document.body.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]');
+                        if (trashCan === null) {
+                            // done deleting classes from cart
+                            addClassesToCart();
+                            return;
+                        }
+                        trashCan.click();
+                        waitFor(function() {
+                            var len = getTableLength();
+                            if (len === currLen) 
+                                return false;
+                            currLen = len;
+                            return true;
+                        }, deleteCourse);
+                    }
+                    // alert('hey');
+                    waitFor(function() {
+                        iframe = document.querySelector('iframe#Tfp_cart_iframe');
+                        if (iframe === null)
+                            return false;
+                        if (iframe.contentWindow.document.body.querySelector('th.PSLEVEL1GRIDCOLUMNHDR') === null)
+                            return false;
+                        return true;
+                    }, function() {
+                        currLen = getTableLength();
+                        // alert('hey2');
+                        deleteCourse();
+                    });
+
+                    function getTableLength() {
+                        return iframe.contentWindow.document.body.querySelector('table.PSLEVEL1GRIDNBO').children[0].children.length;
+                    }
+                    // deleteCourse();
+                }   // document.querySelector('iframe#Tfp_cart_iframe').contentWindow.document.body.querySelector('table.PSLEVEL1GRIDNBO')
+                
+
+            } else {
+                addClassesToCart();
             }
-            for (const key of ["term_code", "career", "classes"]) {
-                if (!(key in info)) {
-                    alert("missing attribute " + key);
+            function addClassesToCart() {
+                // alert('hey3');
+                const info = JSON.parse(GM_getValue('classes', '{}'));
+                addClasses(info);
+            }
+        } else {
+            const div = document.createElement('div');
+            const textarea = document.createElement('textarea');
+            const button = document.createElement('button');
+            button.innerHTML = 'add classes';
+            button.onclick = function() {
+                // extensive error checking
+                try {
+                    var info = JSON.parse(textarea.value);
+                } catch (e) {
+                    alert('invalid JSON');
                     return;
                 }
-            }
-            for (var i = 0; i < info.classes.length; i++) {
-                const classInfo = info.classes[i];
-                for (const key of ["course_num", "classNums"]) {
-                    if (!(key in classInfo)) {
-                        alert("class info at index " + i + " missing attribute " + key);
+                for (const key of ["term_code", "career", "classes"]) {
+                    if (!(key in info)) {
+                        alert("missing attribute " + key);
                         return;
                     }
                 }
-            }
+                for (var i = 0; i < info.classes.length; i++) {
+                    const classInfo = info.classes[i];
+                    for (const key of ["course_num", "classNums"]) {
+                        if (!(key in classInfo)) {
+                            alert("class info at index " + i + " missing attribute " + key);
+                            return;
+                        }
+                    }
+                }
 
-            addClasses(info);
+                addClasses(info);
+            }
+            div.appendChild(textarea);
+            div.appendChild(button);
+            document.body.appendChild(div);
         }
-        div.appendChild(textarea);
-        div.appendChild(button);
-        document.body.appendChild(div);
+    } else if (window.location.href === getEnrollmentCartURL) {
+        var url = jQuery('span#IS_AC_RESPONSE').text().trim();
+        location.href = url;
     }
 } else {
-    document.addEventListener('updateClasses', function() {
-        var val = getInfoForAddClasses("ASE");
+    const scriptBox = document.createElement('textarea');
+    scriptBox.rows = "50";
+    scriptBox.cols = "40";
+
+    const left = document.getElementById('left');
+    left.appendChild(scriptBox);
+
+    const setClassesButton = document.createElement('button');
+    setClassesButton.innerHTML = 'replace cart with these';
+    const addClassesButton = document.createElement('button');
+    addClassesButton.innerHTML = 'add these to cart';
+
+    setClassesButton.onclick = function() {
+        GM_setValue('clearClasses', true);
+        GM_setValue('setClassesImmediately', true);
+
+        // would do but doesn't work because of cross-origin restriction
+        // jQuery.get(getEnrollmentCartURL, function(r) {
+        //     var url = jQuery(r).find('span#IS_AC_RESPONSE').text().trim();
+        //     if (!!url) {
+        //         window.open(url);
+        //     } else {
+        //         alert('Sign in to SIS');
+        //     }
+        // });
+
+        window.open(getEnrollmentCartURL);
+    }
+
+    addClassesButton.onclick = function() {
+        GM_setValue('clearClasses', false);
+        GM_setValue('setClassesImmediately', true);
+        window.open(baseURL + searchSearch);
+    }
+
+    left.appendChild(setClassesButton);
+    left.appendChild(addClassesButton);
+
+    function updateClasses() {
+        var val = getInfoForAddClasses("ASE"); // TODO: change "ASE" to "ALL" or make it possible to specify career
+        console.log(val);
         GM_setValue('classes', val);
-        window.scriptBox.value = val; // more clear to write 'window.'
-    }, false);
+        scriptBox.value = val; // more clear to write 'window.'
+    }
+
+    document.addEventListener('updateClasses', updateClasses, false);
+
+    updateClasses();
 
     function getInfoForAddClasses(career) {
         var schedule = top_schedules[scheduleIndex].schedule;
