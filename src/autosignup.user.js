@@ -17,18 +17,18 @@
 
 'use strict';
 
+// http://mths.be/unsafewindow
+window.unsafeWindow || (
+    unsafeWindow = (function() {
+        var el = document.createElement('p');
+        el.setAttribute('onclick', 'return window;');
+        return el.onclick();
+    }())
+);
+
 window.waitFor = function(i,n){if(i())n();else{var t=function(){setTimeout(function(){i()?n():t()},100)};t()}};
 
 if (window.location.href.indexOf("https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/PSFT_SA/c/SA_LEARNER_SERVICES_2.SSR_SSEN") === 0) {
-
-    // alert('hey1')
-    // alert('boo');
-
-    // setTimeout(function() {
-    //     console.log(window.parent);
-    //     // window.parent.jQuery(window.parent.document).trigger('complete');
-    //     window.parent.triggerComplete();
-    // }, 3000);
 
     if (GM_getValue('setClassesImmediately', false)) {
         // alert('hey2')
@@ -84,8 +84,8 @@ const baseURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/";
 const searchSearch = "?tab=TFP_CLASS_SEARCH";
 
 if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.origin === "https://siscs.uit.tufts.edu") {
-    window.executeSequentially = function(f,c){f.length==0?c():f[0](function(){executeSequentially(f.slice(1),c)})};
-    window.addClass = function(term_code, career, subject, num, classNums) {
+    unsafeWindow.executeSequentially = function(f,c){f.length==0?c():f[0](function(){executeSequentially(f.slice(1),c)})};
+    unsafeWindow.addClass = function(term_code, career, subject, num, classNums) {
         return function(callback) {
             if (window.location.search.indexOf("?tab=TFP_CLASS_SEARCH") != 0) {
                 return;
@@ -128,7 +128,7 @@ if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.or
         };
     };
 
-    window.addClasses = function(info) {
+    unsafeWindow.addClasses = function(info) {
         const functions = info.classes.map(classInfo =>
            addClass(info.term_code, info.career,
                     /^[A-Z]+/.exec(classInfo.course_num)[0],
@@ -140,7 +140,7 @@ if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.or
 
     console.log('ho');
 
-    window.addClassesToCart = function() {
+    unsafeWindow.addClassesToCart = function() {
         const info = JSON.parse(GM_getValue('classes', '{}'));
         addClasses(info);
     };
