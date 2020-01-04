@@ -202,44 +202,7 @@ function updateButtonsEnabled() {
 }
 
 function updateScript() {
-    // scriptBox.value = getJavascript("ASE");
     scriptBox.value = getInfoForAddClasses("ASE");
-    localStorage.setItem("script", scriptBox.value);
-}
-
-function getJavascript(career) {
-    var schedule = top_schedules[scheduleIndex].schedule;
-    var baseURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/?tab=TFP_CLASS_SEARCH&pt_fname=TFP_SEARCH_FOR_CLASSES_FLDR&FolderPath=PORTAL_ROOT_OBJECT.TFP_CLASSES_FLDR.TFP_SEARCH_FOR_CLASSES_FLDR&IsFolder=true#search_results";
-    var js = 'function waitFor(i,n){if(i())n();else{var t=function(){setTimeout(function(){i()?n():t()},100)};t()}}\n';
-    js += 'function executeSequentially(f,c){f.length==0?c():f[0](function(){executeSequentially(f.slice(1),c)})}\n';
-    js +=
-    "function addClass(subject, num, classNums) {\n"+
-    "    return function(callback) {\n"+
-    "        window.location.href = '"+baseURL+"/term/"+term_code+"/career/"+career+"/subject/' + subject + '/course/' + num + '/attr/keyword/instructor';\n"+
-    "        waitFor(function() {\n"+
-    "            return !jQuery('.tfp-results-overlay')[0] && !jQuery('.tfp_cls_srch_loading')[0] && jQuery('.accorion-head')[0] && jQuery('td:contains(' + classNums[0] + ')')[0]\n"+
-    "        }, function() {\n"+
-    "           jQuery('.tfp-show-result-sect').click();\n"+
-    "           for (var classNum of classNums) {\n"+
-    "               jQuery('td:contains(' + classNum + ')')[0].parentElement.children[6].children[0].click();// click on bubble with that class num\n"+
-    "           }\n"+
-    "           jQuery('button:contains(Add to Cart)').click();\n"+
-    "           setTimeout(callback, 0);\n"+
-    "        });\n"+
-    "    };\n"+
-    "}\n";
-    js += 'var functions = [];\n';
-    for (let i = 0; i < schedule.length; i++) {
-        const current_course = courses[i];
-        const classNums = schedule[i].map(section_id => {
-            const section = sections_by_id[section_id];
-            const subsection = section.sections[section_indices_by_id[section_id]];
-            return subsection.class_num;
-        });
-        js += 'functions.push(addClass("' + current_course.subject + '", "' + /(?<=-).*/.exec(current_course.course_num)[0] + '", ' + JSON.stringify(classNums) + '))\n';
-    }
-    js += "executeSequentially(functions, function() {console.log('done');});";
-    return js;
 }
 
 function getInfoForAddClasses(career) {

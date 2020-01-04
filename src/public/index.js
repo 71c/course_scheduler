@@ -175,6 +175,6 @@ document.documentElement.style.display = 'block';
 // https://stackoverflow.com/a/13123626/9911203
 $(window).bind("pageshow", function(event) {
     if (event.originalEvent.persisted) {
-        window.location.reload() 
+        window.location.reload()
     }
 });

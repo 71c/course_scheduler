@@ -8,3 +8,4 @@ N_GROUPS = N_PERIODS - N_GAPS
 
 
 https://www.srihash.org/
+https://stackoverflow.com/questions/56719989/is-the-immediately-invoked-function-expression-iife-pattern-really-necessary-w
