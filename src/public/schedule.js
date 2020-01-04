@@ -202,7 +202,8 @@ function updateButtonsEnabled() {
 }
 
 function updateScript() {
-    scriptBox.value = getJavascript("ASE");
+    // scriptBox.value = getJavascript("ASE");
+    scriptBox.value = getInfoForAddClasses("ASE");
     localStorage.setItem("script", scriptBox.value);
 }
 
@@ -211,7 +212,6 @@ function getJavascript(career) {
     var baseURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/?tab=TFP_CLASS_SEARCH&pt_fname=TFP_SEARCH_FOR_CLASSES_FLDR&FolderPath=PORTAL_ROOT_OBJECT.TFP_CLASSES_FLDR.TFP_SEARCH_FOR_CLASSES_FLDR&IsFolder=true#search_results";
     var js = 'function waitFor(i,n){if(i())n();else{var t=function(){setTimeout(function(){i()?n():t()},100)};t()}}\n';
     js += 'function executeSequentially(f,c){f.length==0?c():f[0](function(){executeSequentially(f.slice(1),c)})}\n';
-    js += 'var functions = [];\n';
     js +=
     "function addClass(subject, num, classNums) {\n"+
     "    return function(callback) {\n"+
@@ -228,7 +228,7 @@ function getJavascript(career) {
     "        });\n"+
     "    };\n"+
     "}\n";
-
+    js += 'var functions = [];\n';
     for (let i = 0; i < schedule.length; i++) {
         const current_course = courses[i];
         const classNums = schedule[i].map(section_id => {
@@ -236,10 +236,32 @@ function getJavascript(career) {
             const subsection = section.sections[section_indices_by_id[section_id]];
             return subsection.class_num;
         });
-        js += 'functions.push(addClass("' + current_course.subject + '", "' + /(?<=-).*/.exec(current_course.course_num) + '", ' + JSON.stringify(classNums) + '))\n';
+        js += 'functions.push(addClass("' + current_course.subject + '", "' + /(?<=-).*/.exec(current_course.course_num)[0] + '", ' + JSON.stringify(classNums) + '))\n';
     }
     js += "executeSequentially(functions, function() {console.log('done');});";
     return js;
+}
+
+function getInfoForAddClasses(career) {
+    var schedule = top_schedules[scheduleIndex].schedule;
+    var classes = [];
+    for (let i = 0; i < schedule.length; i++) {
+        const current_course = courses[i];
+        const classNums = schedule[i].map(section_id => {
+            const section = sections_by_id[section_id];
+            const subsection = section.sections[section_indices_by_id[section_id]];
+            return subsection.class_num;
+        });
+        classes.push({
+            course_num: current_course.course_num,
+            classNums: classNums
+        });
+    }
+    return JSON.stringify({
+        term_code: term_code,
+        career: career,
+        classes: classes
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
