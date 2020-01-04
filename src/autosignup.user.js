@@ -71,10 +71,6 @@ if (window.location.href.indexOf("https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE
                     return document.querySelector('table.PSLEVEL1GRIDNBO').children[0].children.length;
                 }
             }
-        } else {
-            window.waitFor(function() {
-                return window.parent.addClassesToCart !== undefined;
-            }, window.parent.addClassesToCart);
         }
     }
 }
@@ -156,58 +152,9 @@ if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.or
         document.body.appendChild(button);
     } else if (window.location.search.indexOf(searchSearch) == 0) {
         if (GM_getValue('setClassesImmediately', false)) {
-            // // next time we go to url don't auto; only do once
-            // GM_setValue('setClassesImmediately', false);
-            // if (GM_getValue('clearClasses', false)) {
-            //     GM_setValue('clearClasses', false);
-            //     if (window.location.hash.indexOf('#cart') === 0) { // this should always be the case
-
-            //         // jQuery('body').bind('complete', function() {
-            //         //   alert('Complete');
-            //         // });
-
-            //         // var script = document.createElement('script');
-            //         // script.textContent = "function triggerComplete() {}";
-            //         // (document.head||document.documentElement).appendChild(script);
-
-            //         // let iframe;
-            //         // let currLen;
-            //         // function deleteCourse() {
-            //         //     // argh https://stackoverflow.com/a/42907951/9911203
-            //         //     var trashCan = iframe.contentWindow.document.body.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]');
-            //         //     if (trashCan === null) {
-            //         //         // done deleting classes from cart
-            //         //         addClassesToCart();
-            //         //         return;
-            //         //     }
-            //         //     trashCan.click();
-            //         //     waitFor(function() {
-            //         //         var len = getTableLength();
-            //         //         if (len === currLen)
-            //         //             return false;
-            //         //         currLen = len;
-            //         //         return true;
-            //         //     }, deleteCourse);
-            //         // }
-            //         // waitFor(function() {
-            //         //     iframe = document.querySelector('iframe#Tfp_cart_iframe');
-            //         //     if (iframe === null)
-            //         //         return false;
-            //         //     if (iframe.contentWindow.document.body.querySelector('th.PSLEVEL1GRIDCOLUMNHDR') === null)
-            //         //         return false;
-            //         //     return true;
-            //         // }, function() {
-            //         //     currLen = getTableLength();
-            //         //     deleteCourse();
-            //         // });
-            //         // function getTableLength() {
-            //         //     return iframe.contentWindow.document.body.querySelector('table.PSLEVEL1GRIDNBO').children[0].children.length;
-            //         // }
-
-            //     }
-            // } else {
-            //     addClassesToCart();
-            // }
+            if (!GM_setValue('setClassesImmediately', false)) {
+                addClassesToCart();
+            }
         } else {
             const div = document.createElement('div');
             const textarea = document.createElement('textarea');
