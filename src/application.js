@@ -47,6 +47,10 @@ function sslwwwRedirect(environments, status) {
     environments = environments || ['production'];
     status = status || 301;
     return function(req, res, next) {
+        console.log(process.env.NODE_ENV);
+        console.log(req.protocol);
+        console.log(req.headers['x-forwarded-proto']);
+        console.log();
         if (environments.indexOf(process.env.NODE_ENV) >= 0) {
             if (req.headers['x-forwarded-proto'] !== 'https') {
                 if (req.headers.host.slice(0, 4) !== 'www.') {
