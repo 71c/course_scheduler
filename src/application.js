@@ -7,51 +7,13 @@ const UPDATE_INTERVAL = 30; // every UPDATE_INTERVAL minutes it updates all the 
 
 app.set('view engine', 'ejs');
 
-// const sslRedirect = require('heroku-ssl-redirect');
-// app.use(sslRedirect(['production'], 301));
 
-// app.use((req, res, next) => {
-//   var host = req.get('Host');
-//   console.log(host);
-//   console.log(req.originalUrl);
-//   console.log('www.' + host + req.originalUrl);
-//   if (host.indexOf('www.') !== 0) {
-//     return res.redirect(301, 'www.' + host + req.originalUrl);
-//   }
-//   return next();
-// });
-
-// app.all(/.*/, function(req, res, next) { // https://www.ltnow.com/rel-canonical-seo/
-//   var host = req.headers.host;
-//   if (host.match(/^www\..*/i)) {
-//     next();
-//   } else {
-//     res.redirect(301, "https://www." + host + req.originalUrl);
-//   }
-// });
-
-
-// https://stackoverflow.com/a/23816083
-// function wwwRedirect(req, res, next) {
-//     console.log(req.hostname);
-//     console.log(req.headers.host);
-//     if (req.headers.host.slice(0, 4) !== 'www.') {
-//         return res.redirect(301, req.protocol + '://www.' + req.headers.host + req.originalUrl);
-//     }
-//     next();
-// };
-// app.set('trust proxy', true);
-// app.use(wwwRedirect);
-
-function sslwwwRedirect(environments, status) {
-    environments = environments || ['production'];
-    status = status || 301;
+function sslwwwRedirect() {
     return function(req, res, next) {
-        console.log(process.env.NODE_ENV);
-        console.log(req.protocol);
-        console.log(req.headers['x-forwarded-proto']);
-        console.log();
-        if (environments.indexOf(process.env.NODE_ENV) >= 0) {
+        if (req.hostname === 'localhost' || process.env.NODE_ENV === 'development') {
+            next();
+        }
+        else {
             if (req.headers.host.slice(0, 4) !== 'www.') {
                 res.redirect(status, 'https://www.' + req.headers.host + req.originalUrl);
             }
@@ -64,14 +26,9 @@ function sslwwwRedirect(environments, status) {
                 }
             }
         }
-        else {
-            next();
-        }
     };
 };
-app.use(sslwwwRedirect(['production'], 301));
-
-
+app.use(sslwwwRedirect());
 
 
 app.use(express.static('src/public'));
