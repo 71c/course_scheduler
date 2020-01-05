@@ -1,12 +1,14 @@
 const express = require('express');
-const sslRedirect = require('heroku-ssl-redirect');
+
 const app = express();
-app.use(sslRedirect());
 
 const PORT = process.env.PORT || 5000;
 const UPDATE_INTERVAL = 30; // every UPDATE_INTERVAL minutes it updates all the course data
 
 app.set('view engine', 'ejs');
+
+// const sslRedirect = require('heroku-ssl-redirect');
+// app.use(sslRedirect(['production'], 301));
 
 // app.use((req, res, next) => {
 //   var host = req.get('Host');
@@ -19,14 +21,59 @@ app.set('view engine', 'ejs');
 //   return next();
 // });
 
-app.all(/.*/, function(req, res, next) {
-  var host = req.header("host");
-  if (host.match(/^www\..*/i)) {
-    next();
-  } else {
-    res.redirect(301, "https://www." + host + req.originalUrl);
-  }
-});
+// app.all(/.*/, function(req, res, next) { // https://www.ltnow.com/rel-canonical-seo/
+//   var host = req.headers.host;
+//   if (host.match(/^www\..*/i)) {
+//     next();
+//   } else {
+//     res.redirect(301, "https://www." + host + req.originalUrl);
+//   }
+// });
+
+
+// https://stackoverflow.com/a/23816083
+// function wwwRedirect(req, res, next) {
+//     console.log(req.hostname);
+//     console.log(req.headers.host);
+//     if (req.headers.host.slice(0, 4) !== 'www.') {
+//         return res.redirect(301, req.protocol + '://www.' + req.headers.host + req.originalUrl);
+//     }
+//     next();
+// };
+// app.set('trust proxy', true);
+// app.use(wwwRedirect);
+
+function sslwwwRedirect(environments, status) {
+    environments = environments || ['production'];
+    status = status || 301;
+    return function(req, res, next) {
+        if (environments.indexOf(process.env.NODE_ENV) >= 0) {
+            if (req.headers['x-forwarded-proto'] !== 'https') {
+                if (req.headers.host.slice(0, 4) !== 'www.') {
+                    res.redirect(status, 'https://www.' + req.headers.host + req.originalUrl);
+                }
+                else {
+                    res.redirect(status, 'https://' + req.headers.host + req.originalUrl);
+                }
+            }
+            else {
+                if (req.headers.host.slice(0, 4) !== 'www.') {
+                    res.redirect(301, req.protocol + '://www.' + req.headers.host + req.originalUrl);
+                }
+                else {
+                    next();
+                }
+            }
+        }
+        else {
+            next();
+        }
+    };
+};
+app.use(sslwwwRedirect(['production'], 301));
+
+
+
 
 app.use(express.static('src/public'));
 app.use(express.static('node_modules'));
