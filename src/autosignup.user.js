@@ -9,7 +9,7 @@
 // @match        https://tuftscoursescheduler.com/schedule*
 // @match        https://www.tuftscoursescheduler.com/schedule*
 // @match        https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/PSFT_SA/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_GoToCart
-// @match        https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/PSFT_SA/c/SA_LEARNER_SERVICES_2.SSR_SSENRL_CART.GBL???Page=SSR_SSENRL_CART&Action=A&INSTITUTION=TUFTS&TargetFrameName=Tfp_cart_iframe&ACAD_CAREER=ASEU&STRM=2202
+// @match        https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/PSFT_SA/c/SA_LEARNER_SERVICES_2.SSR_SSENRL_CART.GBL???Page=SSR_SSENRL_CART&Action=A&INSTITUTION=TUFTS&TargetFrameName=Tfp_cart_iframe*
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @require http://code.jquery.com/jquery-latest.js
@@ -28,30 +28,27 @@ window.unsafeWindow || (
 
 window.waitFor = function(i,n){if(i())n();else{var t=function(){setTimeout(function(){i()?n():t()},100)};t()}};
 
-if (window.location.href.indexOf("https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/PSFT_SA/c/SA_LEARNER_SERVICES_2.SSR_SSEN") === 0) {
-
+function deleteClassesFromCart() {
     if (GM_getValue('setClassesImmediately', false)) {
-        // alert('hey2')
         // next time we go to url don't auto; only do once
         GM_setValue('setClassesImmediately', false);
         if (GM_getValue('clearClasses', false)) {
-            // alert('hey3')
             GM_setValue('clearClasses', false);
             if (window.parent.location.hash.indexOf('#cart') === 0) { // this should always be the case
                 let currLen;
                 function deleteCourse() {
                     // argh https://stackoverflow.com/a/42907951/9911203
                     var trashCan = document.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]');
+                    console.log(trashCan);
                     if (trashCan === null) {
                         // done deleting classes from cart
-                        // alert('hie')
-                        window.waitFor(function() {
-                            return window.parent.addClassesToCart !== undefined;
-                        }, window.parent.addClassesToCart);
+                        window.parent.addClassesToCart();
                         return;
                     }
                     trashCan.click();
                     waitFor(function() {
+                        if (document.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]') === null)
+                            return true;
                         var len = getTableLength();
                         if (len === currLen)
                             return false;
@@ -79,7 +76,54 @@ const getEnrollmentCartURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/PSFT_
 const baseURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/";
 const searchSearch = "?tab=TFP_CLASS_SEARCH";
 
+function makeAutoSignUpButton() {
+    const button = document.createElement('button');
+    button.innerHTML = 'auto sign up';
+    button.onclick = function() {
+        window.location.href = baseURL + searchSearch;
+    };
+    document.body.appendChild(button);
+}
+
+function addManualEntryUI() {
+    const div = document.createElement('div');
+    const textarea = document.createElement('textarea');
+    const button = document.createElement('button');
+    button.innerHTML = 'add classes';
+    button.onclick = function() {
+        // extensive error checking
+        try {
+            var info = JSON.parse(textarea.value);
+        } catch (e) {
+            alert('invalid JSON');
+            return;
+        }
+        for (const key of ["term_code", "career", "classes"]) {
+            if (!(key in info)) {
+                alert("missing attribute " + key);
+                return;
+            }
+        }
+        for (var i = 0; i < info.classes.length; i++) {
+            const classInfo = info.classes[i];
+            for (const key of ["course_num", "classNums"]) {
+                if (!(key in classInfo)) {
+                    alert("class info at index " + i + " missing attribute " + key);
+                    return;
+                }
+            }
+        }
+
+        addClasses(info);
+    }
+    div.appendChild(textarea);
+    div.appendChild(button);
+    document.body.appendChild(div);
+}
+
 if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.origin === "https://siscs.uit.tufts.edu") {
+    // we're at one of the SIS sites
+
     unsafeWindow.executeSequentially = function(f,c){f.length==0?c():f[0](function(){executeSequentially(f.slice(1),c)})};
     unsafeWindow.addClass = function(term_code, career, subject, num, classNums) {
         return function(callback) {
@@ -100,9 +144,9 @@ if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.or
                     if (inputBubbleOrSpan.nodeName == "SPAN") {
                         // the section is in cart or enrolled
                         if (inputBubbleOrSpan.innerHTML == "In Cart") {
-                            alert("Section with class num " + classNum + " in course " + subject + "-" + num + " is already in your cart");
+                            alert("Section with class num " + classNum + " in course " + subject + "-" + num + " is already in your cart. Continuing.");
                         } else if (inputBubbleOrSpan.innerHTML == "Enrolled") {
-                            alert("You have already enrolled for section with class num " + classNum + " in course " + subject + "-" + num);
+                            alert("You have already enrolled for section with class num " + classNum + " in course " + subject + "-" + num + ". Continuing.");
                         } else {
                             // this shouldn't happen
                             console.error("something unexpected happened");
@@ -134,8 +178,6 @@ if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.or
         });
     };
 
-    console.log('ho');
-
     unsafeWindow.addClassesToCart = function() {
         const info = JSON.parse(GM_getValue('classes', '{}'));
         addClasses(info);
@@ -144,57 +186,35 @@ if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.or
     const homeSearch = "?tab=DEFAULT";
 
     if (window.location.search.indexOf(homeSearch) == 0) {
-        const button = document.createElement('button');
-        button.innerHTML = 'auto sign up';
-        button.onclick = function() {
-            window.location.href = baseURL + searchSearch;
-        };
-        document.body.appendChild(button);
+        // we're at SIS home
+        makeAutoSignUpButton();
     } else if (window.location.search.indexOf(searchSearch) == 0) {
+        // we're at one of the search pages
+
         if (GM_getValue('setClassesImmediately', false)) {
-            if (!GM_setValue('setClassesImmediately', false)) {
-                addClassesToCart();
+            // we want to do it immediately
+
+            if (!GM_getValue('clearClasses', false)) {
+                // next time we go to url don't auto; only do once
+                // turn setClassesImmediately off only if clearClasses is false because otherwise, classes won't be deleted from cart when clearClasses is true
+                GM_setValue('setClassesImmediately', false);
+                unsafeWindow.addClassesToCart();
             }
         } else {
-            const div = document.createElement('div');
-            const textarea = document.createElement('textarea');
-            const button = document.createElement('button');
-            button.innerHTML = 'add classes';
-            button.onclick = function() {
-                // extensive error checking
-                try {
-                    var info = JSON.parse(textarea.value);
-                } catch (e) {
-                    alert('invalid JSON');
-                    return;
-                }
-                for (const key of ["term_code", "career", "classes"]) {
-                    if (!(key in info)) {
-                        alert("missing attribute " + key);
-                        return;
-                    }
-                }
-                for (var i = 0; i < info.classes.length; i++) {
-                    const classInfo = info.classes[i];
-                    for (const key of ["course_num", "classNums"]) {
-                        if (!(key in classInfo)) {
-                            alert("class info at index " + i + " missing attribute " + key);
-                            return;
-                        }
-                    }
-                }
-
-                addClasses(info);
-            }
-            div.appendChild(textarea);
-            div.appendChild(button);
-            document.body.appendChild(div);
+            // we don't want to do it immediately
+            addManualEntryUI();
         }
     } else if (window.location.href === getEnrollmentCartURL) {
+        // we're at a page that gives us a URL; immediately redirect to that URL
         var url = jQuery('span#IS_AC_RESPONSE').text().trim();
         location.href = url;
+    } else if (window.location.href.indexOf("https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/PSFT_SA/c/SA_LEARNER_SERVICES_2.SSR_SSEN") === 0) {
+        // we're in the iframe inside the Enrollment Cart page
+        deleteClassesFromCart();
     }
 } else {
+    // we're at my website
+
     const scriptBox = document.createElement('textarea');
     scriptBox.rows = "50";
     scriptBox.cols = "40";
@@ -210,17 +230,6 @@ if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.or
     setClassesButton.onclick = function() {
         GM_setValue('clearClasses', true);
         GM_setValue('setClassesImmediately', true);
-
-        // would do but doesn't work because of cross-origin restriction
-        // jQuery.get(getEnrollmentCartURL, function(r) {
-        //     var url = jQuery(r).find('span#IS_AC_RESPONSE').text().trim();
-        //     if (!!url) {
-        //         window.open(url);
-        //     } else {
-        //         alert('Sign in to SIS');
-        //     }
-        // });
-
         window.open(getEnrollmentCartURL);
     }
 
@@ -237,7 +246,7 @@ if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.or
         var val = getInfoForAddClasses("ASE"); // TODO: change "ASE" to "ALL" or make it possible to specify career
         console.log(val);
         GM_setValue('classes', val);
-        scriptBox.value = val; // more clear to write 'window.'
+        scriptBox.value = val;
     }
 
     document.addEventListener('updateClasses', updateClasses, false);
