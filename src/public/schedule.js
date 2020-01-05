@@ -43,6 +43,10 @@ var sectionSelectDiv;
 var rankHolder;
 var scoreHolder;
 
+if (!window.hasUserscript) {
+    window.hasUserscript = false;
+}
+
 function minutesToTimeString(minutes) {
     var minutePart = minutes % 60;
     var hourPart = Math.floor(minutes / 60);
@@ -225,5 +229,15 @@ document.addEventListener('DOMContentLoaded', function() {
         rightButton = document.querySelector('.fc-right-button');
         updateButtonsEnabled();
         makeSectionSelects();
+
+        if (!hasUserscript) {
+            const left = document.getElementById('left');
+            var nouserscript = document.createElement('div');
+            // nouserscript.innerHTML = 'Automatically add these sections to your cart by getting the Tampermonkey extension and installing my userscript';
+            nouserscript.innerHTML = 'NO USERSCRIPT';
+            left.appendChild(nouserscript);
+        }
+
+        document.dispatchEvent(new Event('startUserscript'));
     }
 });

@@ -53,7 +53,7 @@
 
         <script src="./schedule.js" defer></script>
 
-        <script type="text/javascript">const data = <%- data %>;//https://stackoverflow.com/a/22910523/9911203</script>
+        <script>const data = <%- data %>;//https://stackoverflow.com/a/22910523/9911203</script>
     </head>
     <body>
         <div class="container-fluid">
@@ -63,8 +63,7 @@
                     <% if (k < n_possibilities) { %><div>(Showing first <%= k %>)</div><% } %>
                     <h5>Sections:</h5>
                     <table id="section-select"></table>
-                    <h5>Script to add sections:</h5>
-                    <div>Copy and paste this script into the console when signed into SIS on the search for classes page. (The Console can be opend with option+command+J on Mac and Control+Shift+J on Windows/Linux.)</div>
+                    <!-- <div id="nouserscript">NO USERSCRIPT</div> -->
                 </div>
                 <div class="col-8">
                     <div id="calendar"></div>

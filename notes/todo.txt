@@ -4,4 +4,3 @@ To Do & Potential Features:
 - make it so the client gets the course data from the server and the client does all computations. this would eliminate the need to send data from the server to the client other than course data, making everything faster and eliminating the possibility of the server doing a long computation and holding up other requests in the process. this would require a major re-structoring of the project.
 - classes history
 - groups of courses (example: one these courses, two of those courses, this course, and that course)
-- make a script that can automatically sign up for classes on SIS
