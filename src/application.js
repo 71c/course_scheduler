@@ -21,6 +21,8 @@ app.set('view engine', 'ejs');
 
 app.all(/.*/, function(req, res, next) {
   var host = req.header("host");
+  console.log(req.originalUrl);
+  console.log(req);
   if (host.match(/^www\..*/i)) {
     next();
   } else {
