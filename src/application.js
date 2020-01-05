@@ -19,6 +19,15 @@ app.set('view engine', 'ejs');
 //   return next();
 // });
 
+app.all(/.*/, function(req, res, next) {
+  var host = req.header("host");
+  if (host.match(/^www\..*/i)) {
+    next();
+  } else {
+    res.redirect(301, "http://www." + host);
+  }
+});
+
 app.use(express.static('src/public'));
 app.use(express.static('node_modules'));
 app.set('views', 'src/public');
