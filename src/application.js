@@ -12,9 +12,10 @@ app.use((req, res, next) => {
   var host = req.get('Host');
   console.log(host);
   console.log(req.originalUrl);
-  // if (host.indexOf('www.') !== 0) {
-  //   return res.redirect(301, 'www.' + host + req.originalUrl);
-  // }
+  console.log('www.' + host + req.originalUrl);
+  if (host.indexOf('www.') !== 0) {
+    return res.redirect(301, 'www.' + host + req.originalUrl);
+  }
   return next();
 });
 
