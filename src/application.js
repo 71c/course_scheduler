@@ -52,17 +52,12 @@ function sslwwwRedirect(environments, status) {
         console.log(req.headers['x-forwarded-proto']);
         console.log();
         if (environments.indexOf(process.env.NODE_ENV) >= 0) {
-            if (req.headers['x-forwarded-proto'] !== 'https') {
-                if (req.headers.host.slice(0, 4) !== 'www.') {
-                    res.redirect(status, 'https://www.' + req.headers.host + req.originalUrl);
-                }
-                else {
-                    res.redirect(status, 'https://' + req.headers.host + req.originalUrl);
-                }
+            if (req.headers.host.slice(0, 4) !== 'www.') {
+                res.redirect(status, 'https://www.' + req.headers.host + req.originalUrl);
             }
             else {
-                if (req.headers.host.slice(0, 4) !== 'www.') {
-                    res.redirect(301, req.protocol + '://www.' + req.headers.host + req.originalUrl);
+                if (req.headers['x-forwarded-proto'] !== 'https') {
+                    res.redirect(status, 'https://' + req.headers.host + req.originalUrl);
                 }
                 else {
                     next();
