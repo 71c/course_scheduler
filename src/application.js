@@ -9,12 +9,11 @@ const UPDATE_INTERVAL = 30; // every UPDATE_INTERVAL minutes it updates all the 
 app.set('view engine', 'ejs');
 
 app.use((req, res, next) => {
-  
   var host = req.get('Host');
   console.log(host);
   console.log(req.originalUrl);
-  if ('www.'.indexOf(host) !== 0) {
-    return res.redirect(301, 'https://new-domain.com/' + req.originalUrl);
+  if (host.indexOf('www.') !== 0) {
+    return res.redirect(301, 'www.' + host + req.originalUrl);
   }
   return next();
 });
