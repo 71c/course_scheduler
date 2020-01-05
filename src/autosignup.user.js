@@ -17,115 +17,41 @@
 
 'use strict';
 
-// http://mths.be/unsafewindow
-window.unsafeWindow || (
-    unsafeWindow = (function() {
-        var el = document.createElement('p');
-        el.setAttribute('onclick', 'return window;');
-        return el.onclick();
-    }())
-);
-
-window.waitFor = function(i,n){if(i())n();else{var t=function(){setTimeout(function(){i()?n():t()},100)};t()}};
-
-function deleteClassesFromCart() {
-    if (GM_getValue('setClassesImmediately', false)) {
-        // next time we go to url don't auto; only do once
-        GM_setValue('setClassesImmediately', false);
-        if (GM_getValue('clearClasses', false)) {
-            GM_setValue('clearClasses', false);
-            if (window.parent.location.hash.indexOf('#cart') === 0) { // this should always be the case
-                let currLen;
-                function deleteCourse() {
-                    // argh https://stackoverflow.com/a/42907951/9911203
-                    var trashCan = document.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]');
-                    console.log(trashCan);
-                    if (trashCan === null) {
-                        // done deleting classes from cart
-                        window.parent.addClassesToCart();
-                        return;
-                    }
-                    trashCan.click();
-                    waitFor(function() {
-                        if (document.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]') === null)
-                            return true;
-                        var len = getTableLength();
-                        if (len === currLen)
-                            return false;
-                        currLen = len;
-                        return true;
-                    }, deleteCourse);
-                }
-                waitFor(function() {
-                    if (document.querySelector('th.PSLEVEL1GRIDCOLUMNHDR') === null)
-                        return false;
-                    return true;
-                }, function() {
-                    currLen = getTableLength();
-                    deleteCourse();
-                });
-                function getTableLength() {
-                    return document.querySelector('table.PSLEVEL1GRIDNBO').children[0].children.length;
-                }
-            }
-        }
-    }
-}
-
 const getEnrollmentCartURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/PSFT_SA/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_GoToCart";
 const baseURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/";
 const searchSearch = "?tab=TFP_CLASS_SEARCH";
 
-function makeAutoSignUpButton() {
-    const button = document.createElement('button');
-    button.innerHTML = 'auto sign up';
-    button.onclick = function() {
-        window.location.href = baseURL + searchSearch;
-    };
-    document.body.appendChild(button);
-}
-
-function addManualEntryUI() {
-    const div = document.createElement('div');
-    const textarea = document.createElement('textarea');
-    const button = document.createElement('button');
-    button.innerHTML = 'add classes';
-    button.onclick = function() {
-        // extensive error checking
-        try {
-            var info = JSON.parse(textarea.value);
-        } catch (e) {
-            alert('invalid JSON');
-            return;
-        }
-        for (const key of ["term_code", "career", "classes"]) {
-            if (!(key in info)) {
-                alert("missing attribute " + key);
-                return;
-            }
-        }
-        for (var i = 0; i < info.classes.length; i++) {
-            const classInfo = info.classes[i];
-            for (const key of ["course_num", "classNums"]) {
-                if (!(key in classInfo)) {
-                    alert("class info at index " + i + " missing attribute " + key);
-                    return;
-                }
-            }
-        }
-
-        addClasses(info);
-    }
-    div.appendChild(textarea);
-    div.appendChild(button);
-    document.body.appendChild(div);
-}
-
 if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.origin === "https://siscs.uit.tufts.edu") {
     // we're at one of the SIS sites
 
-    unsafeWindow.executeSequentially = function(f,c){f.length==0?c():f[0](function(){executeSequentially(f.slice(1),c)})};
-    unsafeWindow.addClass = function(term_code, career, subject, num, classNums) {
+    // http://mths.be/unsafewindow
+    window.unsafeWindow || (
+        unsafeWindow = (function() {
+            var el = document.createElement('p');
+            el.setAttribute('onclick', 'return window;');
+            return el.onclick();
+        }())
+    );
+
+    function waitFor(i,n){if(i())n();else{var t=function(){setTimeout(function(){i()?n():t()},100)};t()}}
+    function executeSequentially(f,c){f.length==0?c():f[0](function(){executeSequentially(f.slice(1),c)})}
+
+    unsafeWindow.addClassesToCart = function() {
+        const info = JSON.parse(GM_getValue('classes', '{}'));
+        addClasses(info);
+    };
+
+    function addClasses(info) {
+        const functions = info.classes.map(classInfo =>
+           addClass(info.term_code, info.career,
+                    /^[A-Z]+/.exec(classInfo.course_num)[0],
+                    /(?<=-).*/.exec(classInfo.course_num)[0], classInfo.classNums));
+        executeSequentially(functions, function() {
+            console.log('done');
+        });
+    }
+
+    function addClass(term_code, career, subject, num, classNums) {
         return function(callback) {
             if (window.location.search.indexOf("?tab=TFP_CLASS_SEARCH") != 0) {
                 return;
@@ -166,22 +92,7 @@ if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.or
                 setTimeout(callback, 0);
             });
         };
-    };
-
-    unsafeWindow.addClasses = function(info) {
-        const functions = info.classes.map(classInfo =>
-           addClass(info.term_code, info.career,
-                    /^[A-Z]+/.exec(classInfo.course_num)[0],
-                    /(?<=-).*/.exec(classInfo.course_num)[0], classInfo.classNums));
-        executeSequentially(functions, function() {
-            console.log('done');
-        });
-    };
-
-    unsafeWindow.addClassesToCart = function() {
-        const info = JSON.parse(GM_getValue('classes', '{}'));
-        addClasses(info);
-    };
+    }
 
     const homeSearch = "?tab=DEFAULT";
 
@@ -211,6 +122,95 @@ if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.or
     } else if (window.location.href.indexOf("https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/PSFT_SA/c/SA_LEARNER_SERVICES_2.SSR_SSEN") === 0) {
         // we're in the iframe inside the Enrollment Cart page
         deleteClassesFromCart();
+    }
+
+    function makeAutoSignUpButton() {
+        const button = document.createElement('button');
+        button.innerHTML = 'auto sign up';
+        button.onclick = function() {
+            window.location.href = baseURL + searchSearch;
+        };
+        document.body.appendChild(button);
+    }
+
+    function addManualEntryUI() {
+        const div = document.createElement('div');
+        const textarea = document.createElement('textarea');
+        const button = document.createElement('button');
+        button.innerHTML = 'add classes';
+        button.onclick = function() {
+            // extensive error checking
+            try {
+                var info = JSON.parse(textarea.value);
+            } catch (e) {
+                alert('invalid JSON');
+                return;
+            }
+            for (const key of ["term_code", "career", "classes"]) {
+                if (!(key in info)) {
+                    alert("missing attribute " + key);
+                    return;
+                }
+            }
+            for (var i = 0; i < info.classes.length; i++) {
+                const classInfo = info.classes[i];
+                for (const key of ["course_num", "classNums"]) {
+                    if (!(key in classInfo)) {
+                        alert("class info at index " + i + " missing attribute " + key);
+                        return;
+                    }
+                }
+            }
+
+            addClasses(info);
+        }
+        div.appendChild(textarea);
+        div.appendChild(button);
+        document.body.appendChild(div);
+    }
+
+    function deleteClassesFromCart() {
+        if (GM_getValue('setClassesImmediately', false)) {
+            // next time we go to url don't auto; only do once
+            GM_setValue('setClassesImmediately', false);
+            if (GM_getValue('clearClasses', false)) {
+                GM_setValue('clearClasses', false);
+                if (window.parent.location.hash.indexOf('#cart') === 0) { // this should always be the case
+                    let currLen;
+                    function deleteCourse() {
+                        // argh https://stackoverflow.com/a/42907951/9911203
+                        var trashCan = document.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]');
+                        console.log(trashCan);
+                        if (trashCan === null) {
+                            // done deleting classes from cart
+                            window.parent.addClassesToCart();
+                            return;
+                        }
+                        trashCan.click();
+                        waitFor(function() {
+                            if (document.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]') === null)
+                                return true;
+                            var len = getTableLength();
+                            if (len === currLen)
+                                return false;
+                            currLen = len;
+                            return true;
+                        }, deleteCourse);
+                    }
+                    waitFor(function() {
+                        if (document.querySelector('th.PSLEVEL1GRIDCOLUMNHDR') === null)
+                            return false;
+                        return true;
+                    }, function() {
+                        currLen = getTableLength();
+                        deleteCourse();
+                    });
+                    function getTableLength() {
+                        return document.querySelector('table.PSLEVEL1GRIDNBO').children[0].children.length;
+                    }
+                }
+            }
+        }
     }
 } else {
     // we're at my website
