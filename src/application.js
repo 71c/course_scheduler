@@ -15,11 +15,11 @@ function sslwwwRedirect() {
         }
         else {
             if (req.headers.host.slice(0, 4) !== 'www.') {
-                res.redirect(status, 'https://www.' + req.headers.host + req.originalUrl);
+                res.redirect(301, 'https://www.' + req.headers.host + req.originalUrl);
             }
             else {
                 if (req.headers['x-forwarded-proto'] !== 'https') {
-                    res.redirect(status, 'https://' + req.headers.host + req.originalUrl);
+                    res.redirect(301, 'https://' + req.headers.host + req.originalUrl);
                 }
                 else {
                     next();
