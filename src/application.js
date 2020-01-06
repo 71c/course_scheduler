@@ -53,6 +53,7 @@ function sslwwwRedirect(useWWW) {
 app.use(sslwwwRedirect(false));
 app.use(express.static('src/public'));
 app.use(express.static('node_modules'));
+app.set('views', 'src/public');
 
 const http = require('http').createServer(app);
 
@@ -113,6 +114,13 @@ get_data.load_all_course_data(vals => {
 }, console.error, false);
 
 function startServer() {
+    tic();
+    for (const course of models.courses['Spring 2020']) {
+        const p = api.course_object_to_period_group(course, true, ['O', 'C', 'W'], true, true, () => true, 'Spring 2020');
+        if (p.evaluate().length > 1)
+            console.log(p.evaluate());
+    }
+    toc();
     // update all data every so often
     setInterval(function() {
         console.log("Updating all data...");
