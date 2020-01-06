@@ -10,12 +10,12 @@ app.set('view engine', 'ejs');
 
 function sslwwwRedirect() {
     return function(req, res, next) {
-        console.log(req.subdomains);
-        console.log(req.protocol);
-        console.log(req.headers['x-forwarded-proto']);
-        console.log(req.secure);
-        console.log(req.url);
-        console.log(req.hostname);
+        console.log('subdomains:', req.subdomains);
+        console.log('protocol:', req.protocol);
+        console.log('x-forwarded-proto:', req.headers['x-forwarded-proto']);
+        console.log('secure:', req.secure);
+        console.log('url:', req.url);
+        console.log('hostname:', req.hostname);
 
         if (req.hostname === 'localhost' || process.env.NODE_ENV === 'development') {
             next();
