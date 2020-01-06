@@ -10,7 +10,8 @@ app.set('view engine', 'ejs');
 
 function sslwwwRedirect() {
     return function(req, res, next) {
-        if (req.hostname === 'localhost' || process.env.NODE_ENV === 'development') {
+        console.log(req.hostname);
+        if (req.hostname.split('.').length !== 2 || process.env.NODE_ENV === 'development') {
             next();
         }
         else {
@@ -27,7 +28,7 @@ function sslwwwRedirect() {
             }
         }
     };
-};
+}
 app.use(sslwwwRedirect());
 
 
