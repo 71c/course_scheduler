@@ -69,9 +69,7 @@ class PeriodGroup {
     *product_contents() {
         let result = [[]];
         for (const level of this.contents) {
-            const ev = [];
-            for (let x of (typeof level === "number" ? [level] : level.evaluate()))
-                ev.push(x);
+            const ev = typeof level === "number" ? [level] : [...level.evaluate()];
             result = this.cycle(ev, result);
         }
         if (this.merge) {
