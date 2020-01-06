@@ -53,7 +53,6 @@ function sslwwwRedirect(useWWW) {
 app.use(sslwwwRedirect(false));
 app.use(express.static('src/public'));
 app.use(express.static('node_modules'));
-app.set('views', 'src/public');
 
 const http = require('http').createServer(app);
 
@@ -110,84 +109,7 @@ tic('load the data')
 get_data.load_all_course_data(vals => {
     toc('load the data');
     console.log("Done loading the data");
-
     startServer();
-
-    // tic();
-    // var n = 0;
-    // for (const course of models.courses['Spring 2019']) {
-    //     groupBy(course.sections, section => 
-    //         section.assoc_class + section.component +
-    //             JSON.stringify(section.periods)
-    //     ).forEach(sections => {
-    //         const sectionGroup = new models.SectionGroup(sections);
-    //     });
-    //     n++;
-    // }
-    // console.log(n);
-    // toc();
-
-
-    // let lens = {};
-    // for (const course of models.courses['Spring 2020']) {
-    //     const len = course.sections.length;
-    //     if (len in lens) {
-    //         lens[len]++;
-    //     } else {
-    //         lens[len] = 1;
-    //     }
-    // }
-    // console.log(lens);
-    // lens = {};
-    // for (const section of models.sections['Spring 2020']) {
-    //     const len = section.periods.length;
-    //     if (len in lens) {
-    //         lens[len]++;
-    //     } else {
-    //         lens[len] = 1;
-    //     }
-    // }
-    // console.log(lens);
-
-    // console.log("finding duplicate courses...");
-    // for (const term in models.term_to_code) {
-    //     console.log(`${term}:`);
-    //     const course_name_to_count = {};
-    //     for (const course of models.courses[term]) {
-    //         const course_num = course.course_num + course.title;
-    //         if (course_num in course_name_to_count)
-    //             course_name_to_count[course_num] += 1;
-    //         else
-    //             course_name_to_count[course_num] = 1;
-    //     }
-    //     for (const course_num in course_name_to_count) {
-    //         if (course_name_to_count[course_num] > 1)
-    //             console.log(`\t${course_num}`);
-    //     }
-    // }
-
-    // let min_start = 1440;
-    // let min_end = 1440;
-    // let max_start = 0;
-    // let max_end = 0;
-    // for (const section of models.sections['Spring 2020']) {
-    //     for (const period of section.periods) {
-    //         if (period.start < min_start && period.start !== 0)
-    //             min_start = period.start;
-    //         if (period.end < min_end && period.end !== 0)
-    //             min_end = period.end;
-    //         if (period.start > max_start)
-    //             max_start = period.start;
-    //         if (period.end > max_end)
-    //             max_end = period.end;
-    //         if (period.start < 300)
-    //             console.log(section);
-    //     }
-    // }
-    // console.log(`min start: ${minutesToTimeString12hr(min_start)}`);
-    // console.log(`min end: ${minutesToTimeString12hr(min_end)}`);
-    // console.log(`max start: ${minutesToTimeString12hr(max_start)}`);
-    // console.log(`max end: ${minutesToTimeString12hr(max_end)}`);
 }, console.error, false);
 
 function startServer() {
