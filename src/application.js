@@ -7,38 +7,50 @@ const UPDATE_INTERVAL = 30; // every UPDATE_INTERVAL minutes it updates all the 
 
 app.set('view engine', 'ejs');
 
-
-function sslwwwRedirect() {
-    return function(req, res, next) {
-        console.log('subdomains:', req.subdomains);
-        console.log('protocol:', req.protocol);
-        console.log('x-forwarded-proto:', req.headers['x-forwarded-proto']);
-        console.log('secure:', req.secure);
-        console.log('url:', req.url);
-        console.log('hostname:', req.hostname);
-        console.log();
-
-        if (req.hostname === 'localhost' || process.env.NODE_ENV === 'development') {
-            next();
-        }
-        else {
-            const parts = req.hostname.split('.');
-            if (parts[0] !== 'www' && parts.length === 2) {
-                res.redirect(301, 'https://www.' + req.headers.host + req.originalUrl);
-            }
-            else if (req.headers['x-forwarded-proto'] === 'https') {
+function sslwwwRedirect(useWWW) {
+    if (useWWW) {
+        return function(req, res, next) {
+            // don't redirect if http://localhost or development
+            if (req.hostname === 'localhost' || process.env.NODE_ENV === 'development') {
                 next();
             }
+            // no www; add it
+            else if (req.subdomains.length === 0) {
+                res.redirect(301, 'https://www.' + req.headers.host + req.originalUrl);
+            }
+            // has www or other subdomain and https so don't redirect
+            else if ((req.headers['x-forwarded-proto'] || req.protocol) === 'https') {
+                next();
+            }
+            // has www or other subdomain and http; redirect to use https
             else {
                 res.redirect(301, 'https://' + req.headers.host + req.originalUrl);
             }
-        }
-    };
+        };
+    }
+    else {
+        return function(req, res, next) {
+            // don't redirect if http://localhost or development
+            if (req.hostname === 'localhost' || process.env.NODE_ENV === 'development') {
+                next();
+            }
+            // there is www; remove it
+            else if (req.subdomains.length === 1 && req.subdomains[0] === 'www') {
+                res.redirect(301, 'https://' + req.headers.host.slice(4) + req.originalUrl);
+            }
+            // uses https and there is no www; don't redirect
+            else if ((req.headers['x-forwarded-proto'] || req.protocol) === 'https') {
+                next();
+            }
+            // using http; redirect to use https
+            else {
+                res.redirect(301, 'https://' + req.headers.host + req.originalUrl);
+            }
+        };
+    }
 }
 
-app.use(sslwwwRedirect());
-
-
+app.use(sslwwwRedirect(false));
 app.use(express.static('src/public'));
 app.use(express.static('node_modules'));
 app.set('views', 'src/public');
