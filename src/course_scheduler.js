@@ -70,7 +70,7 @@ class PeriodGroup {
         let result = [[]];
         for (const level of this.contents) {
             const ev = [];
-            for (let x of level.evaluate())
+            for (let x of (typeof level === "number" ? [level] : level.evaluate()))
                 ev.push(x);
             result = this.cycle(ev, result);
         }
