@@ -227,12 +227,38 @@ function get_top_schedules_list(course_ids, accepted_statuses, score_function, k
 //     return pg.evaluate();
 // }
 
+// function get_schedules(courses, accepted_statuses, section_accept_function, term) {
+//     const reduced_pgs = courses.map(course => {
+//         const ev_pg = api.course_object_to_period_group(course, true, accepted_statuses, false, true, section_accept_function, term).evaluate();
+//         const grouped = groupBy(ev_pg, section_ids =>
+//             section_ids.map(section_id =>
+//                 JSON.stringify(models.sections[term][section_id].periods)
+//             ).join('')
+//         );
+//         const selected = grouped.map(group => group[0]);
+//         const selected_pgs = selected.map(section_ids => new course_scheduler.PeriodGroup(section_ids, 'and', true, false, null, term));
+//         return new course_scheduler.PeriodGroup(selected_pgs, 'or', false, false, null, term);
+//     });
+//     const pg = new course_scheduler.PeriodGroup(
+//         reduced_pgs,
+//         'and', false, false, null, term
+//     );
+//     return pg.evaluate();
+// }
+
 function get_schedules(courses, accepted_statuses, section_accept_function, term) {
     const reduced_pgs = courses.map(course => {
         const ev_pg = api.course_object_to_period_group(course, true, accepted_statuses, false, true, section_accept_function, term).evaluate();
+        const section_id_to_periods_string = {};
         const grouped = groupBy(ev_pg, section_ids =>
-            section_ids.map(section_id =>
-                JSON.stringify(models.sections[term][section_id].periods)
+            section_ids.map(section_id => {
+                // return JSON.stringify(models.sections[term][section_id].periods);
+
+                if (section_id in section_id_to_periods_string)
+                    return section_id_to_periods_string[section_id];
+                section_id_to_periods_string[section_id] = JSON.stringify(models.sections[term][section_id].periods);
+                return section_id_to_periods_string[section_id];
+            }
             ).join('')
         );
         const selected = grouped.map(group => group[0]);
