@@ -16,6 +16,7 @@ function sslwwwRedirect() {
         console.log('secure:', req.secure);
         console.log('url:', req.url);
         console.log('hostname:', req.hostname);
+        console.log();
 
         if (req.hostname === 'localhost' || process.env.NODE_ENV === 'development') {
             next();
