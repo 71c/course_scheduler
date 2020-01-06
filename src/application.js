@@ -10,25 +10,31 @@ app.set('view engine', 'ejs');
 
 function sslwwwRedirect() {
     return function(req, res, next) {
+        console.log(req.subdomains);
+        console.log(req.protocol);
+        console.log(req.headers['x-forwarded-proto']);
+        console.log(req.secure);
+        console.log(req.url);
         console.log(req.hostname);
-        if (req.hostname.split('.').length !== 2 || process.env.NODE_ENV === 'development') {
+
+        if (req.hostname === 'localhost' || process.env.NODE_ENV === 'development') {
             next();
         }
         else {
-            if (req.headers.host.slice(0, 4) !== 'www.') {
+            const parts = req.hostname.split('.');
+            if (parts[0] !== 'www' && parts.length === 2) {
                 res.redirect(301, 'https://www.' + req.headers.host + req.originalUrl);
             }
+            else if (req.headers['x-forwarded-proto'] === 'https') {
+                next();
+            }
             else {
-                if (req.headers['x-forwarded-proto'] !== 'https') {
-                    res.redirect(301, 'https://' + req.headers.host + req.originalUrl);
-                }
-                else {
-                    next();
-                }
+                res.redirect(301, 'https://' + req.headers.host + req.originalUrl);
             }
         }
     };
 }
+
 app.use(sslwwwRedirect());
 
 
