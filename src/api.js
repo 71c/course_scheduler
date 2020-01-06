@@ -1,7 +1,6 @@
 const models = require('./models');
 const course_scheduler = require('./course_scheduler');
 const course_num_regex = /^([A-Za-z]{2,4})(?:-|\s*)([A-Za-z]{0,2})(\d{1,4})([A-Za-z]{0,2})$/;
-const {USE_SECTION_GROUPS} = require('./get_data');
 
 function get_classes_by_course_num(course_num, term) {
     return models.courses[term].filter(course => course.course_num === course_num);
@@ -93,15 +92,9 @@ function course_object_to_period_group(course, exclude_classes_with_no_days, acc
                 period_dict[assoc_class] = {[component]: []};
             else if (! (component in period_dict[assoc_class]))
                 period_dict[assoc_class][component] = [];
-            if (!USE_SECTION_GROUPS) {
-                const status_ok = accepted_statuses.includes(section.status);
-                if (status_ok && section_accept_function(section))
-                    period_dict[assoc_class][component].push(give_ids ? section.id : section);
-            } else {
-                const sections_with_status_ok = section.sections.filter(s => accepted_statuses.includes(s.status));
-                if (sections_with_status_ok.length !== 0 && section_accept_function(section))
-                    period_dict[assoc_class][component].push(give_ids ? section.id : section);
-            }
+            const status_ok = accepted_statuses.includes(section.status);
+            if (status_ok && section_accept_function(section))
+                period_dict[assoc_class][component].push(give_ids ? section.id : section);
         }
     }
     let class_components_group_9999 = null

@@ -207,40 +207,13 @@ function get_top_schedules_list(course_ids, accepted_statuses, score_function, k
         return cmp;
     }, k);
     sorter.insertAll(schedules_and_scores);
-
-    if (get_data.USE_SECTION_GROUPS) {
-        return {
-            n_possibilities: sorter.numPassed,
-            top_schedules: sorter.getMinArray(),
-            courses: courses.map(course => ({
-                id: course.id,
-                course_num: course.course_num,
-                subject: course.subject,
-                subject_long: course.subject_long,
-                title: course.title,
-                // desc_long: course.desc_long,
-                sections: course.sections.map(section => 
-                    ({
-                        assoc_class: section.assoc_class,
-                        component: section.component,
-                        component_short: section.component_short,
-                        periods: section.periods,
-                        term: section.term,
-                        id: section.id,
-                        sections: section.sections.filter(s => accepted_statuses.includes(s.status))
-                    })
-                ).filter(section => section.sections.length !== 0)
-            })),
-            term_code: get_data.get_term_number(term)
-        };
-    } else {
-        return {
-            n_possibilities: sorter.numPassed,
-            top_schedules: sorter.getMinArray(),
-            courses: courses,
-            term_code: get_data.get_term_number(term)
-        };
-    }
+    
+    return {
+        n_possibilities: sorter.numPassed,
+        top_schedules: sorter.getMinArray(),
+        courses: courses,
+        term_code: get_data.get_term_number(term)
+    };
 }
 
 function get_schedules(courses, accepted_statuses, section_accept_function, term) {

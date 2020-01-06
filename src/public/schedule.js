@@ -28,11 +28,9 @@ var leftButton, rightButton;
 
 const {n_possibilities, top_schedules, courses, term_code} = data;
 const sections_by_id = {};
-const section_indices_by_id = {};
 for (const course of courses) {
     for (const section of course.sections) {
         sections_by_id[section.id] = section;
-        section_indices_by_id[section.id] = 0;
     }
 }
 
@@ -140,26 +138,9 @@ function makeSectionSelects() {
             const val = document.createElement("td");
             row.appendChild(val);
             
-            if (section.sections.length > 1) {
-                const select = document.createElement("select");
-                for (let i = 0; i < section.sections.length; i++) {
-                    const option = document.createElement("option");
-                    option.innerHTML = section.sections[i].section_num;
-                    option.value = i;
-                    select.appendChild(option);
-                }
-                val.appendChild(select);
-
-                select.onchange = function() {
-                    section_indices_by_id[section.id] = parseInt(this.value, 10);
-                    setSchedule();
-                    updateScript();
-                };
-            } else {
-                const text = document.createElement("span");
-                text.innerHTML = section.sections[0].section_num;
-                val.appendChild(text);
-            }
+            const text = document.createElement("span");
+            text.innerHTML = section.section_num;
+            val.appendChild(text);
 
             sectionSelectDiv.appendChild(row);
         }
@@ -176,13 +157,12 @@ function setSchedule() {
             const current_course = courses[i];
             for (const section_id of schedule[i]) {
                 const section = sections_by_id[section_id];
-                const subsection = section.sections[section_indices_by_id[section_id]];
                 for (const period of section.periods) {
                     const date = dayToDate[period.day];
                     const startString = minutesToTimeString(period.start);
                     const endString = minutesToTimeString(period.end);
                     calendar.addEvent({
-                        title: `${current_course.course_num}-${subsection.section_num}`,
+                        title: `${current_course.course_num}-${section.section_num}`,
                         course_title: current_course.title,
                         start: `${date}T${startString}`,
                         end: `${date}T${endString}`,
