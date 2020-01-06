@@ -53,6 +53,7 @@ function sslwwwRedirect(useWWW) {
 app.use(sslwwwRedirect(false));
 app.use(express.static('src/public'));
 app.use(express.static('node_modules'));
+app.set('views', 'src/public');
 
 const http = require('http').createServer(app);
 
