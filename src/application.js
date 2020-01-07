@@ -217,16 +217,6 @@ function get_top_schedules_list(course_ids, accepted_statuses, score_function, k
     };
 }
 
-// function get_schedules(courses, accepted_statuses, section_accept_function, term) {
-//     const pg = new course_scheduler.PeriodGroup(
-//         courses.map(course =>
-//             api.course_object_to_period_group(course, true, accepted_statuses, cache=false, give_ids=true, section_accept_function, term)
-//         ),
-//         'and', merge=false, cache=false, null, term
-//     );
-//     return pg.evaluate();
-// }
-
 function get_schedules(courses, accepted_statuses, section_accept_function, term) {
     const reduced_pgs = courses.map(course => {
         const ev_pg = api.course_object_to_period_group(course, true, accepted_statuses, false, true, section_accept_function, term).evaluate();

@@ -266,11 +266,7 @@ function whenOnMyWebsite() {
         var classes = [];
         for (let i = 0; i < schedule.length; i++) {
             const current_course = courses[i];
-            const classNums = typeof section_indices_by_id !== 'undefined' ? schedule[i].map(section_id => {
-                const section = sections_by_id[section_id];
-                const subsection = section.sections[section_indices_by_id[section_id]];
-                return subsection.class_num;
-            }) : schedule[i].map(section_id => sections_by_id[section_id].class_num);
+            const classNums = schedule[i].map(section_id => sections_by_id[section_id].class_num);
             classes.push({
                 course_num: current_course.course_num,
                 classNums: classNums

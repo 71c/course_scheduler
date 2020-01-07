@@ -5,3 +5,4 @@ To Do & Potential Features:
 - classes history
 - groups of courses (example: one these courses, two of those courses, this course, and that course)
 - detect the 'duplicate' schedules that are not currently caught
+- make the data perisistent (not on the server)
