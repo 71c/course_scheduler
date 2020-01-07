@@ -6,56 +6,36 @@ const PORT = process.env.PORT || 5000;
 const UPDATE_INTERVAL = 30; // every UPDATE_INTERVAL minutes it updates all the course data
 
 app.set('view engine', 'ejs');
+app.set('views', 'src/public');
 
 function sslwwwRedirect(useWWW) {
-    if (useWWW) {
-        return function(req, res, next) {
+    var checkWWW = useWWW ?
+        req => req.subdomains.length === 0 : // no www
+        req => req.subdomains.length === 1 && req.subdomains[0] === 'www'; // there is www
+    var changeWWW = useWWW ? 
+        req => 'https://www.' + req.headers.host + req.originalUrl : // add www back
+        req => 'https://' + req.headers.host.slice(4) + req.originalUrl; // remove www
+    return function(req, res, next) {
+        if (req.hostname === 'localhost' || process.env.NODE_ENV === 'development')
             // don't redirect if http://localhost or development
-            if (req.hostname === 'localhost' || process.env.NODE_ENV === 'development') {
-                next();
-            }
-            // no www; add it
-            else if (req.subdomains.length === 0) {
-                res.redirect(301, 'https://www.' + req.headers.host + req.originalUrl);
-            }
-            // has www or other subdomain and https so don't redirect
-            else if ((req.headers['x-forwarded-proto'] || req.protocol) === 'https') {
-                next();
-            }
-            // has www or other subdomain and http; redirect to use https
-            else {
-                res.redirect(301, 'https://' + req.headers.host + req.originalUrl);
-            }
-        };
-    }
-    else {
-        return function(req, res, next) {
-            // don't redirect if http://localhost or development
-            if (req.hostname === 'localhost' || process.env.NODE_ENV === 'development') {
-                next();
-            }
-            // there is www; remove it
-            else if (req.subdomains.length === 1 && req.subdomains[0] === 'www') {
-                res.redirect(301, 'https://' + req.headers.host.slice(4) + req.originalUrl);
-            }
+            next();
+        else if (checkWWW(req))
+            res.redirect(301, changeWWW(req));
+        else if ((req.headers['x-forwarded-proto'] || req.protocol) === 'https')
             // uses https and there is no www; don't redirect
-            else if ((req.headers['x-forwarded-proto'] || req.protocol) === 'https') {
-                next();
-            }
+            next();
+        else
             // using http; redirect to use https
-            else {
-                res.redirect(301, 'https://' + req.headers.host + req.originalUrl);
-            }
-        };
-    }
+            res.redirect(301, 'https://' + req.headers.host + req.originalUrl);
+    };
 }
-const compression = require('compression');
-
-app.use(compression());
 app.use(sslwwwRedirect(false));
+
+const compression = require('compression');
+app.use(compression());
+
 app.use(express.static('src/public'));
 app.use(express.static('node_modules'));
-app.set('views', 'src/public');
 
 const http = require('http').createServer(app);
 
@@ -116,14 +96,6 @@ get_data.load_all_course_data(vals => {
 }, console.error, false);
 
 function startServer() {
-    // tic();
-    // for (const course of models.courses['Spring 2020']) {
-    //     const p = api.course_object_to_period_group(course, true, ['O', 'C', 'W'], true, true, () => true, 'Spring 2020');
-    //     if (p.evaluate().length > 1)
-    //         console.log(p.evaluate());
-    // }
-    // toc();
-
     // update all data every so often
     setInterval(function() {
         console.log("Updating all data...");
@@ -231,7 +203,22 @@ function get_schedules(courses, accepted_statuses, section_accept_function, term
                 return section_id_to_periods_string[section_id];
             }).join('')
         );
-        const selected = grouped.map(group => group[0]);
+        const selected = grouped.map(group => 
+            max(group, {
+                key: function(item) {
+                    var k = [0, 0];
+                    for (var sectionid of item) {
+                        if (models.sections[term][sectionid].status === 'O') {
+                            k[0]++;
+                        }
+                        else if (models.sections[term][sectionid].status === 'W') {
+                            k[1]++;
+                        }
+                    }
+                    return k;
+                }
+            })
+        );
         const selected_pgs = selected.map(section_ids => new course_scheduler.PeriodGroup(section_ids, 'and', true, false, null, term));
         return new course_scheduler.PeriodGroup(selected_pgs, 'or', false, false, null, term);
     });
@@ -297,4 +284,15 @@ function get_top_schedules_list_timing_test(course_ids, accepted_statuses, score
     };
 }
 
-
+function max(arr, {key=x=>x, compareFunction=default_compare}={}) {
+    let best = arr[0];
+    let bestKey = key(best);
+    for (let i = 1; i < arr.length; i++) {
+        const thisKey = key(arr[i]);
+        if (compareFunction(thisKey, bestKey) > 0) {
+            bestKey = thisKey;
+            best = arr[i];
+        }
+    }
+    return best;
+}
