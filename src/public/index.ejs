@@ -2,36 +2,13 @@
 <html lang="en">
     <head>
         <title>Tufts Course Scheduler</title>
-        <!-- required meta tags -->
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta name="description" content="Tufts Course Scheduler automatically generates the best schedules for given classes to help students at Tufts University sign up for classes easily.">
-
-        <!-- <link rel="stylesheet" href="bootstrap/dist/css/bootstrap.min.css"> -->
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-
-        <!-- <link rel="stylesheet" href="jquery-ui.min.css"> -->
-        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.min.css" integrity="sha384-kcAOn9fN4XSd+TGsNu2OQKSuV5ngOwt7tg73O4EpaD91QXvrfgvf0MR7/2dUjoI6" crossorigin="anonymous">
-
-        <link rel="stylesheet" href="./main.css">
-
-
-        <!-- <script src="jquery/dist/jquery.min.js" defer></script> -->
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha384-vk5WoKIaW/vJyUAd9n/wmopsmNhiy+L2Z+SBxGYnUkunIxVxAv/UtMOhba/xskxh" crossorigin="anonymous" defer></script>
-
-        <!-- <script src="popper.js/dist/umd/popper.min.js" defer></script> -->
-        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous" defer></script>
-
-        <!-- <script src="bootstrap/dist/js/bootstrap.min.js" defer></script> -->
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous" defer></script>
-
-        <!-- <script src="jquery-ui.min.js" defer></script> -->
-        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous" defer></script>
-
-        <script src="index.js" defer></script>
-
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js" integrity="sha384-MI/QivrbkVVJ89UOOdqJK/w6TLx0MllO/LsQi9KvvJFuRHGbYtsBvbGSM8JHKCS0" crossorigin="anonymous" defer></script>
-
+        <% for (var link of css) { %>
+        <%- link %><% } %>
+        <% for (var script of js) { %>
+        <%- script %><% } %>
     </head>
     <body>
         <div class="container-fluid">

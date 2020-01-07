@@ -6,21 +6,8 @@
         <!-- required meta tags -->
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-        <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons"> -->
-
-        <!-- <link rel="stylesheet" href="bootstrap-material-design/dist/css/bootstrap-material-design.min.css"> -->
-        <!-- <link rel="stylesheet" href="https://unpkg.com/bootstrap-material-design@4.1.1/dist/css/bootstrap-material-design.min.css" integrity="sha384-wXznGJNEXNG1NFsbm0ugrLFMQPWswR3lds2VeinahP8N0zJw9VWSopbjv2x7WCvX" crossorigin="anonymous"> -->
-
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-
-        <link rel="stylesheet" href="./main.css">
-
-        <!-- <link rel="stylesheet" href="@fullcalendar/core/main.min.css">
-        <link rel="stylesheet" href="@fullcalendar/timegrid/main.min.css"> -->
-        <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/core@4.3.1/main.min.css" integrity="sha384-UYbBlSMkHrbuUVqSs26Rm1UEii5VOTR80mD2wjrJaIedgHgS5LWDt9d7rcbqEDxR" crossorigin="anonymous">
-        <link rel="stylesheet" href="https://unpkg.com/@fullcalendar/timegrid@4.3.0/main.min.css" integrity="sha384-Y2E7KGXSxkviA14jxA5DeBmVwovKH3ipCOXJ1ByetT9DLlwehyYf/3Lm2wSncMR2" crossorigin="anonymous">
-
+        <% for (var link of css) { %>
+        <%- link %><% } %>
         <style>
             .fc-event {
                 color: #fff !important;
@@ -32,27 +19,8 @@
                 font-size: 11px;
             }
         </style>
-
-        <!-- <script src="jquery/dist/jquery.min.js" defer></script> -->
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha384-vk5WoKIaW/vJyUAd9n/wmopsmNhiy+L2Z+SBxGYnUkunIxVxAv/UtMOhba/xskxh" crossorigin="anonymous" defer></script>
-
-        <!-- <script src="@fullcalendar/core/main.min.js" defer></script>
-        <script src="@fullcalendar/daygrid/main.min.js" defer></script>
-        <script src="@fullcalendar/timegrid/main.min.js" defer></script> -->
-        <script src="https://unpkg.com/@fullcalendar/core@4.3.1/main.min.js" integrity="sha384-m/iMkOZWaAFStlxoUSSGM0Ow9kDwNOIzw2aQDNC3SFffa50jU2HSuluMYODsvAGR" crossorigin="anonymous" defer></script>
-        <script src="https://unpkg.com/@fullcalendar/daygrid@4.3.0/main.min.js" integrity="sha384-Vg8WM1KZn59u30ahJ4mGZwEw2R4ieRhhvX2PPiKKCSpuxms+HvoC3XPii6CnMvFD" crossorigin="anonymous" defer></script>
-        <script src="https://unpkg.com/@fullcalendar/timegrid@4.3.0/main.min.js" integrity="sha384-yyTZuDPNQFp/xKe4Yk67GZBC6Pm3OXdipzs78KRRA37YWJuy3rcgDQTxCxbIviHs" crossorigin="anonymous" defer></script>
-
-        
-        <!-- <script src="popper.js/dist/umd/popper.min.js" defer></script> -->
-        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous" defer></script>
-
-        <!-- <script src="bootstrap-material-design/dist/js/bootstrap-material-design.min.js" defer></script> -->
-        <!-- <script src="https://unpkg.com/bootstrap-material-design@4.1.1/dist/js/bootstrap-material-design.js" integrity="sha384-CauSuKpEqAFajSpkdjv3z9t8E7RlpJ1UP0lKM/+NdtSarroVKu069AlsRPKkFBz9" crossorigin="anonymous" defer></script> -->
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous" defer></script>
-
-        <script src="./schedule.js" defer></script>
-
+        <% for (var script of js) { %>
+        <%- script %><% } %>
         <script>const data = <%- data %>;//https://stackoverflow.com/a/22910523/9911203</script>
     </head>
     <body>
