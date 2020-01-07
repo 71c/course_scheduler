@@ -114,6 +114,14 @@ get_data.load_all_course_data(vals => {
 }, console.error, false);
 
 function startServer() {
+    // tic();
+    // for (const course of models.courses['Spring 2020']) {
+    //     const p = api.course_object_to_period_group(course, true, ['O', 'C', 'W'], true, true, () => true, 'Spring 2020');
+    //     if (p.evaluate().length > 1)
+    //         console.log(p.evaluate());
+    // }
+    // toc();
+
     // update all data every so often
     setInterval(function() {
         console.log("Updating all data...");
@@ -200,48 +208,44 @@ function get_top_schedules_list(course_ids, accepted_statuses, score_function, k
         return cmp;
     }, k);
     sorter.insertAll(schedules_and_scores);
-
-    if (get_data.USE_SECTION_GROUPS) {
-        return {
-            n_possibilities: sorter.numPassed,
-            top_schedules: sorter.getMinArray(),
-            courses: courses.map(course => ({
-                id: course.id,
-                course_num: course.course_num,
-                subject: course.subject,
-                subject_long: course.subject_long,
-                title: course.title,
-                // desc_long: course.desc_long,
-                sections: course.sections.map(section => 
-                    ({
-                        assoc_class: section.assoc_class,
-                        component: section.component,
-                        component_short: section.component_short,
-                        periods: section.periods,
-                        term: section.term,
-                        id: section.id,
-                        sections: section.sections.filter(s => accepted_statuses.includes(s.status))
-                    })
-                ).filter(section => section.sections.length !== 0)
-            })),
-            term_code: get_data.get_term_number(term)
-        };
-    } else {
-        return {
-            n_possibilities: sorter.numPassed,
-            top_schedules: sorter.getMinArray(),
-            courses: courses,
-            term_code: get_data.get_term_number(term)
-        };
-    }
+    
+    return {
+        n_possibilities: sorter.numPassed,
+        top_schedules: sorter.getMinArray(),
+        courses: courses,
+        term_code: get_data.get_term_number(term)
+    };
 }
 
+// function get_schedules(courses, accepted_statuses, section_accept_function, term) {
+//     const pg = new course_scheduler.PeriodGroup(
+//         courses.map(course =>
+//             api.course_object_to_period_group(course, true, accepted_statuses, cache=false, give_ids=true, section_accept_function, term)
+//         ),
+//         'and', merge=false, cache=false, null, term
+//     );
+//     return pg.evaluate();
+// }
+
 function get_schedules(courses, accepted_statuses, section_accept_function, term) {
+    const reduced_pgs = courses.map(course => {
+        const ev_pg = api.course_object_to_period_group(course, true, accepted_statuses, false, true, section_accept_function, term).evaluate();
+        const section_id_to_periods_string = {};
+        const grouped = groupBy(ev_pg, section_ids =>
+            section_ids.map(section_id => {
+                if (section_id in section_id_to_periods_string)
+                    return section_id_to_periods_string[section_id];
+                section_id_to_periods_string[section_id] = JSON.stringify(models.sections[term][section_id].periods);
+                return section_id_to_periods_string[section_id];
+            }).join('')
+        );
+        const selected = grouped.map(group => group[0]);
+        const selected_pgs = selected.map(section_ids => new course_scheduler.PeriodGroup(section_ids, 'and', true, false, null, term));
+        return new course_scheduler.PeriodGroup(selected_pgs, 'or', false, false, null, term);
+    });
     const pg = new course_scheduler.PeriodGroup(
-        courses.map(course =>
-            api.course_object_to_period_group(course, true, accepted_statuses, cache=false, give_ids=true, section_accept_function, term)
-        ),
-        'and', merge=false, cache=false, null, term
+        reduced_pgs,
+        'and', false, false, null, term
     );
     return pg.evaluate();
 }

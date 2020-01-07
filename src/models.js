@@ -16,10 +16,6 @@ class Course {
 }
 Course.currIds = {};
 
-Course.prototype.toString = function courseToString() {
-    return `<Course ${this.id}>`;
-};
-
 class Section {
     constructor(class_num, section_num, assoc_class, component, component_short, status, term, periods=[]) {
         this.id = Section.currIds[term]++;
@@ -57,49 +53,10 @@ class Section {
     }
 }
 Section.currIds = {};
-Section.prototype.toString = function sectionToString() {
-    return `<Section ${this.id}>`;
-};
-
-class SectionGroup {
-    constructor(sections) {
-        this.assoc_class = sections[0].assoc_class;
-        this.component = sections[0].component;
-        this.component_short = sections[0].component_short;
-        this.periods = sections[0].periods;
-        this.term = sections[0].term;
-        this.id = SectionGroup.currIds[this.term]++;
-        this.sections = sections.map(section => ({
-            class_num: section.class_num,
-            section_num: section.section_num,
-            status: section.status
-        }));
-    }
-
-    evaluate() {
-        return [this];
-    }
-
-    intersects(other) {
-        for (const period_1 of this.periods) {
-            for (const period_2 of other.periods) {
-                if (period_2.day === period_1.day && period_1.start <= period_2.end && period_1.end >= period_2.start) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-}
-SectionGroup.currIds = {};
-SectionGroup.prototype.toString = function sectionGroupToString() {
-    return `<SectionGroup ${this.id}>`;
-};
 
 module.exports = {
     Course,
     Section,
-    SectionGroup,
     courses: {},
     sections: {},
     term_to_code: {},
@@ -108,6 +65,5 @@ module.exports = {
         this.sections[term] = [];
         Course.currIds[term] = 0;
         Section.currIds[term] = 0;
-        SectionGroup.currIds[term] = 0;
     }
 };
