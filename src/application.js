@@ -49,7 +49,9 @@ function sslwwwRedirect(useWWW) {
         };
     }
 }
+const compression = require('compression');
 
+app.use(compression());
 app.use(sslwwwRedirect(false));
 app.use(express.static('src/public'));
 app.use(express.static('node_modules'));
