@@ -204,6 +204,9 @@ function isEdge() {
 function isChrome() {
     return !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
 }
+function isOpera() {
+    return (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     if (n_possibilities !== 0) {
@@ -232,17 +235,29 @@ document.addEventListener('DOMContentLoaded', function() {
             const nouserscript = document.createElement('div');
 
             var userscriptLink = '<a href="https://openuserjs.org/scripts/71c/Tufts_Course_Scheduler_Auto-Sign-Up" target="_blank" rel="noopener noreferrer">userscript</a>';
-            nouserscript.innerHTML = isChrome() ?
+            nouserscript.innerHTML = isOpera() ?
+            '<br>To add these sections to your cart, you need to get the Tampermonkey extension and install the userscript. <br><br>It looks like you\'re using <b>Opera</b>; it is not as easy as in Chrome and Firefox to get Tampermonkey and the userscript running in Opera but if you want to you can follow these steps: <ol><li>Install the <a href="https://addons.opera.com/en/extensions/details/install-chrome-extensions/" rel="external noreferrer noopener nofollow" target="_blank">Opera Add-on for Installing Chrome Extensions</a><li><b>Install Tampermonkey BETA.</b> It seems that Opera blacklisted Tampermonkey so you can\'t use regular Tampermonkey but you can <a href="https://chrome.google.com/webstore/detail/tampermonkey-beta/gcalenpjmijncebpfijmoaglllgpjagf" target="_blank" rel="external noopener noreferrer nofollow">get Tampermonkey BETA here</a> which does work.<li><b>Get the userscript.</b> One inconvenience is that if you click the install button <a href="https://openuserjs.org/scripts/71c/Tufts_Course_Scheduler_Auto-Sign-Up" target="_blank" rel="noopener noreferrer">on this page</a> it does not register with Tampermonkey and downloads the userscript to your downloads folder instead. So instead do this: <ol><li>Go to the Tampermonkey dashboard<li>Go to the Utilities tab<li>type https://openuserjs.org/install/71c/Tufts_Course_Scheduler_Auto-Sign-Up.user.js into the input next to where it says "Install from URL" and click "install".</ol></ol>'
+            : isChrome() ?
             'Automatically add these sections to your cart by getting the <a href="https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank" rel="noopener noreferrer">Tampermonkey</a> extension and installing the ' + userscriptLink + '.'
             : isFirefox() ?
             'Automatically add these sections to your cart by getting the <a href="https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/" target="_blank" rel="noopener noreferrer">Tampermonkey</a> extension and installing the ' + userscriptLink + '.'
             : isSafari() ?
-            'Automatically add these sections to your cart by getting the Tampermonkey extension and installing the ' + userscriptLink + '. It looks like you have Safari, and I don\'t think you can get Tampermonkey for Safari now: <a href="https://openuserjs.org/about/Tampermonkey-for-Safari">See here</a><br>You can get Tampermonkey in Chrome/Chromium browsers and Firefox.'
+            '<br>Automatically add these sections to your cart by getting the Tampermonkey extension and installing the ' + userscriptLink + '.<br><br> It looks like you\'re using Safari, and I don\'t think you can get Tampermonkey for Safari now: <a href="https://openuserjs.org/about/Tampermonkey-for-Safari" rel="noopener noreferrer nofollow" target="_blank">See here</a><br>You can get Tampermonkey in <b>Chrome</b> and <b>Firefox</b> though. Switch to one of these browsers.'
             : isEdge() ?
-            'Automatically add these sections to your cart by getting the <a href="https://www.microsoft.com/store/apps/9NBLGGH5162S" target="_blank" rel="noopener noreferrer">Tampermonkey</a> extension and installing the ' + userscriptLink + '.'
-            : 'Automatically add these sections to your cart by getting the Tampermonkey extension and installing the ' + userscriptLink + '. Tampermonkey is available in Chrome (and Chromium-based browsers) and Firefox.';
+            'Automatically add these sections to your cart by getting the <a href="https://www.microsoft.com/store/apps/9NBLGGH5162S" target="_blank" rel="noopener noreferrer nofollow">Tampermonkey</a> extension and installing the ' + userscriptLink + '.'
+            : 'To add these sections to your cart, you need to get the Tampermonkey extension and install the ' + userscriptLink + '. I don\'t know what browser you are using but Tampermonkey is available in Chrome and Firefox.';
 
             left.appendChild(nouserscript);
+
+            nouserscript.style.display = "none";
+
+            var button = document.createElement('button');
+            button.innerText = 'Automatically sign me up on SIS';
+            button.onclick = function() {
+                nouserscript.style.display = "";
+                button.style.display = "none";
+            }
+            left.appendChild(button);
         }
 
         document.dispatchEvent(new Event('startUserscript'));
