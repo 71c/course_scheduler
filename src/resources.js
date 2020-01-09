@@ -1,3 +1,9 @@
+const fs = require('fs');
+const path = require('path');
+const request = require('request');
+const fetch = require('node-fetch');
+const sriToolbox = require('sri-toolbox');
+
 // const RESOURCES = {
 //     css: {
 //         'bootstrap': {
@@ -63,6 +69,17 @@
 //         }
 //     }
 // }
+
+const RESOURCES_USED = {
+    index: {
+        css: ['bootstrap-cerulean', 'jquery-ui', 'main'],
+        js: ['jquery', 'popper.js', 'bootstrap', 'jquery-ui', 'index', 'jqueryui-touch-punch']
+    },
+    schedule: {
+        css: ['bootstrap', 'main', '@fullcalendar/core', '@fullcalendar/timegrid'],
+        js: ['jquery', '@fullcalendar/core', '@fullcalendar/daygrid', '@fullcalendar/timegrid', 'popper.js', 'bootstrap', 'schedule']
+    }
+}
 
 const URLS = {
     css: {
@@ -130,81 +147,152 @@ const URLS = {
     }
 }
 
-const DO_CROSSORIGIN_THING = false;
+const STATIC_PATHS = ['..', 'public', '../node_modules'];
 
-const RESOURCES = {};
-for (const type in URLS) {
-    RESOURCES[type] = {};
-    for (const name in URLS[type]) {
-        RESOURCES[type][name] = {};
-        if ('local' in URLS[type][name]) {
-            if (type === 'js') {
-                RESOURCES[type][name].local = `<script src="${URLS[type][name].local}" defer></script>`;
-            } else if (type === 'css') {
-                RESOURCES[type][name].local = `<link rel="stylesheet" href="${URLS[type][name].local}">`;
+
+function all(functions, resolve, reject) {
+    /* `functions` is an array; each element is a function of the functions (resolve, reject) */
+    var n = functions.length;
+    var nDone = 0;
+    var vals = [];
+    var done = false;
+    for (let i = 0; i < functions.length; i++) {
+        const f = functions[i];
+        f(function(thing) {
+            vals[i] = thing;
+            if (++nDone === n) {
+                resolve(vals);
             }
-        }
-        if ('cdn' in URLS[type][name]) {
-            if (DO_CROSSORIGIN_THING) {
-                // todo: get integrity
-                if (type === 'js') {
-                    const integrity = undefined;
-                    RESOURCES[type][name].cdn = `<script src="${URLS[type][name].cdn}" integrity=${integrity} crossorigin="anonymous" defer></script>`;
-                } else if (type === 'css') {
-                    const integrity = undefined;
-                    RESOURCES[type][name].cdn = `<link rel="stylesheet" href="${URLS[type][name].cdn}" integrity=${integrity} crossorigin="anonymous">`;
-                }
-            } else {
-                if (type === 'js') {
-                    RESOURCES[type][name].cdn = `<script src="${URLS[type][name].cdn}" defer></script>`;
-                } else if (type === 'css') {
-                    RESOURCES[type][name].cdn = `<link rel="stylesheet" href="${URLS[type][name].cdn}">`;
-                }
+        }, function(err) {
+            if (!done) {
+                reject(err);
+                done = true;
             }
-        }
+        });
     }
 }
 
-console.log(RESOURCES);
-
-const RESOURCES_USED = {
-    index: {
-        css: ['bootstrap-cerulean', 'jquery-ui', 'main'],
-        js: ['jquery', 'popper.js', 'bootstrap', 'jquery-ui', 'index', 'jqueryui-touch-punch']
-    },
-    schedule: {
-        css: ['bootstrap', 'main', '@fullcalendar/core', '@fullcalendar/timegrid'],
-        js: ['jquery', '@fullcalendar/core', '@fullcalendar/daygrid', '@fullcalendar/timegrid', 'popper.js', 'bootstrap', 'schedule']
-    }
-}
-
-function getResources(useCDN) {
-    const resourcesStrings = {};
-    for (const view in RESOURCES_USED) {
-        resourcesStrings[view] = {};
-        for (const kind in RESOURCES_USED[view]) {
-            const theseResources = [];
-            for (const name of RESOURCES_USED[view][kind]) {
-                const options = RESOURCES[kind][name];
-                if (options === undefined) {
-                    const err = new Error(`${kind} resource named ${name} is not included in RESOURCES`);
-                    throw err;
-                }
-                if (useCDN) {
-                    if ('cdn' in options)
-                        theseResources.push(options.cdn);
-                    else
-                        theseResources.push(options.local);
-                }
-                else {
-                    if ('local' in options)
-                        theseResources.push(options.local);
-                }
+function getSriHash(obj, resolve, reject) {
+    if ('local' in obj) {
+        for (const staticPath of STATIC_PATHS) {
+            const codePath = path.join(__dirname, staticPath, obj.local);
+            if (fs.existsSync(codePath)) {
+                fs.readFile(codePath, {encoding: "ascii"}, (err, data) => {
+                    if (err) reject(err);
+                    var result = sriToolbox.generate({algorithms: ["sha384"]}, data);
+                    resolve(result);
+                    return;
+                });
             }
-            resourcesStrings[view][kind] = theseResources;
         }
     }
-    return resourcesStrings;
+    else if ('cdn' in obj) {
+        (async function() {
+            const response = await fetch(obj.cdn);
+            if (response.status !== 200) {
+                reject(response);
+                return;
+            }
+            const data = await response.buffer();
+            const result = sriToolbox.generate({algorithms: ["sha384"]}, data);
+            resolve(result);
+        })();
+    }
+    else {
+        reject('no source for making hash!');
+    }
+
+    // if ('cdn' in obj) {
+    //     (async function() {
+    //         const response = await fetch(obj.cdn);
+    //         if (response.status !== 200) {
+    //             reject(response);
+    //             return;
+    //         }
+    //         const data = await response.buffer();
+    //         const result = sriToolbox.generate({algorithms: ["sha384"]}, data);
+    //         resolve(result);
+    //     })();
+    // }
+    // else {
+    //     reject('no source for making hash!');
+    // }
+}
+
+const DO_SRI_THING = true;
+const DEFER = true;
+
+function getResources(useCDN, resolve, reject) {
+    const resources = {};
+    const functions = [];
+    for (const type in URLS) {
+        resources[type] = {};
+        for (const name in URLS[type]) {
+            resources[type][name] = {};
+            if ('local' in URLS[type][name]) {
+                if (type === 'js') {
+                    resources[type][name].local = `<script src="${URLS[type][name].local}"${DEFER ? " defer" : ""}></script>`;
+                } else if (type === 'css') {
+                    resources[type][name].local = `<link rel="stylesheet" href="${URLS[type][name].local}">`;
+                }
+            }
+            if ('cdn' in URLS[type][name]) {
+                if (DO_SRI_THING) {
+                    functions.push(function(resolve, reject) {
+                        getSriHash(URLS[type][name], function(integrity) {
+                            if (type === 'js') {
+                                resources[type][name].cdn = `<script src="${URLS[type][name].cdn}" integrity="${integrity}" crossorigin="anonymous"${DEFER ? " defer" : ""}></script>`;
+                            } else if (type === 'css') {
+                                resources[type][name].cdn = `<link rel="stylesheet" href="${URLS[type][name].cdn}" integrity="${integrity}" crossorigin="anonymous">`;
+                            }
+                            resolve(integrity);
+                        }, reject);
+                    });
+                } else {
+                    if (type === 'js') {
+                        resources[type][name].cdn = `<script src="${URLS[type][name].cdn}"${DEFER ? " defer" : ""}></script>`;
+                    } else if (type === 'css') {
+                        resources[type][name].cdn = `<link rel="stylesheet" href="${URLS[type][name].cdn}">`;
+                    }
+                }
+            }
+        }
+    }
+    if (functions.length === 0) {
+        done();
+    }
+    else {
+        all(functions, done, reject);
+    }
+
+    function done(vals) {
+        const resourcesStrings = {};
+        for (const view in RESOURCES_USED) {
+            resourcesStrings[view] = {};
+            for (const kind in RESOURCES_USED[view]) {
+                const theseResources = [];
+                for (const name of RESOURCES_USED[view][kind]) {
+                    const options = resources[kind][name];
+                    if (options === undefined) {
+                        const err = new Error(`${kind} resource named ${name} is not included in resources`);
+                        throw err;
+                    }
+                    if (useCDN) {
+                        if ('cdn' in options)
+                            theseResources.push(options.cdn);
+                        else
+                            theseResources.push(options.local);
+                    }
+                    else {
+                        if ('local' in options)
+                            theseResources.push(options.local);
+                    }
+                }
+                resourcesStrings[view][kind] = theseResources;
+            }
+        }
+        resolve(resourcesStrings);
+    }
 }
 
 module.exports = getResources;

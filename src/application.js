@@ -4,10 +4,11 @@ const app = express();
 
 const PORT = process.env.PORT || 5000;
 const UPDATE_INTERVAL = 30; // every UPDATE_INTERVAL minutes it updates all the course data
-const OFFLINE_MODE = true; // I use offline mode when I don't have WiFi
+const OFFLINE_MODE = false; // I use offline mode when I don't have WiFi
 const USE_CDN = process.env.NODE_ENV === 'production' || !OFFLINE_MODE;
 
-const RESOURCES_STRINGS = require('./resources')(USE_CDN);
+// const RESOURCES_STRINGS = require('./resources')(USE_CDN);
+let RESOURCES_STRINGS;
 
 app.set('view engine', 'ejs');
 app.set('views', 'src/public');
@@ -47,12 +48,35 @@ function toc(name) {
     return dt;
 }
 
-tic('load the data')
-get_data.load_all_course_data(vals => {
-    toc('load the data');
-    console.log("Done loading the data");
+// tic('load the data')
+// get_data.load_all_course_data(vals => {
+//     toc('load the data');
+//     console.log("Done loading the data");
+//     startServer();
+// }, console.error, false);
+
+tic('load the data');
+tic('get resources');
+all([
+    function(resolve, reject) {
+        get_data.load_all_course_data(vals => {
+            toc('load the data');
+            console.log("Done loading the data");
+            resolve(vals);
+        }, reject, false);
+    },
+    function(resolve, reject) {
+        require('./resources')(USE_CDN, function(resourcesStrings) {
+            toc('get resources');
+            RESOURCES_STRINGS = resourcesStrings;
+            resolve();
+        }, reject);
+    }
+], function() {
     startServer();
-}, console.error, false);
+}, console.error);
+
+
 
 function startServer() {
     // update all data every so often
@@ -277,4 +301,26 @@ function groupBy(items, groupFunction) {
         }
     }
     return [...map.values()];
+}
+
+function all(functions, resolve, reject) {
+    /* `functions` is an array; each element is a function of the functions (resolve, reject) */
+    var n = functions.length;
+    var nDone = 0;
+    var vals = [];
+    var done = false;
+    for (let i = 0; i < functions.length; i++) {
+        const f = functions[i];
+        f(function(thing) {
+            vals[i] = thing;
+            if (++nDone === n) {
+                resolve(vals);
+            }
+        }, function(err) {
+            if (!done) {
+                reject(err);
+                done = true;
+            }
+        });
+    }
 }
