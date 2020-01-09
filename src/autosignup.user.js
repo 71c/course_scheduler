@@ -5,6 +5,9 @@
 // @description  To be used with tuftscoursescheduler.com; automatically signs up for classes at Tufts
 // @homepageURL  https://github.com/71c/course_scheduler
 // @author       71c
+// @copyright    2020, 71c (https://openuserjs.org/users/71c)
+// @updateURL    https://openuserjs.org/meta/71c/Tufts_Course_Scheduler_Auto-Sign-Up.meta.js
+// @downloadURL  https://openuserjs.org/install/71c/Tufts_Course_Scheduler_Auto-Sign-Up.user.js
 // @license      MIT
 // @match        https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/*
 // @match        http://localhost:5000/schedule*
