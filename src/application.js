@@ -7,11 +7,10 @@ const UPDATE_INTERVAL = 30; // every UPDATE_INTERVAL minutes it updates all the 
 const OFFLINE_MODE = false; // I use offline mode when I don't have WiFi
 const USE_CDN = process.env.NODE_ENV === 'production' || !OFFLINE_MODE;
 
-// const RESOURCES_STRINGS = require('./resources')(USE_CDN);
 let RESOURCES_STRINGS;
 
 app.set('view engine', 'ejs');
-app.set('views', 'src/public');
+app.set('views', 'src/public/views');
 
 const sslwwwRedirect = require('./ssl-www-redirect');
 app.use(sslwwwRedirect(false));
@@ -20,8 +19,15 @@ const compression = require('compression');
 app.use(compression());
 
 const twoDays = 172800000;
-app.use(express.static('src/public', {
+const oneYear = 31536000000;
+app.use(express.static('src/public/js', {
     maxAge: process.env.NODE_ENV === 'production' ? twoDays : 0
+}));
+app.use(express.static('src/public/css', {
+    maxAge: process.env.NODE_ENV === 'production' ? twoDays : 0
+}));
+app.use(express.static('src/public/vendor', {
+    maxAge: oneYear
 }));
 
 if (process.env.NODE_ENV !== 'production')

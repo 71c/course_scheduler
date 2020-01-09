@@ -70,7 +70,8 @@ const URLS = {
             local: 'jquery-ui.min.js'
         },
         'jqueryui-touch-punch': {
-            cdn: 'https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js'
+            cdn: 'https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js',
+            local: 'jquery.ui.touch-punch.min.js'
         },
         '@fullcalendar/core': {
             cdn: 'https://unpkg.com/@fullcalendar/core@4.3.1/main.min.js',
@@ -93,8 +94,7 @@ const URLS = {
     }
 }
 
-const STATIC_PATHS = ['..', 'public', '../node_modules'];
-
+const STATIC_PATHS = ['public/css', 'public/js', 'public/vendor', '../node_modules'];
 
 function all(functions, resolve, reject) {
     /* `functions` is an array; each element is a function of the functions (resolve, reject) */
@@ -127,10 +127,11 @@ function getSriHash(obj, resolve, reject) {
                     if (err) reject(err);
                     var result = sriToolbox.generate({algorithms: ALGORITHMS}, data);
                     resolve(result);
-                    return;
                 });
+                return;
             }
         }
+        reject(`${obj.local} does not exist`)
     }
     else if ('cdn' in obj) {
         (async function() {
