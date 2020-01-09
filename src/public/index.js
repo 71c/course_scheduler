@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
             value: 0,
             slide: function(event, ui) {
                 // https://stackoverflow.com/a/4808375/9911203
-                if (ui.value > -15 && ui.value < 15 && ui.value != 0) {
+                if (ui.value > -10 && ui.value < 10 && ui.value != 0) {
                     jSlider.slider('value', 0);
                     return false;
                 }

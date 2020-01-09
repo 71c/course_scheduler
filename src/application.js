@@ -19,8 +19,13 @@ app.use(sslwwwRedirect(false));
 const compression = require('compression');
 app.use(compression());
 
-app.use(express.static('src/public'));
-app.use(express.static('node_modules'));
+const twoDays = 172800000;
+app.use(express.static('src/public', {
+    maxAge: process.env.NODE_ENV === 'production' ? twoDays : 0
+}));
+
+if (process.env.NODE_ENV !== 'production')
+    app.use(express.static('node_modules'));
 
 const http = require('http').createServer(app);
 
