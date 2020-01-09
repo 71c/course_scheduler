@@ -188,6 +188,23 @@ function updateScript() {
     document.dispatchEvent(new Event('updateClasses'));
 }
 
+// https://stackoverflow.com/a/9851769/9911203
+function isFirefox() {
+    return typeof InstallTrigger !== 'undefined';
+}
+function isSafari() {
+    return /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
+}
+function isIE() {
+    return /*@cc_on!@*/false || !!document.documentMode;
+}
+function isEdge() {
+    return !isIE() && !!window.StyleMedia;
+}
+function isChrome() {
+    return !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     if (n_possibilities !== 0) {
         calendarEl = document.getElementById('calendar');
@@ -212,9 +229,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!hasUserscript) {
             const left = document.getElementById('left');
-            var nouserscript = document.createElement('div');
-            nouserscript.innerHTML = 'Automatically add these sections to your cart by getting the Tampermonkey extension and installing my userscript';
-            nouserscript.innerHTML = 'NO USERSCRIPT';
+            const nouserscript = document.createElement('div');
+
+            var userscriptLink = '<a href="https://openuserjs.org/scripts/71c/Tufts_Course_Scheduler_Auto-Sign-Up" target="_blank" rel="noopener noreferrer">userscript</a>';
+            nouserscript.innerHTML = isChrome() ?
+            'Automatically add these sections to your cart by getting the <a href="https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank" rel="noopener noreferrer">Tampermonkey</a> extension and installing the ' + userscriptLink + '.'
+            : isFirefox() ?
+            'Automatically add these sections to your cart by getting the <a href="https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/" target="_blank" rel="noopener noreferrer">Tampermonkey</a> extension and installing the ' + userscriptLink + '.'
+            : isSafari() ?
+            'Automatically add these sections to your cart by getting the Tampermonkey extension and installing the ' + userscriptLink + '. It looks like you have Safari, and I don\'t think you can get Tampermonkey for Safari now: <a href="https://openuserjs.org/about/Tampermonkey-for-Safari">See here</a><br>You can get Tampermonkey in Chrome/Chromium browsers and Firefox.'
+            : isEdge() ?
+            'Automatically add these sections to your cart by getting the <a href="https://www.microsoft.com/store/apps/9NBLGGH5162S" target="_blank" rel="noopener noreferrer">Tampermonkey</a> extension and installing the ' + userscriptLink + '.'
+            : 'Automatically add these sections to your cart by getting the Tampermonkey extension and installing the ' + userscriptLink + '. Tampermonkey is available in Chrome (and Chromium-based browsers) and Firefox.';
+
             left.appendChild(nouserscript);
         }
 
