@@ -9,12 +9,12 @@
 // @updateURL    https://openuserjs.org/meta/71c/Tufts_Course_Scheduler_Auto-Sign-Up.meta.js
 // @downloadURL  https://openuserjs.org/install/71c/Tufts_Course_Scheduler_Auto-Sign-Up.user.js
 // @license      MIT
-// @include        https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/*
-// @include        http://localhost:5000/schedule*
-// @include        https://tuftscoursescheduler.com/schedule*
-// @include        https://tuftscoursescheduler.com/schedule*
-// @include        https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/PSFT_SA/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_GoToCart
-// @include        https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/PSFT_SA/c/SA_LEARNER_SERVICES_2.SSR_SSENRL_CART.GBL???Page=SSR_SSENRL_CART&Action=A&INSTITUTION=TUFTS&TargetFrameName=Tfp_cart_iframe*
+// @match        https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/*
+// @match        http://localhost:5000/schedule*
+// @match        https://tuftscoursescheduler.com/schedule*
+// @match        https://tuftscoursescheduler.com/schedule*
+// @match        https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/PSFT_SA/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_GoToCart
+// @match        https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/PSFT_SA/c/SA_LEARNER_SERVICES_2.SSR_SSENRL_CART.GBL???Page=SSR_SSENRL_CART&Action=A&INSTITUTION=TUFTS&TargetFrameName=Tfp_cart_iframe*
 // @run-at       document-start
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -62,7 +62,7 @@ function whenOnSIS() {
         const functions = info.classes.map(classInfo =>
            addClass(info.term_code, info.career,
                     /^[A-Z]+/.exec(classInfo.course_num)[0],
-                    /(?<=-).*/.exec(classInfo.course_num)[0], classInfo.classNums));
+                    /-.*/.exec(classInfo.course_num)[0].slice(1), classInfo.classNums));
         executeSequentially(functions, function() {
             console.log('done');
         });
