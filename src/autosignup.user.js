@@ -3,6 +3,7 @@
 // @namespace    71c
 // @version      0.2
 // @description  To be used with tuftscoursescheduler.com; automatically signs up for classes at Tufts
+// @homepageURL  https://github.com/71c/course_scheduler
 // @author       71c
 // @license      MIT
 // @match        https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/*
