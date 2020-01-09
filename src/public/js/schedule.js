@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!hasUserscript) {
             const left = document.getElementById('left');
             var nouserscript = document.createElement('div');
-            // nouserscript.innerHTML = 'Automatically add these sections to your cart by getting the Tampermonkey extension and installing my userscript';
+            nouserscript.innerHTML = 'Automatically add these sections to your cart by getting the Tampermonkey extension and installing my userscript';
             nouserscript.innerHTML = 'NO USERSCRIPT';
             left.appendChild(nouserscript);
         }

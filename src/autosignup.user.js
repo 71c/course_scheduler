@@ -1,18 +1,19 @@
 // ==UserScript==
-// @name         New Userscript
-// @namespace    http://tampermonkey.net/
-// @version      0.1
-// @description  try to take over the world!
-// @author       You
+// @name         Tufts Course Scheduler Auto-Sign-Up
+// @namespace    71c
+// @version      0.2
+// @description  To be used with tuftscoursescheduler.com; automatically signs up for classes at Tufts
+// @author       71c
+// @license      MIT
 // @match        https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/*
 // @match        http://localhost:5000/schedule*
 // @match        https://tuftscoursescheduler.com/schedule*
-// @match        https://www.tuftscoursescheduler.com/schedule*
+// @match        https://tuftscoursescheduler.com/schedule*
 // @match        https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/PSFT_SA/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_GoToCart
 // @match        https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/PSFT_SA/c/SA_LEARNER_SERVICES_2.SSR_SSENRL_CART.GBL???Page=SSR_SSENRL_CART&Action=A&INSTITUTION=TUFTS&TargetFrameName=Tfp_cart_iframe*
+// @run-at       document-start
 // @grant        GM_getValue
 // @grant        GM_setValue
-// @require http://code.jquery.com/jquery-latest.js
 // ==/UserScript==
 
 'use strict';
@@ -26,19 +27,22 @@ window.unsafeWindow || (
     }())
 );
 
+var jQuery;
+
 const getEnrollmentCartURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/PSFT_SA/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_GoToCart";
 const baseURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/";
 const searchSearch = "?tab=TFP_CLASS_SEARCH";
 
 if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.origin === "https://siscs.uit.tufts.edu") {
     // we're at one of the SIS sites
-    // whenOnSIS();
-    document.addEventListener('DOMContentLoaded', whenOnSIS);
+    document.addEventListener('DOMContentLoaded', function() {
+        jQuery = unsafeWindow.jQuery;
+        whenOnSIS();
+    });
 } else {
     // we're at my website
     unsafeWindow.hasUserscript = true;
     document.addEventListener('startUserscript', whenOnMyWebsite);
-    // whenOnMyWebsite();
 }
 
 function whenOnSIS() {
@@ -107,7 +111,7 @@ function whenOnSIS() {
 
     if (window.location.search.indexOf(homeSearch) == 0) {
         // we're at SIS home
-        makeAutoSignUpButton();
+        // makeAutoSignUpButton();
     } else if (window.location.search.indexOf(searchSearch) == 0) {
         // we're at one of the search pages
 
@@ -122,12 +126,14 @@ function whenOnSIS() {
             }
         } else {
             // we don't want to do it immediately
-            addManualEntryUI();
+            // addManualEntryUI();
         }
     } else if (window.location.href === getEnrollmentCartURL) {
-        // we're at a page that gives us a URL; immediately redirect to that URL
-        var url = jQuery('span#IS_AC_RESPONSE').text().trim();
-        location.href = url;
+        if (GM_getValue('setClassesImmediately', false)) {
+            // we're at a page that gives us a URL; immediately redirect to that URL
+            const url = document.querySelector('span#IS_AC_RESPONSE').innerText.trim();
+            location.href = url;
+        }
     } else if (window.location.href.indexOf("https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/PSFT_SA/c/SA_LEARNER_SERVICES_2.SSR_SSEN") === 0) {
         // we're in the iframe inside the Enrollment Cart page
         deleteClassesFromCart();

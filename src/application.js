@@ -30,7 +30,7 @@ app.use(express.static('src/public/vendor', {
     maxAge: oneYear
 }));
 
-if (process.env.NODE_ENV !== 'production')
+if (!USE_CDN)
     app.use(express.static('node_modules'));
 
 const http = require('http').createServer(app);
@@ -59,13 +59,6 @@ function toc(name) {
     return dt;
 }
 
-// tic('load the data')
-// get_data.load_all_course_data(vals => {
-//     toc('load the data');
-//     console.log("Done loading the data");
-//     startServer();
-// }, console.error, false);
-
 tic('load the data');
 tic('get resources');
 all([
@@ -86,8 +79,6 @@ all([
 ], function() {
     startServer();
 }, console.error);
-
-
 
 function startServer() {
     // update all data every so often

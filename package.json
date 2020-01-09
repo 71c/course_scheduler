@@ -38,7 +38,7 @@
     "url": "git+https://github.com/71c/course_scheduler.git"
   },
   "author": "Alon Jacobson",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/71c/course_scheduler/issues"
   },

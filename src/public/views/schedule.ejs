@@ -28,7 +28,7 @@
                 <div class="col-4" id="left">
                     <h2 id="heading"><%= n_possibilities %> Schedule<%= n_possibilities==1?"":"s" %> Generated</h2>
                     <% if (k < n_possibilities) { %><div>(Showing first <%= k %>)</div><% } %>
-                    <h5>Sections:</h5>
+                    <% if (n_possibilities !== 0) { %><h5>Sections:</h5><% } %>
                     <table id="section-select"></table>
                 </div>
                 <div class="col-8">
