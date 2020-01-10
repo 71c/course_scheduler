@@ -233,10 +233,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!hasUserscript) {
             const left = document.getElementById('left');
             const nouserscript = document.createElement('div');
+            nouserscript.style['word-wrap'] = 'break-word';
 
             var userscriptLink = '<a href="https://openuserjs.org/scripts/71c/Tufts_Course_Scheduler_Auto-Sign-Up" target="_blank" rel="noopener noreferrer">userscript</a>';
             nouserscript.innerHTML = isOpera() ?
-            '<br>To add these sections to your cart, you need to get the Tampermonkey extension and install the userscript. <br><br>It looks like you\'re using <b>Opera</b>; it is not as easy as in Chrome and Firefox to get Tampermonkey and the userscript running in Opera but if you want to you can follow these steps: <ol><li>Install the <a href="https://addons.opera.com/en/extensions/details/install-chrome-extensions/" rel="external noreferrer noopener nofollow" target="_blank">Opera Add-on for Installing Chrome Extensions</a><li><b>Install Tampermonkey BETA.</b> It seems that Opera blacklisted Tampermonkey so you can\'t use regular Tampermonkey but you can <a href="https://chrome.google.com/webstore/detail/tampermonkey-beta/gcalenpjmijncebpfijmoaglllgpjagf" target="_blank" rel="external noopener noreferrer nofollow">get Tampermonkey BETA here</a> which does work.<li><b>Get the userscript.</b> One inconvenience is that if you click the install button <a href="https://openuserjs.org/scripts/71c/Tufts_Course_Scheduler_Auto-Sign-Up" target="_blank" rel="noopener noreferrer">on this page</a> it does not register with Tampermonkey and downloads the userscript to your downloads folder instead. So instead do this: <ol><li>Go to the Tampermonkey dashboard<li>Go to the Utilities tab<li>type https://openuserjs.org/install/71c/Tufts_Course_Scheduler_Auto-Sign-Up.user.js into the input next to where it says "Install from URL" and click "install".</ol></ol>'
+            '<br>To add these sections to your cart, you need to get the Tampermonkey extension and install the userscript. <br><br>It looks like you\'re using <b>Opera</b>; it is not as easy as in Chrome and Firefox to get Tampermonkey and the userscript running in Opera but if you want to you can follow these steps: <ol><li>Install the <a href="https://addons.opera.com/en/extensions/details/install-chrome-extensions/" rel="external noreferrer noopener nofollow" target="_blank">Opera Add-on for Installing Chrome Extensions</a><li><b>Install Tampermonkey BETA.</b> It seems that Opera blacklisted Tampermonkey so you can\'t use regular Tampermonkey but you can <a href="https://chrome.google.com/webstore/detail/tampermonkey-beta/gcalenpjmijncebpfijmoaglllgpjagf" target="_blank" rel="external noopener noreferrer nofollow">get Tampermonkey BETA here</a> which does work.<li><b>Get the userscript.</b><ol><li>Go to the Tampermonkey dashboard<li>Go to the Utilities tab<li>type <span class="text-monospace">https://openuserjs.org/install/71c/Tufts_Course_Scheduler_Auto-Sign-Up.user.js</span> into the input next to where it says "Install from URL" and click "install".<li>Click "install".</ol></ol>'
             : isChrome() ?
             'Automatically add these sections to your cart by getting the <a href="https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank" rel="noopener noreferrer">Tampermonkey</a> extension and installing the ' + userscriptLink + '.'
             : isFirefox() ?
@@ -252,6 +253,7 @@ document.addEventListener('DOMContentLoaded', function() {
             nouserscript.style.display = "none";
 
             var button = document.createElement('button');
+            button.className = "btn btn-primary";
             button.innerText = 'Automatically sign me up on SIS';
             button.onclick = function() {
                 nouserscript.style.display = "";

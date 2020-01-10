@@ -242,8 +242,10 @@ function whenOnMyWebsite() {
     // left.appendChild(scriptBox);
 
     const setClassesButton = document.createElement('button');
+    setClassesButton.className = "btn btn-primary";
     setClassesButton.innerHTML = 'replace cart with these';
     const addClassesButton = document.createElement('button');
+    addClassesButton.className = "btn btn-primary";
     addClassesButton.innerHTML = 'add these to cart';
 
     setClassesButton.onclick = function() {
