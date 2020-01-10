@@ -41,10 +41,6 @@ var sectionSelectDiv;
 var rankHolder;
 var scoreHolder;
 
-if (!window.hasUserscript) {
-    window.hasUserscript = false;
-}
-
 function minutesToTimeString(minutes) {
     var minutePart = minutes % 60;
     var hourPart = Math.floor(minutes / 60);
@@ -209,6 +205,9 @@ function isOpera() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    if (!window.hasUserscript) {
+        window.hasUserscript = false;
+    }
     if (n_possibilities !== 0) {
         calendarEl = document.getElementById('calendar');
         calendar = newCalendar(calendarEl, []);
