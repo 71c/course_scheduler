@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tufts Course Scheduler Auto-Sign-Up
 // @namespace    71c
-// @version      0.4
+// @version      0.4.1
 // @description  To be used with tuftscoursescheduler.com; automatically signs up for classes at Tufts
 // @homepageURL  https://github.com/71c/course_scheduler
 // @author       71c
@@ -89,21 +89,22 @@ function whenOnSIS() {
         const functions = info.classes.map(classInfo =>
            addClass(info.term_code, info.career,
                     /^[A-Z]+/.exec(classInfo.course_num)[0],
-                    /-.*/.exec(classInfo.course_num)[0].slice(1), classInfo.classNums));
+                    /-.*/.exec(classInfo.course_num)[0].slice(1), classInfo.classNums, classInfo.title));
         executeSequentially(functions, function() {
             console.log('done');
         });
     }
 
-    function addClass(term_code, career, subject, num, classNums) {
+    function addClass(term_code, career, subject, num, classNums, title) {
         return function(callback) {
             if (window.location.search.indexOf("?tab=TFP_CLASS_SEARCH") !== 0) {
                 return;
             }
-            window.location.hash = "#search_results/term/" + term_code + "/career/" + career + "/subject/" + subject + "/course/" + num + "/attr/keyword/instructor";
+            window.location.hash = "#search_results/term/" + term_code + "/career/" + career + "/subject/" + subject + "/course/" + num + "/attr/keyword/" + title + "/instructor";
             waitFor(function() {
                 return !jQuery('.tfp-results-overlay')[0] && !jQuery('.tfp_cls_srch_loading')[0] && jQuery('.accorion-head')[0] && jQuery('td:contains(' + classNums[0] + ')')[0];
             }, function() {
+                console.log(document.querySelector('.tfp-offstate'));
                 if (document.querySelector('.tfp-offstate') !== null) {
                     alert("You can't add to this term now");
                     return;
@@ -321,7 +322,8 @@ function whenOnMyWebsite() {
             const classNums = schedule[i].map(section_id => sections_by_id[section_id].class_num);
             classes.push({
                 course_num: current_course.course_num,
-                classNums: classNums
+                classNums: classNums,
+                title: current_course.title,
             });
         }
         return JSON.stringify({
