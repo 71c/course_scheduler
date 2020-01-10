@@ -20,8 +20,7 @@ const dayToDate = {
     Fr: '2012-04-06',
     Sa: '2012-04-07',
 };
-// const colors = ["red", "orange", "yellow", "green", "blue", "purple", "pink"]
-const colors = ["red", "blue", "orange", "purple", "yellow", "pink", "green"];
+const colors = ["red", "blue", "orange", "purple", "green", "deeppink", "deepskyblue", "darkslategray", "brown"];
 
 var scheduleIndex = 0;
 var leftButton, rightButton;

@@ -104,7 +104,6 @@ function whenOnSIS() {
             waitFor(function() {
                 return !jQuery('.tfp-results-overlay')[0] && !jQuery('.tfp_cls_srch_loading')[0] && jQuery('.accorion-head')[0] && jQuery('td:contains(' + classNums[0] + ')')[0];
             }, function() {
-                console.log(document.querySelector('.tfp-offstate'));
                 if (document.querySelector('.tfp-offstate') !== null) {
                     alert("You can't add to this term now");
                     return;
