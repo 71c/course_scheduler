@@ -50,8 +50,35 @@ if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.or
 }
 
 function whenOnSIS() {
-    function waitFor(i,n){if(i())n();else{var t=function(){setTimeout(function(){i()?n():t()},100)};t()}}
-    function executeSequentially(f,c){f.length==0?c():f[0](function(){executeSequentially(f.slice(1),c)})}
+    function waitFor(condition, callback) {
+        /* wait for condition() to evaluate to to true, then execute callback */
+        if (condition())
+            callback();
+        else {
+            var t = function() {
+                setTimeout(function() {
+                    if (condition())
+                        callback();
+                    else
+                        t();
+                }, 100);
+            };
+            t();
+        }
+    }
+
+    function executeSequentially(functions, callback) {
+        /* Execute asynchronous functions one-by-one. functions is an array of
+        functions which each take a callback as a parameter. callback is
+        executed when all the functions have finished executing. Yes, it would
+        make more sense to use promises but this works fine */
+        if (functions.length === 0)
+            callback();
+        else
+            functions[0](function() {
+                executeSequentially(functions.slice(1), callback)
+            });
+    }
 
     unsafeWindow.addClassesToCart = function() {
         const info = JSON.parse(GM_getValue('classes', '{}'));
@@ -70,12 +97,12 @@ function whenOnSIS() {
 
     function addClass(term_code, career, subject, num, classNums) {
         return function(callback) {
-            if (window.location.search.indexOf("?tab=TFP_CLASS_SEARCH") != 0) {
+            if (window.location.search.indexOf("?tab=TFP_CLASS_SEARCH") !== 0) {
                 return;
             }
             window.location.hash = "#search_results/term/" + term_code + "/career/" + career + "/subject/" + subject + "/course/" + num + "/attr/keyword/instructor";
             waitFor(function() {
-                return !jQuery('.tfp-results-overlay')[0] && !jQuery('.tfp_cls_srch_loading')[0] && jQuery('.accorion-head')[0] && jQuery('td:contains(' + classNums[0] + ')')[0]
+                return !jQuery('.tfp-results-overlay')[0] && !jQuery('.tfp_cls_srch_loading')[0] && jQuery('.accorion-head')[0] && jQuery('td:contains(' + classNums[0] + ')')[0];
             }, function() {
                 // click the checkbox to show sections.
                 // if there is more than one result, sections will be hidden, and clicking the checkbox will show the sections
@@ -84,20 +111,20 @@ function whenOnSIS() {
 
                 for (const classNum of classNums) {
                     const inputBubbleOrSpan = jQuery('td:contains(' + classNum + ')')[0].parentElement.children[6].children[0];
-                    if (inputBubbleOrSpan.nodeName == "SPAN") {
+                    if (inputBubbleOrSpan.nodeName === "SPAN") {
                         // the section is in cart or enrolled
-                        if (inputBubbleOrSpan.innerHTML == "In Cart") {
+                        if (inputBubbleOrSpan.innerHTML === "In Cart") {
                             alert("Section with class num " + classNum + " in course " + subject + "-" + num + " is already in your cart. Continuing.");
-                        } else if (inputBubbleOrSpan.innerHTML == "Enrolled") {
+                        } else if (inputBubbleOrSpan.innerHTML === "Enrolled") {
                             alert("You have already enrolled for section with class num " + classNum + " in course " + subject + "-" + num + ". Continuing.");
                         } else {
                             // this shouldn't happen
                             console.error("something unexpected happened");
                             return;
                         }
-                        setTimeout(callback, 0);
+                        callback();
                         return;
-                    } else if (inputBubbleOrSpan.nodeName == "INPUT") { // just making sure
+                    } else if (inputBubbleOrSpan.nodeName === "INPUT") { // just making sure
                         inputBubbleOrSpan.click();
                     } else {
                         // this shouldn't happen
@@ -106,17 +133,17 @@ function whenOnSIS() {
                     }
                 }
                 jQuery('button:contains(Add to Cart)').click();
-                setTimeout(callback, 0);
+                callback();
             });
         };
     }
 
     const homeSearch = "?tab=DEFAULT";
 
-    if (window.location.search.indexOf(homeSearch) == 0) {
+    if (window.location.search.indexOf(homeSearch) === 0) {
         // we're at SIS home
         // makeAutoSignUpButton();
-    } else if (window.location.search.indexOf(searchSearch) == 0) {
+    } else if (window.location.search.indexOf(searchSearch) === 0) {
         // we're at one of the search pages
 
         if (GM_getValue('setClassesImmediately', false)) {
@@ -182,7 +209,7 @@ function whenOnSIS() {
             }
 
             addClasses(info);
-        }
+        };
         div.appendChild(textarea);
         div.appendChild(button);
         document.body.appendChild(div);
@@ -196,7 +223,7 @@ function whenOnSIS() {
                 GM_setValue('clearClasses', false);
                 if (window.parent.location.hash.indexOf('#cart') === 0) { // this should always be the case
                     let currLen;
-                    function deleteCourse() {
+                    const deleteCourse = function() {
                         // argh https://stackoverflow.com/a/42907951/9911203
                         var trashCan = document.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]');
                         console.log(trashCan);
@@ -215,16 +242,16 @@ function whenOnSIS() {
                             currLen = len;
                             return true;
                         }, deleteCourse);
-                    }
+                    };
+                    const getTableLength = function() {
+                        return document.querySelector('table.PSLEVEL1GRIDNBO').children[0].children.length;
+                    };
                     waitFor(function() {
                         return document.querySelector('th.PSLEVEL1GRIDCOLUMNHDR') !== null;
                     }, function() {
                         currLen = getTableLength();
                         deleteCourse();
                     });
-                    function getTableLength() {
-                        return document.querySelector('table.PSLEVEL1GRIDNBO').children[0].children.length;
-                    }
                 }
             }
         }
@@ -252,13 +279,13 @@ function whenOnMyWebsite() {
         GM_setValue('clearClasses', true);
         GM_setValue('setClassesImmediately', true);
         window.open(getEnrollmentCartURL);
-    }
+    };
 
     addClassesButton.onclick = function() {
         GM_setValue('clearClasses', false);
         GM_setValue('setClassesImmediately', true);
         window.open(baseURL + searchSearch);
-    }
+    };
 
     const p = document.createElement('p');
     p.appendChild(setClassesButton);
