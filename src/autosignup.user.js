@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tufts Course Scheduler Auto-Sign-Up
 // @namespace    71c
-// @version      0.3.1
+// @version      0.4
 // @description  To be used with tuftscoursescheduler.com; automatically signs up for classes at Tufts
 // @homepageURL  https://github.com/71c/course_scheduler
 // @author       71c
@@ -76,7 +76,7 @@ function whenOnSIS() {
             callback();
         else
             functions[0](function() {
-                executeSequentially(functions.slice(1), callback)
+                executeSequentially(functions.slice(1), callback);
             });
     }
 
@@ -104,6 +104,11 @@ function whenOnSIS() {
             waitFor(function() {
                 return !jQuery('.tfp-results-overlay')[0] && !jQuery('.tfp_cls_srch_loading')[0] && jQuery('.accorion-head')[0] && jQuery('td:contains(' + classNums[0] + ')')[0];
             }, function() {
+                if (document.querySelector('.tfp-offstate') !== null) {
+                    alert("You can't add to this term now");
+                    return;
+                }
+
                 // click the checkbox to show sections.
                 // if there is more than one result, sections will be hidden, and clicking the checkbox will show the sections
                 // if there is one result, clicking the checkbox won't do anything
@@ -125,7 +130,13 @@ function whenOnSIS() {
                         callback();
                         return;
                     } else if (inputBubbleOrSpan.nodeName === "INPUT") { // just making sure
-                        inputBubbleOrSpan.click();
+                        if (!inputBubbleOrSpan.disabled) {
+                            inputBubbleOrSpan.click();
+                        }
+                        else {
+                            alert("You can't add classes now");
+                            return;
+                        }
                     } else {
                         // this shouldn't happen
                         console.error("something unexpected happened");
@@ -293,7 +304,7 @@ function whenOnMyWebsite() {
     left.appendChild(p);
 
     function updateClasses() {
-        var val = getInfoForAddClasses("ASE"); // TODO: change "ASE" to "ALL" or make it possible to specify career
+        var val = getInfoForAddClasses("ALL"); // is this a good idea? does it matter? should it be ASE?
         GM_setValue('classes', val);
         // scriptBox.value = val;
     }
