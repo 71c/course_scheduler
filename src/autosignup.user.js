@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tufts Course Scheduler Auto-Sign-Up
 // @namespace    71c
-// @version      0.3
+// @version      0.3.1
 // @description  To be used with tuftscoursescheduler.com; automatically signs up for classes at Tufts
 // @homepageURL  https://github.com/71c/course_scheduler
 // @author       71c
@@ -242,7 +242,7 @@ function whenOnMyWebsite() {
     // left.appendChild(scriptBox);
 
     const setClassesButton = document.createElement('button');
-    setClassesButton.className = "btn btn-primary";
+    setClassesButton.className = "btn btn-primary mr-2";
     setClassesButton.innerHTML = 'replace cart with these';
     const addClassesButton = document.createElement('button');
     addClassesButton.className = "btn btn-primary";
@@ -260,8 +260,10 @@ function whenOnMyWebsite() {
         window.open(baseURL + searchSearch);
     }
 
-    left.appendChild(setClassesButton);
-    left.appendChild(addClassesButton);
+    const p = document.createElement('p');
+    p.appendChild(setClassesButton);
+    p.appendChild(addClassesButton);
+    left.appendChild(p);
 
     function updateClasses() {
         var val = getInfoForAddClasses("ASE"); // TODO: change "ASE" to "ALL" or make it possible to specify career
