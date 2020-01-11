@@ -18,13 +18,13 @@ app.use(sslwwwRedirect(false));
 const compression = require('compression');
 app.use(compression());
 
-const twoDays = 172800000;
+const threeHours = 10800000;
 const oneYear = 31536000000;
 app.use(express.static('src/public/js', {
-    maxAge: process.env.NODE_ENV === 'production' ? 0 : 0
+    maxAge: process.env.NODE_ENV === 'production' ? threeHours : 0
 }));
 app.use(express.static('src/public/css', {
-    maxAge: process.env.NODE_ENV === 'production' ? twoDays : 0
+    maxAge: process.env.NODE_ENV === 'production' ? threeHours : 0
 }));
 app.use(express.static('src/public/vendor', {
     maxAge: oneYear
