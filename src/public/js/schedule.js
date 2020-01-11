@@ -259,6 +259,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             left.appendChild(nouserscript);
 
+            if (isMobile.any) alert("You are on a mobile device");
+            else alert("You are not on a mobile device");
+
             nouserscript.style.display = "none";
 
             var button = document.createElement('button');
