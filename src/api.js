@@ -1,6 +1,7 @@
 const models = require('./models');
 const course_scheduler = require('./course_scheduler');
 const course_num_regex = /^([A-Za-z]{2,4})(?:-|\s*)([A-Za-z]{0,2})(\d{1,4})([A-Za-z]{0,2})$/;
+const {default_compare} = require('./partial_sort');
 
 function get_classes_by_course_num(course_num, term) {
     return models.courses[term].filter(course => course.course_num === course_num);
@@ -14,7 +15,15 @@ function get_classes_by_subject(subject, term) {
     return models.courses[term].filter(course => course.subject === subject);
 }
 
+// https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
 function get_search_results(query, term) {
+    // easter egg I guess
+    if (query === '.*')
+        return models.courses[term];
     query = query.trim().toUpperCase();
     const course_num_match = course_num_regex.exec(query);
     if (course_num_match) {
@@ -29,48 +38,42 @@ function get_search_results(query, term) {
         if (results.length !== 0)
             return results;
     }
-    if (/[a-zA-Z]{2,4}/.test(query)) {
-        const results = get_classes_by_subject(query, term);
-        if (results.length !== 0)
-            return results;
-    }
-    const text_before_or_after = new RegExp(`\\b${query}\\b`, 'i');
-    const results_first = [];
-    const results_second = [];
-    const results_third = [];
-    const results_fourth = [];
-    const results_fifth = [];
-    const results_sixth = [];
-    const results_seventh = [];
-    const results_eighth = [];
 
+    const escapedQuery = escapeRegExp(query);
+    const word_regex = new RegExp(`\\b${escapedQuery}\\b`, 'i');
+    const first_regex = new RegExp(`^${escapedQuery}\\b`, 'i');
+    function getScore(course) {
+        if (course.subject === query) {
+            return [1, 0, 0];
+        }
+        return [
+            0,
+
+            course.title.toUpperCase() === query ? 4 :
+            first_regex.test(course.title) ? 3 :
+            word_regex.test(course.title) ? 2 :
+            course.title.toUpperCase().indexOf(query) !== -1 ? 1 :
+            0,
+
+            (course.subject_long || '').toUpperCase() === query ? 4 :
+            first_regex.test(course.subject_long) ? 3 :
+            word_regex.test(course.subject_long) ? 2 :
+            (course.subject_long || '').toUpperCase().indexOf(query) !== -1 ? 1 :
+            0
+        ]
+    }
+    const sortedCourses = [];
     for (const course of models.courses[term]) {
-        if (course.subject_long.toUpperCase() === query) {
-            if (course.title.toUpperCase() === query)
-                results_first.push(course);
-            else if (text_before_or_after.test(course.title))
-                results_second.push(course);
-            else
-                results_seventh.push(course);
-        }
-        else if (text_before_or_after.test(course.subject_long)) {
-            if (course.title.toUpperCase() === query)
-                results_third.push(course);
-            else if (text_before_or_after.test(course.title))
-                results_fourth.push(course);
-            else
-                results_eighth.push(course);
-        } else {
-            if (course.title.toUpperCase() === query)
-                results_fifth.push(course);
-            else if (text_before_or_after.test(course.title))
-                results_sixth.push(course);
+        const score = getScore(course);
+        if (score[0] !== 0 || score[1] !== 0 || score[2] !== 0) {
+            sortedCourses.push({
+                score: score,
+                course: course
+            });
         }
     }
-
-    if (results_first.length !== 0 || results_second.length !== 0 || results_third.length !== 0 || results_fourth.length !== 0 || results_fifth.length !== 0 || results_sixth.length !== 0 || results_seventh.length !== 0 || results_eighth.length !== 0)
-        return results_first.concat(results_second, results_third, results_fourth, results_fifth, results_sixth, results_seventh, results_eighth);
-    return [];
+    sortedCourses.sort((a, b) => default_compare(b.score, a.score));
+    return sortedCourses.map(x => x.course);
 }
 
 function course_object_to_period_group(course, exclude_classes_with_no_days, accepted_statuses, cache, give_ids, section_accept_function, term) {

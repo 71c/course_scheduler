@@ -139,7 +139,9 @@ function startServer() {
 
     app.get('/search', function(req, res) {
         console.log(`search term: ${req.query.query}, term: ${req.query.term}`);
+        tic('get search results');
         const search_results = api.get_search_results(req.query.query, req.query.term);
+        toc('get search results');
         const search_results_json = search_results.map(course => ({
                 course_num: course.course_num,
                 title: course.title,
