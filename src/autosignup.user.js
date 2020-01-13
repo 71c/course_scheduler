@@ -114,39 +114,42 @@ function whenOnSIS() {
                 // if there is one result, clicking the checkbox won't do anything
                 jQuery('.tfp-show-result-sect').click();
 
-                for (const classNum of classNums) {
-                    const inputBubbleOrSpan = jQuery('td:contains(' + classNum + ')')[0].parentElement.children[6].children[0];
-                    if (inputBubbleOrSpan.nodeName === "SPAN") {
-                        // the section is in cart or enrolled
-                        if (inputBubbleOrSpan.innerHTML === "In Cart") {
-                            alert("Section with class num " + classNum + " in course " + subject + "-" + num + " is already in your cart. Continuing.");
-                        } else if (inputBubbleOrSpan.innerHTML === "Enrolled") {
-                            alert("You have already enrolled for section with class num " + classNum + " in course " + subject + "-" + num + ". Continuing.");
-                        } else {
-                            // this shouldn't happen
-                            console.error("something unexpected happened");
-                            return;
-                        }
-                        callback();
-                        return;
-                    } else if (inputBubbleOrSpan.nodeName === "INPUT") { // just making sure
-                        if (!inputBubbleOrSpan.disabled) {
-                            inputBubbleOrSpan.click();
-                        }
-                        else {
-                            alert("You can't add classes now");
-                            return;
-                        }
-                    } else {
-                        // this shouldn't happen
-                        console.error("something unexpected happened");
-                        return;
-                    }
-                }
-                jQuery('button:contains(Add to Cart)').click();
-                callback();
+                selectSections(classNums, subject, num, callback);
             });
         };
+    }
+
+    function selectSections(classNums, subject, num, callback) {
+        for (const classNum of classNums) {
+            const inputBubbleOrSpan = jQuery('td:contains(' + classNum + ')')[0].parentElement.children[6].children[0];
+            if (inputBubbleOrSpan.nodeName === "SPAN") {
+                // the section is in cart or enrolled
+                if (inputBubbleOrSpan.innerHTML === "In Cart") {
+                    alert("Section with class num " + classNum + " in course " + subject + "-" + num + " is already in your cart. Continuing.");
+                } else if (inputBubbleOrSpan.innerHTML === "Enrolled") {
+                    alert("You have already enrolled for section with class num " + classNum + " in course " + subject + "-" + num + ". Continuing.");
+                } else {
+                    // this shouldn't happen
+                    console.error("something unexpected happened");
+                    return;
+                }
+                callback();
+            } else if (inputBubbleOrSpan.nodeName === "INPUT") { // just making sure
+                if (!inputBubbleOrSpan.disabled) {
+                    inputBubbleOrSpan.click();
+                }
+                else {
+                    alert("You can't add classes now");
+                    return;
+                }
+            } else {
+                // this shouldn't happen
+                console.error("something unexpected happened");
+                return;
+            }
+        }
+        jQuery('button:contains(Add to Cart)').click();
+        callback();
     }
 
     const homeSearch = "?tab=DEFAULT";
@@ -234,38 +237,42 @@ function whenOnSIS() {
                 GM_setValue('clearClasses', false);
                 if (window.parent.location.hash.indexOf('#cart') === 0) { // this should always be the case
                     let currLen;
-                    const deleteCourse = function() {
-                        // argh https://stackoverflow.com/a/42907951/9911203
-                        var trashCan = document.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]');
-                        console.log(trashCan);
-                        if (trashCan === null) {
-                            // done deleting classes from cart
-                            window.parent.addClassesToCart();
-                            return;
-                        }
-                        trashCan.click();
-                        waitFor(function() {
-                            if (document.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]') === null)
-                                return true;
-                            var len = getTableLength();
-                            if (len === currLen)
-                                return false;
-                            currLen = len;
-                            return true;
-                        }, deleteCourse);
-                    };
-                    const getTableLength = function() {
-                        return document.querySelector('table.PSLEVEL1GRIDNBO').children[0].children.length;
-                    };
+                    
                     waitFor(function() {
                         return document.querySelector('th.PSLEVEL1GRIDCOLUMNHDR') !== null;
-                    }, function() {
-                        currLen = getTableLength();
-                        deleteCourse();
-                    });
+                    }, deleteCourse);
                 }
             }
         }
+    }
+
+    function deleteCourse(currLen) {
+        if (currLen === undefined)
+            currLen = getTableLength();
+        // argh https://stackoverflow.com/a/42907951/9911203
+        var trashCan = document.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]');
+        console.log(trashCan);
+        if (trashCan === null) {
+            // done deleting classes from cart
+            window.parent.addClassesToCart();
+            return;
+        }
+        trashCan.click();
+        var len;
+        waitFor(function() {
+            if (document.querySelector('img[src="/cs/csprd/cache/PS_DELETE_ICN_1.gif"]') === null)
+                return true;
+            len = getTableLength();
+            if (len === currLen)
+                return false;
+            return true;
+        }, function() {
+            deleteCourse(len);
+        });
+    }
+
+    function getTableLength() {
+        return document.querySelector('table.PSLEVEL1GRIDNBO').children[0].children.length;
     }
 }
 

@@ -50,15 +50,7 @@ function save_data(term, courses, long_subject_dict) {
                 const section = new models.Section(component_data.class_num,
                     component_data.section_num, component_data.assoc_class,
                     comp_desc, component_short, component_data.status, term);
-                for (const location of component_data.locations) {
-                    for (const meeting of location.meetings) {
-                        for (const day of meeting.days) {
-                            section.add_period(day,
-                                meeting.meet_start_min,
-                                meeting.meet_end_min);
-                        }
-                    }
-                }
+                add_periods(section, component_data);
                 // sort section's periods by start time
                 section.periods.sort((a, b) => a.start < b.start ? -1 : a.start > b.start ? 1 : 0);
                 course.add_section(section);
@@ -66,6 +58,18 @@ function save_data(term, courses, long_subject_dict) {
             }
         }
         models.courses[term].push(course);
+    }
+}
+
+function add_periods(section, component_data) {
+    for (const location of component_data.locations) {
+        for (const meeting of location.meetings) {
+            for (const day of meeting.days) {
+                section.add_period(day,
+                    meeting.meet_start_min,
+                    meeting.meet_end_min);
+            }
+        }
     }
 }
 
