@@ -14,7 +14,7 @@ const colors = ["red", "blue", "orange", "purple", "green", "deeppink", "deepsky
 var scheduleIndex = 0;
 var leftButton, rightButton;
 
-const {n_possibilities, top_schedules, courses} = data;
+const {n_possibilities, top_schedules, courses, term_code} = data;
 const sections_by_id = {};
 for (const course of courses) {
     for (const section of course.sections) {

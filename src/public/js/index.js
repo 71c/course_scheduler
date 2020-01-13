@@ -25,10 +25,22 @@ var renderSearchResults = function(res, clearResultsIfNoResults) {
     if (res.length === 0 && !clearResultsIfNoResults)
         return;
     clearSearchResults();
-    resultsDiv.innerHTML = res.map(
-        // The onmousedown="event.preventDefault()" part prevents the buttons from staying focused https://stackoverflow.com/a/45851915
-        function(course) {
-return`<div class="card">
+    resultsDiv.innerHTML = res.map(getCourseResultHTML).join('');
+
+    res.forEach(function(course) {
+        const course_result = document.getElementById('button'+course.id);
+        if (my_courses_ids.has(course.id)) {
+            course_result.setAttribute("kind", "remove");
+            course_result.innerHTML = "Remove";
+        }
+        classes_by_id[course.id] = course;
+        course_result.addEventListener('click', courseResultOnClickFunction(course));
+    });
+}
+
+function getCourseResultHTML(course) {
+    // The onmousedown="event.preventDefault()" part prevents the buttons from staying focused https://stackoverflow.com/a/45851915
+    return`<div class="card">
     <div class="card-header d-flex py-0" role="tab" id="header${course.id}">
     <a data-toggle="collapse" class="flex-grow-1 py-2" data-target="#collapser${course.id}" aria-controls="collapser${course.id}" aria-expanded="false">${course.course_num} - ${course.title}</a>
     <button onmousedown="event.preventDefault()" id="button${course.id}" class="btn btn-primary my-2" type="button" kind="add">Add</button>
@@ -39,28 +51,22 @@ return`<div class="card">
         <p class="card-text">${course.desc_long?course.desc_long:"[No course description]"}</p>
     </div>
     </div>
-    </div>`}).join('');
+    </div>`;
+}
 
-    res.forEach(function(course) {
-        const course_result = document.getElementById('button'+course.id);
-        if (my_courses_ids.has(course.id)) {
-            course_result.setAttribute("kind", "remove");
-            course_result.innerHTML = "Remove";
+function courseResultOnClickFunction(course) {
+    return function() {
+        if (this.getAttribute("kind") === "add") {
+            my_courses_ids.add(course.id);
+            this.setAttribute("kind", "remove");
+            this.innerHTML = "Remove";
+        } else {
+            my_courses_ids.delete(course.id);
+            this.setAttribute("kind", "add");
+            this.innerHTML = "Add";
         }
-        classes_by_id[course.id] = course;
-        course_result.addEventListener('click', function() {
-            if (this.getAttribute("kind") === "add") {
-                my_courses_ids.add(course.id);
-                this.setAttribute("kind", "remove");
-                this.innerHTML = "Remove";
-            } else {
-                my_courses_ids.delete(course.id);
-                this.setAttribute("kind", "add");
-                this.innerHTML = "Add";
-            }
-            update_courses_display();
-        });
-    });
+        update_courses_display();
+    }
 }
 
 var getSearchResults = function(clearResultsIfNoResults) {

@@ -199,7 +199,7 @@ function get_schedules(courses, accepted_statuses, section_accept_function, term
                 return section_id_to_periods_string[section_id];
             }).join('')
         );
-        const selected = grouped.map(group => 
+        const selected = grouped.map(group =>
             max(group, {
                 key: function(item) {
                     var k = [0, 0];
