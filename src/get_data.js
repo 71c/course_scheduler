@@ -1,5 +1,4 @@
 const request = require('request').defaults({jar: true});
-const rp = require('request-promise-native').defaults({jar: true});
 const fs = require('fs');
 const models = require('./models');
 
@@ -16,17 +15,6 @@ const TERMS_PATH = `${COURSES_DATA_DIR}/terms.json`;
 
 if (!fs.existsSync(COURSES_DATA_DIR)) {
     fs.mkdirSync(COURSES_DATA_DIR);
-}
-
-const time = Date.now;
-const startTimes = {};
-function tic(name) {
-    return startTimes[name] = time();
-}
-function toc(name) {
-    const dt = time() - startTimes[name];
-    console.log(`${name === undefined ? "" : name + " "}time: ${dt}`);
-    return dt;
 }
 
 function get_term_number(term) {

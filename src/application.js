@@ -35,18 +35,13 @@ if (!USE_CDN)
 
 const http = require('http').createServer(app);
 
-const assert = require('assert');
-const fs = require('fs');
-
 const models = require('./models');
 const api = require('./api');
 const get_data = require('./get_data');
 const course_scheduler = require('./course_scheduler');
 const schedule_stats = require('./schedule_stats');
 
-const {default_compare, basic_compare, PartialSorter} = require('./partial_sort');
-
-const path = require('path');
+const {default_compare, PartialSorter} = require('./partial_sort');
 
 const time = Date.now;
 const startTimes = {};
@@ -224,61 +219,6 @@ function get_schedules(courses, accepted_statuses, section_accept_function, term
         'and', false, false, null, term
     );
     return pg.evaluate();
-}
-
-function get_top_schedules_list_timing_test(course_ids, accepted_statuses, score_function, k, section_accept_function, term) {
-    /* TIMING TEST - NOT FOR PRODUCTION */
-    const courses = course_ids.map(id => models.courses[term][id]);
-
-    const schedules1 = get_schedules(courses, accepted_statuses, section_accept_function, term);
-    const schedules2 = get_schedules(courses, accepted_statuses, section_accept_function, term);
-    const schedules3 = get_schedules(courses, accepted_statuses, section_accept_function, term);
-
-    const schedules_and_scores2 = (function* () {
-        for (const schedule of schedules2) {
-            yield {
-                schedule: schedule,
-                score: score_function(schedule)
-            };
-        }
-    })();
-    const schedules_and_scores3 = (function* () {
-        for (const schedule of schedules3) {
-            yield {
-                schedule: schedule,
-                score: score_function(schedule)
-            };
-        }
-    })();
-
-    const sorter3 = new PartialSorter((a, b) => {
-        var cmp = default_compare(b.score, a.score);
-        if (cmp === 0)
-            return Math.random() - 0.5;
-        return cmp;
-    }, k);
-
-    tic('schedule generate');
-    for (const s of schedules1) {
-
-    }
-    toc('schedule generate');
-
-    tic('schedule generate and add score');
-    for (const s of schedules_and_scores2) {
-
-    }
-    toc('schedule generate and add score');
-
-    tic('schedule generate and add score and sort');
-    sorter3.insertAll(schedules_and_scores3);
-    toc('schedule generate and add score and sort');
-
-    return {
-        n_possibilities: sorter3.numPassed,
-        top_schedules: sorter3.getMinArray(),
-        courses: courses
-    };
 }
 
 function max(arr, {key=x=>x, compareFunction=default_compare}={}) {
