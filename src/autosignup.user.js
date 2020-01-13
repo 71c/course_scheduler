@@ -235,9 +235,7 @@ function whenOnSIS() {
             GM_setValue('setClassesImmediately', false);
             if (GM_getValue('clearClasses', false)) {
                 GM_setValue('clearClasses', false);
-                if (window.parent.location.hash.indexOf('#cart') === 0) { // this should always be the case
-                    let currLen;
-                    
+                if (window.parent.location.hash.indexOf('#cart') === 0) { // this should always be the case                    
                     waitFor(function() {
                         return document.querySelector('th.PSLEVEL1GRIDCOLUMNHDR') !== null;
                     }, deleteCourse);

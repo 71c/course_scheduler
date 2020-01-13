@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const request = require('request');
 const fetch = require('node-fetch');
 const sriToolbox = require('sri-toolbox');
 
@@ -147,7 +146,7 @@ function getSriHash(obj, resolve, reject) {
     // }
 }
 
-function getResources(useCDN, resolve, reject) {
+function getResourcesObject(callback) {
     const resources = {};
     const functions = [];
     for (const type in URLS) {
@@ -184,13 +183,17 @@ function getResources(useCDN, resolve, reject) {
         }
     }
     if (functions.length === 0) {
-        done();
+        callback(resources);
     }
     else {
-        all(functions, done, reject);
+        all(functions, function() {
+            callback(resources);
+        }, reject);
     }
+}
 
-    function done(vals) {
+function getResources(useCDN, resolve, reject) {
+    getResourcesObject(function(resources) {
         const resourcesStrings = {};
         for (const view in RESOURCES_USED) {
             resourcesStrings[view] = {};
@@ -217,7 +220,7 @@ function getResources(useCDN, resolve, reject) {
             }
         }
         resolve(resourcesStrings);
-    }
+    });
 }
 
 module.exports = getResources;
