@@ -10,6 +10,8 @@ const DEFER = true;
 
 const EXTRA_PART = DEFER ? " defer" : "";
 
+const {all} = require('./utils');
+
 const RESOURCES_USED = {
     index: {
         css: ['bootstrap-flatly', 'jquery-ui', 'main'],
@@ -95,28 +97,6 @@ const URLS = {
 }
 
 const STATIC_PATHS = ['public/css', 'public/js', 'public/vendor', '../node_modules'];
-
-function all(functions, resolve, reject) {
-    /* `functions` is an array; each element is a function of the functions (resolve, reject) */
-    var n = functions.length;
-    var nDone = 0;
-    var vals = [];
-    var done = false;
-    for (let i = 0; i < functions.length; i++) {
-        const f = functions[i];
-        f(function(thing) {
-            vals[i] = thing;
-            if (++nDone === n) {
-                resolve(vals);
-            }
-        }, function(err) {
-            if (!done) {
-                reject(err);
-                done = true;
-            }
-        });
-    }
-}
 
 function getSriHash(obj, resolve, reject) {
     if ('local' in obj) {
