@@ -146,7 +146,16 @@ function getSriHash(obj, resolve, reject) {
     // }
 }
 
-function getResourcesObject(callback) {
+function buildResourceTag(url, type, isLocal, integrity) {
+    const sriPart = DO_SRI_THING && !isLocal ? ` integrity="${integrity}" crossorigin="anonymous"` : '';
+    if (type === 'js') {
+        return `<script src="${url}"${sriPart}${EXTRA_PART}></script>`;
+    } else if (type === 'css') {
+        return `<link rel="stylesheet" href="${url}"${sriPart}>`;
+    }
+}
+
+function getResourcesObject(callback, reject) {
     const resources = {};
     const functions = [];
     for (const type in URLS) {
@@ -154,30 +163,18 @@ function getResourcesObject(callback) {
         for (const name in URLS[type]) {
             resources[type][name] = {};
             if ('local' in URLS[type][name]) {
-                if (type === 'js') {
-                    resources[type][name].local = `<script src="${URLS[type][name].local}"${EXTRA_PART}></script>`;
-                } else if (type === 'css') {
-                    resources[type][name].local = `<link rel="stylesheet" href="${URLS[type][name].local}">`;
-                }
+                resources[type][name].local = buildResourceTag(URLS[type][name].local, type, true, undefined);
             }
             if ('cdn' in URLS[type][name]) {
                 if (DO_SRI_THING) {
                     functions.push(function(resolve, reject) {
                         getSriHash(URLS[type][name], function(integrity) {
-                            if (type === 'js') {
-                                resources[type][name].cdn = `<script src="${URLS[type][name].cdn}" integrity="${integrity}" crossorigin="anonymous"${EXTRA_PART}></script>`;
-                            } else if (type === 'css') {
-                                resources[type][name].cdn = `<link rel="stylesheet" href="${URLS[type][name].cdn}" integrity="${integrity}" crossorigin="anonymous">`;
-                            }
+                            resources[type][name].cdn = buildResourceTag(URLS[type][name].cdn, type, false, integrity);
                             resolve(integrity);
                         }, reject);
                     });
                 } else {
-                    if (type === 'js') {
-                        resources[type][name].cdn = `<script src="${URLS[type][name].cdn}"${EXTRA_PART}></script>`;
-                    } else if (type === 'css') {
-                        resources[type][name].cdn = `<link rel="stylesheet" href="${URLS[type][name].cdn}">`;
-                    }
+                    resources[type][name].cdn = buildResourceTag(URLS[type][name].cdn, type, true, undefined);
                 }
             }
         }
@@ -186,9 +183,7 @@ function getResourcesObject(callback) {
         callback(resources);
     }
     else {
-        all(functions, function() {
-            callback(resources);
-        }, reject);
+        all(functions, () => callback(resources), reject);
     }
 }
 
@@ -211,16 +206,15 @@ function getResources(useCDN, resolve, reject) {
                         else
                             theseResources.push(options.local);
                     }
-                    else {
-                        if ('local' in options)
-                            theseResources.push(options.local);
+                    else if ('local' in options) {
+                        theseResources.push(options.local);
                     }
                 }
                 resourcesStrings[view][kind] = theseResources;
             }
         }
         resolve(resourcesStrings);
-    });
+    }, reject);
 }
 
 module.exports = getResources;
