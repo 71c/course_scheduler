@@ -1,7 +1,7 @@
-const get_data = require('./get_data');
-const api = require('./api');
-const models = require('./models');
-const course_scheduler = require('./course_scheduler');
+const get_data = require('../src/get_data');
+const api = require('../src/api');
+const models = require('../src/models');
+const course_scheduler = require('../src/course_scheduler');
 const _und = require('underscore');
 const distributions = require('distributions');
 

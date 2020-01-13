@@ -3,7 +3,7 @@ const models = require('./models');
 // I wanted to have id function from python
 // https://stackoverflow.com/a/1997811
 (function() {
-    if ( typeof Object.id == "undefined" ) {
+    if (typeof Object.id == "undefined" ) {
         var id = 0;
         var ids_of_nums = {};
 
@@ -51,7 +51,7 @@ class PeriodGroup {
     evaluate() {
         if (this.do_cache) {
             if (this.cached_eval === null)
-                this.cached_eval = this.isAnd ? Array.from(this.product_contents()) : Array.from(this.chain_contents());
+                this.cached_eval = this.isAnd ? [...this.product_contents()] : [...this.chain_contents()];
             return this.cached_eval;
         }
         return this.isAnd ? this.product_contents() : this.chain_contents();
