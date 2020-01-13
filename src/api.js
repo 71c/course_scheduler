@@ -39,10 +39,26 @@ function get_search_results(query, term) {
             return results;
     }
 
+    const sortedCourses = [];
+    const searchRanking = getSearchRankingFunction(query);
+    for (const course of models.courses[term]) {
+        const score = searchRanking(course);
+        if (score[0] !== 0 || score[1] !== 0 || score[2] !== 0) {
+            sortedCourses.push({
+                score: score,
+                course: course
+            });
+        }
+    }
+    sortedCourses.sort((a, b) => default_compare(b.score, a.score));
+    return sortedCourses.map(x => x.course);
+}
+
+function getSearchRankingFunction(query) {
     const escapedQuery = escapeRegExp(query);
     const word_regex = new RegExp(`\\b${escapedQuery}\\b`, 'i');
     const first_regex = new RegExp(`^${escapedQuery}\\b`, 'i');
-    function getScore(course) {
+    return function(course) {
         if (course.subject === query) {
             return [1, 0, 0];
         }
@@ -60,20 +76,8 @@ function get_search_results(query, term) {
             word_regex.test(course.subject_long) ? 2 :
             (course.subject_long || '').toUpperCase().indexOf(query) !== -1 ? 1 :
             0
-        ]
-    }
-    const sortedCourses = [];
-    for (const course of models.courses[term]) {
-        const score = getScore(course);
-        if (score[0] !== 0 || score[1] !== 0 || score[2] !== 0) {
-            sortedCourses.push({
-                score: score,
-                course: course
-            });
-        }
-    }
-    sortedCourses.sort((a, b) => default_compare(b.score, a.score));
-    return sortedCourses.map(x => x.course);
+        ];
+    };
 }
 
 function course_object_to_period_group(course, exclude_classes_with_no_days, accepted_statuses, cache, give_ids, section_accept_function, term) {
