@@ -64,7 +64,9 @@ all([
             toc('load the data');
             console.log("Done loading the data");
             resolve(vals);
-        }, reject, false);
+        }, reject, 
+        false // whether to refresh terms
+        );
     },
     function(resolve, reject) {
         require('./resources')(USE_CDN, function(resourcesStrings) {

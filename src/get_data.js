@@ -126,42 +126,41 @@ function get_response(resolve, reject) {
     });
 }
 
-function load_course_data(terms, resolve, reject, refresh=false, do_refresh_terms=false) {
-    let response;
-    function get_response_if_first(resolve, reject) {
-        if (!response) {
-            get_response(res => {
-                response = res;
-                resolve();
-            }, reject);
-        } else {
+let response;
+function get_response_if_first(resolve, reject) {
+    if (!response) {
+        get_response(res => {
+            response = res;
             resolve();
-        }
+        }, reject);
+    } else {
+        resolve();
     }
+}
 
+function load_course_data(terms, resolve, reject, refresh=false, do_refresh_terms=false) {
+    // if the JSON file that contains the terms does not exist
     if (!fs.existsSync(TERMS_PATH)) {
         // get terms from web because we don't have them
         get_response_if_first(() => {
             refresh_terms(next, console.error, response);
         }, console.error);
-    } else {
-        if (refresh || do_refresh_terms) {
-            // try to update terms from web as requested
-            get_response_if_first(() => {
-                refresh_terms(next, console.error, response);
-            }, err => {
-                // but if we can't, it's OK because we have them already. get terms from disk
-                console.log("Cannot refresh terms from internet as requested, so loading cached version instead");
-                const termsString = fs.readFileSync(TERMS_PATH);
-                models.term_to_code = JSON.parse(termsString);
-                next();
-            });
-        } else {
-            // get terms from disk
+    } else if (refresh || do_refresh_terms) {
+        // try to update terms from web as requested
+        get_response_if_first(() => {
+            refresh_terms(next, console.error, response);
+        }, err => {
+            // but if we can't, it's OK because we have them already. get terms from disk
+            console.log("Cannot refresh terms from internet as requested, so loading cached version instead");
             const termsString = fs.readFileSync(TERMS_PATH);
             models.term_to_code = JSON.parse(termsString);
             next();
-        }
+        });
+    } else {
+        // get terms from disk
+        const termsString = fs.readFileSync(TERMS_PATH);
+        models.term_to_code = JSON.parse(termsString);
+        next();
     }
 
     function next() {
@@ -170,81 +169,8 @@ function load_course_data(terms, resolve, reject, refresh=false, do_refresh_term
 
         const functions_to_execute = terms.map(function(term) {
             return function(resolve, reject) {
-                const courses_path = get_courses_path(term);
-                const subjects_path = get_subjects_path(term);
-
-                // function to get courses and set courses variable
-                const get_courses = function(resolve, reject) {
-                    if (fs.existsSync(courses_path) && !refresh) {
-                        fs.readFile(courses_path, (err, coursesString) => {
-                            if (err) {
-                                reject(err);
-                            }
-                            else {
-                                let coursesJson = JSON.parse(coursesString);
-                                resolve(coursesJson);
-                            }
-                        });
-                    } else {
-                        get_response_if_first(() => {
-                            request({
-                                headers: {'user-agent': 'node.js'},
-                                url: get_search_url(term),
-                                header: response.headers,
-                                json: true
-                            }, (error, res, body) => {
-                                if (error) {
-                                    reject(error);
-                                } else {
-                                    const courses = body.searchResults;
-                                    resolve(courses);
-                                    // save the data to disk asynchronously but don't wait until it is saved
-                                    fs.writeFile(courses_path, JSON.stringify(courses), err => {
-                                        if (err) throw err;
-                                    });
-                                }
-                            });
-                        }, reject);
-                    }
-                }
-
-                // function to get subjects and set subjects variable
-                const get_subjects = function(resolve, reject) {
-                    if (fs.existsSync(subjects_path) && !refresh) {
-                        fs.readFile(subjects_path, (err, subjectsString) => {
-                            if (err) {
-                                reject(err);
-                            }
-                            else {
-                                let subjectsJson = JSON.parse(subjectsString);
-                                resolve(subjectsJson);
-                            }
-                        });
-                    } else {
-                        get_response_if_first(() => {
-                            request({
-                                headers: {'user-agent': 'node.js'},
-                                url: get_course_subjects_url(term),
-                                header: response.headers,
-                                json: true
-                            }, (error, res, body) => {
-                                if (error) {
-                                    reject(error);
-                                } else {
-                                    const subjects = {};
-                                    body.forEach(function(x) {
-                                        subjects[x.value] = x.desc.substring(x.value.length+3);
-                                    });
-                                    resolve(subjects);
-                                    // save the data to disk asynchronously but don't wait until it is saved
-                                    fs.writeFile(subjects_path, JSON.stringify(subjects), err => {
-                                        if (err) throw err;
-                                    });
-                                }
-                            });
-                        }, reject);
-                    }
-                }
+                const get_courses = buildGetDataFunction(term, 'courses', refresh);
+                const get_subjects = buildGetDataFunction(term, 'subjects', refresh);
 
                 all([get_courses, get_subjects], vals => {
                     const courses = vals[0];
@@ -257,6 +183,59 @@ function load_course_data(terms, resolve, reject, refresh=false, do_refresh_term
         
         // wait for them all to finish
         all(functions_to_execute, resolve, reject);
+    }
+}
+
+function buildGetDataFunction(term, type, refresh) {
+    const path =
+        type === 'courses' ? get_courses_path(term) :
+        type === 'subjects' ? get_subjects_path(term) :
+        undefined;
+    const url =
+        type === 'courses' ? get_search_url(term) :
+        type === 'subjects' ? get_course_subjects_url(term) :
+        undefined;
+    // function to get subjects or courses and set subjects or courses variable
+    return function(resolve, reject) {
+        if (fs.existsSync(path) && !refresh) {
+            fs.readFile(path, (err, dataString) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    let json = JSON.parse(dataString);
+                    resolve(json);
+                }
+            });
+        } else {
+            get_response_if_first(() => {
+                request({
+                    headers: {'user-agent': 'node.js'},
+                    url: url,
+                    header: response.headers,
+                    json: true
+                }, (error, res, body) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        let data;
+                        if (type === 'courses') {
+                            data = body.searchResults;
+                        } else if (type === 'subjects') {
+                            data = {};
+                            body.forEach(function(x) {
+                                data[x.value] = x.desc.substring(x.value.length+3);
+                            });
+                        }
+                        resolve(data);
+                        // save the data to disk asynchronously but don't wait until it is saved
+                        fs.writeFile(path, JSON.stringify(data), err => {
+                            if (err) throw err;
+                        });
+                    }
+                });
+            }, reject);
+        }
     }
 }
 
