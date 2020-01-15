@@ -114,6 +114,13 @@ function startServer() {
             consecutiveness_weight: parseInt(req.query.pref_consecutive, 10) / 100,
         };
 
+        // scale all weights such that the one with the greatest magnitude equals 1
+        // this ensures that the scale of the given weights will be consistent
+        const max_weight_magnitude = Math.max(...Object.values(weights).map(Math.abs));
+        if (max_weight_magnitude !== 0)
+            for (const key in weights)
+                weights[key] = weights[key] / max_weight_magnitude;
+
         // const score_function = _ => Math.random();
         const score_function = schedule => schedule_stats.get_score(schedule, req.query.term, weights)
         const k = 300;

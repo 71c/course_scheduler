@@ -193,15 +193,6 @@ function get_score(schedule, term, weights) {
 
     // const mean_mad = get_mean_mad(periods);
 
-    // scale all weights such that the one with the greatest magnitude equals 1
-    // this ensures that the scale of the given weights will be consistent so
-    // TOO_SHORT_GAPNESS_WEIGHT is consistently comparable to the given weights
-    const max_weight_magnitude = Math.max(...Object.values(weights).map(Math.abs));
-    if (max_weight_magnitude !== 0)
-        for (const key in weights)
-            weights[key] = weights[key] / max_weight_magnitude;
-
-
     // console.log(morningness, eveningness, total_consecutiveness, total_too_short_gapness);
     return weights.morningness_weight * morningness
         + weights.eveningness_weight * eveningness
