@@ -293,6 +293,7 @@ function whenOnMyWebsite() {
     };
 
     const p = document.createElement('p');
+    p.className = "hide-in-small-screen";
     p.appendChild(setClassesButton);
     p.appendChild(addClassesButton);
     left.appendChild(p);

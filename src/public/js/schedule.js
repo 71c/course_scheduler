@@ -24,6 +24,8 @@ for (const course of courses) {
     }
 }
 
+var maxWidth = 100;
+
 var sectionSelectDiv;
 
 var rankHolder;
@@ -107,6 +109,9 @@ function makeSectionSelects() {
     while (sectionSelectDiv.firstChild)
         sectionSelectDiv.removeChild(sectionSelectDiv.firstChild);
     var schedule = top_schedules[scheduleIndex].schedule;
+    const firstRow = document.createElement("tr");
+    firstRow.innerHTML = '<th>Section Type</th><th>Section</th><th>Instructor(s)</th>';
+    sectionSelectDiv.appendChild(firstRow);
     for (let i = 0; i < schedule.length; i++) {
         const current_course = courses[i];
         for (const section_id of schedule[i]) {
@@ -115,20 +120,28 @@ function makeSectionSelects() {
 
             const row = document.createElement("tr");
             
-            const desc = document.createElement("td");
-            desc.innerHTML = labelText;
-            row.appendChild(desc);
+            const sectionTypeCell = document.createElement("td");
+            sectionTypeCell.innerHTML = labelText;
+            row.appendChild(sectionTypeCell);
 
-            const val = document.createElement("td");
-            row.appendChild(val);
-            
-            const text = document.createElement("span");
-            text.innerHTML = section.section_num;
-            val.appendChild(text);
+            const sectionNumCell = document.createElement("td");
+            sectionNumCell.innerText = section.section_num;
+            row.appendChild(sectionNumCell);
+
+            const instructorCell = document.createElement("td");
+            instructorCell.innerText = section.instructors.join(' & ');
+            row.appendChild(instructorCell);
 
             sectionSelectDiv.appendChild(row);
         }
     }
+    resizeHeading();
+}
+
+function resizeHeading() {
+    if (sectionSelectDiv.offsetWidth > maxWidth)
+        maxWidth = sectionSelectDiv.offsetWidth + 20;
+    document.getElementById('heading').style.width = sectionSelectDiv.offsetWidth === 0 ? "" : maxWidth + "px";
 }
 
 function setSchedule() {
@@ -205,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
         calendar = newCalendar(calendarEl, []);
         calendar.render();
 
-        sectionSelectDiv = document.getElementById('section-select');
+        sectionSelectDiv = document.getElementById('sections-table');
 
         scoreHolder = document.createElement('h5');
         scoreHolder.style = "width: 120px;";
@@ -254,6 +267,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             left.appendChild(button);
         }
+
+        $(window).resize(resizeHeading);
 
         document.dispatchEvent(new Event('startUserscript'));
     }

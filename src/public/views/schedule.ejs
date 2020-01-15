@@ -17,24 +17,49 @@
             textarea {
                 font-size: 11px;
             }
+            th, td {
+                font-size: 12px;
+            }
+            .btn-primary {
+                font-size: 12px;
+            }
+
+            #left {
+                padding-right: 15px;
+                padding-left: 15px;
+            }
+
+            @media (min-width: 600px) {
+                #left {
+                    float: left;
+                    overflow: hidden;
+                }
+            }
+            @media (max-width: 599px) {
+                .hide-in-small-screen {
+                    display: none;
+                }
+            }
+            
+            #right {
+                overflow: hidden;
+                margin: 20px;
+            }
         </style>
         <% for (var script of js) { %>
         <%- script %><% } %>
         <script>const data = <%- data %>;//https://stackoverflow.com/a/22910523/9911203</script>
     </head>
     <body>
-        <div class="container-fluid">
-            <div class="row pt-3">
-                <div class="col-4" id="left">
-                    <h2 id="heading"><%= n_possibilities %> Schedule<%= n_possibilities==1?"":"s" %> Generated</h2>
-                    <% if (k < n_possibilities) { %><div>(Showing first <%= k %>)</div><% } %>
-                    <% if (n_possibilities !== 0) { %><h5>Sections:</h5><% } %>
-                    <table id="section-select"></table>
-                </div>
-                <div class="col-8">
-                    <div id="calendar"></div>
-                </div>
-            </div>  
+        <div>
+            <div id="left">
+                <h3 id="heading"><%= n_possibilities %> Schedule<%= n_possibilities==1?"":"s" %> Generated</h3>
+                <% if (k < n_possibilities) { %><div>(Showing first <%= k %>)</div><% } %>
+                <% if (n_possibilities !== 0) { %><div class="hide-in-small-screen"><h5>Sections:</h5><table id="sections-table"></table></div><% } %>
+            </div>
+            <div id="right">
+                <div id="calendar"></div>
+            </div>
         </div>
     </body>
 </html>

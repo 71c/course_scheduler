@@ -17,7 +17,7 @@ const RESOURCES_USED = {
         js: ['jquery', 'popper.js', 'bootstrap', 'jquery-ui', 'index', 'jqueryui-touch-punch']
     },
     schedule: {
-        css: ['bootstrap-flatly', 'main', '@fullcalendar/core', '@fullcalendar/timegrid'],
+        css: ['bootstrap-flatly', '@fullcalendar/core', '@fullcalendar/timegrid'],
         js: ['jquery', '@fullcalendar/core', '@fullcalendar/daygrid', '@fullcalendar/timegrid', 'popper.js', 'bootstrap', 'schedule']
     }
 }
