@@ -67,7 +67,8 @@ function add_periods(section, component_data) {
             for (const day of meeting.days) {
                 section.add_period(day,
                     meeting.meet_start_min,
-                    meeting.meet_end_min);
+                    meeting.meet_end_min,
+                    location.instructor);
             }
         }
     }

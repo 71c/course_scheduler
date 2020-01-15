@@ -40,9 +40,9 @@ function get_search_results(query, term) {
     }
 
     const sortedCourses = [];
-    const searchRanking = getSearchRankingFunction(query);
+    const searchRankingFunction = getSearchRankingFunction(query);
     for (const course of models.courses[term]) {
-        const score = searchRanking(course);
+        const score = searchRankingFunction(course);
         if (score[0] !== 0 || score[1] !== 0 || score[2] !== 0) {
             sortedCourses.push({
                 score: score,

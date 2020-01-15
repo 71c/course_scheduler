@@ -11,6 +11,8 @@ const dayToDate = {
 };
 const colors = ["red", "blue", "orange", "purple", "green", "deeppink", "deepskyblue", "darkslategray", "brown"];
 
+const statusDict = {"O": "Open", "C": "Closed", "W": "Waitlist"};
+
 var scheduleIndex = 0;
 var leftButton, rightButton;
 
@@ -92,7 +94,7 @@ function newCalendar(element, events) {
                 'data-toggle': 'tooltip',
                 'data-placement': 'bottom',
                 'data-html': true,
-                'title': `${info.event.extendedProps.course_title}<br>${info.event.extendedProps.timeString}`
+                'title': `${info.event.extendedProps.course_title}<br>${info.event.extendedProps.timeString}<br>Instructor: ${info.event.extendedProps.instructor}<br>Status: ${info.event.extendedProps.status}`
             });
         },
         minTime: "07:00",
@@ -150,6 +152,8 @@ function setSchedule() {
                         end: `${date}T${endString}`,
                         color: colors[i],
                         timeString: `${minutesToTimeString12hr(period.start)} - ${minutesToTimeString12hr(period.end)}`,
+                        instructor: period.instructor,
+                        status: statusDict[section.status],
                     });
                 }
             }

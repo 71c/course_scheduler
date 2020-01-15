@@ -77,6 +77,16 @@ all([
     }
 ], function() {
     startServer();
+    // const instructorSets = [];
+    // for (const section of models.sections['Fall 2019']) {
+    //     const instructors = new Set();
+    //     for (const period of section.periods) {
+    //         instructors.add(period.instructor);
+    //     }
+    //     if (instructors.size > 1)
+    //         instructorSets.push(instructors);
+    // }
+    // console.log(instructorSets);
 }, console.error);
 
 function startServer() {
@@ -121,7 +131,6 @@ function startServer() {
             for (const key in weights)
                 weights[key] = weights[key] / max_weight_magnitude;
 
-        // const score_function = _ => Math.random();
         const score_function = schedule => schedule_stats.get_score(schedule, req.query.term, weights)
         const k = 300;
         var section_accept_function = function(section) {

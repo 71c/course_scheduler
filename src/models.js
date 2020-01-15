@@ -27,14 +27,19 @@ class Section {
         this.status = status;
         this.periods = periods;
         this.term = term;
+        this.instructors = [];
     }
 
-    add_period(day, start_minutes, end_minutes) {
+    add_period(day, start_minutes, end_minutes, instructor) {
         this.periods.push({
             day: day,
             start: start_minutes,
-            end: end_minutes
+            end: end_minutes,
+            instructor: instructor
         });
+        if (!this.instructors.includes(instructor)) {
+            this.instructors.push(instructor);
+        }
     }
 
     evaluate() {
