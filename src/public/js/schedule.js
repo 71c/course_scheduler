@@ -141,7 +141,7 @@ function makeSectionSelects() {
 function resizeHeading() {
     if (sectionSelectDiv.offsetWidth > maxWidth)
         maxWidth = sectionSelectDiv.offsetWidth + 20;
-    document.getElementById('heading').style.width = sectionSelectDiv.offsetWidth === 0 ? "" : maxWidth + "px";
+    document.getElementById('left').style.width = sectionSelectDiv.offsetWidth === 0 ? "" : maxWidth + "px";
 }
 
 function setSchedule() {
