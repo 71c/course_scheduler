@@ -1,7 +1,7 @@
 "use strict";
 let my_courses_ids = new Set();
 const classes_by_id = {};
-let minMaxTimes = [450, 1290];
+const minMaxTimes = [450, 1290];
 let resultsDiv;
 
 function update_courses_display() {
@@ -118,33 +118,56 @@ function minutesToTimeString12hr(minutes) {
     return hourPartString + ":" + minutePartString + amPm;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+function getItem(key, defaultValue) {
+    const val = localStorage.getItem(key);
+    if (val === null) {
+        localStorage.setItem(key, defaultValue);
+        return localStorage.getItem(key);
+    }
+    return val;
+}
 
+function getItemInt(key, defaultValue) {
+    return parseInt(getItem(key, defaultValue), 10);
+}
+
+function setItem(key, value) {
+    localStorage.setItem(key, value);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
     $("#time_range_slider").slider({
         range: true,
         min: minMaxTimes[0],
         max: minMaxTimes[1],
         step: 15,
-        values: minMaxTimes,
+        values: [getItemInt("min_time", minMaxTimes[0]), getItemInt("max_time", minMaxTimes[1])],
         slide: function(event, ui) {
-            $("#time_range").text(minutesToTimeString12hr(ui.values[0]) + " - " + minutesToTimeString12hr(ui.values[1]))
-            minMaxTimes = ui.values;
+            $("#time_range").text(minutesToTimeString12hr(ui.values[0]) + " - " + minutesToTimeString12hr(ui.values[1]));
+            setItem("min_time", ui.values[0]);
+            setItem("max_time", ui.values[1]);
         }
-    })
+    });
     $("#time_range").text(minutesToTimeString12hr($("#time_range_slider").slider("values", 0)) + " - " + minutesToTimeString12hr($("#time_range_slider").slider("values", 1)));
 
-    for (const id of ["#mornings-slider", "#nights-slider", "#consecutive-classes-slider"]) {
+    for (const [pref_name, id] of [
+        ["pref_morning", "#mornings-slider"],
+        ["pref_night", "#nights-slider"],
+        ["pref_consecutive", "#consecutive-classes-slider"]
+    ]) {
         const jSlider = $(id);
         jSlider.slider({
             min: -100,
             max: 100,
-            value: 0,
+            value: getItemInt(pref_name, "0"),
             slide: function(event, ui) {
                 // https://stackoverflow.com/a/4808375/9911203
                 if (ui.value > -10 && ui.value < 10 && ui.value != 0) {
                     jSlider.slider('value', 0);
+                    setItem(pref_name, 0);
                     return false;
                 }
+                setItem(pref_name, ui.value);
                 return true;
             }
         });
@@ -180,12 +203,12 @@ document.addEventListener('DOMContentLoaded', function() {
         var params = {
             ids: Array.from(my_courses_ids).join("-"),
             accepted_statuses: accepted_statuses.join(""),
-            min_time: minMaxTimes[0],
-            max_time: minMaxTimes[1],
+            min_time: getItemInt("min_time", minMaxTimes[0]),
+            max_time: getItemInt("max_time", minMaxTimes[1]),
             term: document.getElementById('term-select').value,
-            pref_morning: $("#mornings-slider").slider("value"),
-            pref_night: $("#nights-slider").slider("value"),
-            pref_consecutive: $("#consecutive-classes-slider").slider("value")
+            pref_morning: getItemInt("pref_morning", 0),
+            pref_night: getItemInt("pref_night", 0),
+            pref_consecutive: getItemInt("pref_consecutive", 0)
         };
         for (var name in params) {
             let input = document.createElement("input");
