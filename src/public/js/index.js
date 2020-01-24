@@ -10,8 +10,31 @@ function update_courses_display() {
         courses_container.removeChild(courses_container.firstChild);
     for (const course_id of my_courses_ids.values()) {
         const course = classes_by_id[course_id];
+        
+        const removeButton = document.createElement('button');
+        removeButton.innerText = 'Remove';
+        removeButton.className = 'btn btn-primary';
+        removeButton.onmousedown = function(event){event.preventDefault()};
+        removeButton.onclick = function() {
+            const courseResult = document.getElementById('button' + course_id);
+            if (courseResult) {
+                courseResult.click();
+            }
+            else {
+                my_courses_ids.delete(course_id);
+                update_courses_display();
+            }
+        };
+
+        const textPart = document.createElement('div');
+        textPart.innerText = `${course.course_num} - ${course.title}`;
+        textPart.className = 'flex-grow-1';
+        
         const course_element = document.createElement('div');
-        course_element.innerHTML = `${course.course_num} - ${course.title}`;
+        course_element.className = 'd-flex py-2';
+        course_element.appendChild(textPart);
+        course_element.appendChild(removeButton);
+
         courses_container.appendChild(course_element);
     }
 }

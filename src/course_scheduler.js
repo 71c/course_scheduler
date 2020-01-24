@@ -116,16 +116,9 @@ class PeriodGroup {
                 if (Array.isArray(a)) {
                     this.conflict_matrix[a_num][u_num] = false
                     for (const i of a) {
-                        if (Array.isArray(u)) {
-                            if (! this.belongs_to_group(i, u)) {
-                                this.conflict_matrix[a_num][u_num] = true
-                                return false
-                            }
-                        } else {
-                            if (i.intersects(u)) {
-                                this.conflict_matrix[a_num][u_num] = true
-                                return false
-                            }
+                        if (Array.isArray(u) ? !this.belongs_to_group(i, u) : i.intersects(u)) {
+                            this.conflict_matrix[a_num][u_num] = true;
+                            return false;
                         }
                     }
                 } else if (Array.isArray(u)) {
