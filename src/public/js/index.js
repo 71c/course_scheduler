@@ -97,7 +97,7 @@ var getSearchResults = function(clearResultsIfNoResults) {
     if (searchTerm.length === 0)
         return;
     $.ajax({
-        url: `/search?query=${searchTerm}&term=${document.querySelector(".custom-select").value}`
+        url: `/search?query=${searchTerm}&term=${document.getElementById('term-select').value}`
     }).done(function(res) {
         renderSearchResults(res, clearResultsIfNoResults);
     }).fail(function(err) {
@@ -121,8 +121,13 @@ function minutesToTimeString12hr(minutes) {
 function getItem(key, defaultValue) {
     const val = localStorage.getItem(key);
     if (val === null) {
-        localStorage.setItem(key, defaultValue);
-        return localStorage.getItem(key);
+        if (defaultValue === undefined) {
+            return null;
+        }
+        else {
+            localStorage.setItem(key, defaultValue);
+            return localStorage.getItem(key);
+        }
     }
     return val;
 }
@@ -131,11 +136,16 @@ function getItemInt(key, defaultValue) {
     return parseInt(getItem(key, defaultValue), 10);
 }
 
+function getItemJSON(key, defaultValue) {
+    return JSON.parse(getItem(key, defaultValue));
+}
+
 function setItem(key, value) {
     localStorage.setItem(key, value);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // set up time range slider
     $("#time_range_slider").slider({
         range: true,
         min: minMaxTimes[0],
@@ -150,6 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     $("#time_range").text(minutesToTimeString12hr($("#time_range_slider").slider("values", 0)) + " - " + minutesToTimeString12hr($("#time_range_slider").slider("values", 1)));
 
+    // set up raking preferences sliders
     for (const [pref_name, id] of [
         ["pref_morning", "#mornings-slider"],
         ["pref_night", "#nights-slider"],
@@ -173,16 +184,37 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    const defaultChecked = {
+        O: true,
+        C: false,
+        W: false
+    };
+
+    for (const status of ['O', 'C', 'W']) {
+        const checkbox = document.getElementById(status);
+        checkbox.onclick = function() {
+            setItem(status, this.checked);
+        };
+        checkbox.checked = getItemJSON(status, defaultChecked[status]);
+    }
+
+
     resultsDiv = document.getElementById('results');
-    // document.querySelector('#search_form').onsubmit = getSearchResults;
     $("#search_bar").keyup(function() {
         getSearchResults(false);
     });
+
     $('#term-select').change(function() {
         my_courses_ids = new Set();
         update_courses_display();
         getSearchResults(true);
+        console.log(document.getElementById('term-select').value);
+        setItem("term", document.getElementById('term-select').value);
     });
+    if (getItem("term") !== null) {
+        document.querySelector("[value='" + getItem("term") + "']").selected = true;
+    }
+
     var scheduleForm = document.getElementById('create schedule');
     scheduleForm.onsubmit = function() {
         if (my_courses_ids.size === 0) {
