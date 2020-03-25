@@ -10,7 +10,7 @@ function update_courses_display() {
         courses_container.removeChild(courses_container.firstChild);
     for (const course_id of my_courses_ids.values()) {
         const course = classes_by_id[course_id];
-        
+
         const removeButton = document.createElement('button');
         removeButton.innerText = 'Remove';
         removeButton.className = 'btn btn-primary';
@@ -29,7 +29,7 @@ function update_courses_display() {
         const textPart = document.createElement('div');
         textPart.innerText = `${course.course_num} - ${course.title}`;
         textPart.className = 'flex-grow-1';
-        
+
         const course_element = document.createElement('div');
         course_element.className = 'd-flex py-2';
         course_element.appendChild(textPart);
@@ -99,9 +99,13 @@ var getSearchResults = function(clearResultsIfNoResults) {
     $.ajax({
         url: `/search?query=${searchTerm}&term=${document.getElementById('term-select').value}`
     }).done(function(res) {
-        renderSearchResults(res, clearResultsIfNoResults);
+        // Only render if the contents of the search bar is the search term.
+        // There is a delay so sometimes the results of something that was typed
+        // earlier gets sent back later. This fixes that.
+        if (document.getElementById('search_bar').value === searchTerm)
+            renderSearchResults(res, clearResultsIfNoResults);
     }).fail(function(err) {
-      console.log('Error: ' + err.status);
+      console.error('Error: ' + err.status);
     });
     return false;
 }
@@ -200,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     resultsDiv = document.getElementById('results');
-    $("#search_bar").keyup(function() {
+    $("#search_bar").on('input', function() {
         getSearchResults(false);
     });
 

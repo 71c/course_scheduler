@@ -64,7 +64,7 @@ all([
             toc('load the data');
             console.log("Done loading the data");
             resolve(vals);
-        }, reject, 
+        }, reject,
         false // whether to refresh terms
         );
     },
@@ -194,7 +194,7 @@ function get_top_schedules_list(course_ids, accepted_statuses, score_function, k
         return cmp;
     }, k);
     sorter.insertAll(schedules_and_scores);
-    
+
     return {
         n_possibilities: sorter.numPassed,
         top_schedules: sorter.getMinArray(),
