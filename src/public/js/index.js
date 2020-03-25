@@ -92,8 +92,12 @@ function courseResultOnClickFunction(course) {
     }
 }
 
+function getSearchBoxContents() {
+    return document.getElementById('search_bar').value.trim();
+}
+
 var getSearchResults = function(clearResultsIfNoResults) {
-    var searchTerm = document.getElementById('search_bar').value;
+    var searchTerm = getSearchBoxContents();
     if (searchTerm.length === 0)
         return;
     $.ajax({
@@ -102,11 +106,12 @@ var getSearchResults = function(clearResultsIfNoResults) {
         // Only render if the contents of the search bar is the search term.
         // There is a delay so sometimes the results of something that was typed
         // earlier gets sent back later. This fixes that.
-        if (document.getElementById('search_bar').value === searchTerm)
+        if (getSearchBoxContents() === searchTerm)
             renderSearchResults(res, clearResultsIfNoResults);
     }).fail(function(err) {
       console.error('Error: ' + err.status);
     });
+
     return false;
 }
 
