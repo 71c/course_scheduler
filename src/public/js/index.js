@@ -3,6 +3,8 @@ let my_courses_ids = new Set();
 const classes_by_id = {};
 const minMaxTimes = [450, 1290];
 let resultsDiv;
+let latestSearchTermWithResults;
+let latestSearchTerm;
 
 function update_courses_display() {
     const courses_container = document.getElementById("my_courses");
@@ -39,26 +41,47 @@ function update_courses_display() {
     }
 }
 
-function clearSearchResults() {
-    while (resultsDiv.firstChild)
-        resultsDiv.removeChild(resultsDiv.firstChild);
-}
-
 var renderSearchResults = function(res, clearResultsIfNoResults) {
     if (res.length === 0 && !clearResultsIfNoResults)
         return;
-    clearSearchResults();
-    resultsDiv.innerHTML = res.map(getCourseResultHTML).join('');
 
-    res.forEach(function(course) {
-        const course_result = document.getElementById('button'+course.id);
-        if (my_courses_ids.has(course.id)) {
-            course_result.setAttribute("kind", "remove");
-            course_result.innerHTML = "Remove";
+    let searchTerm = latestSearchTerm;
+
+    // if there are not too many results do it the normal way
+    if (res.length <= 500) {
+        resultsDiv.innerHTML = res.map(getCourseResultHTML).join('');
+        addListeners();
+    } else { // otherwise, split it into chunks so it doesn't momentarily lag
+        resultsDiv.innerHTML = '';
+
+        let i = 0;
+        function add() {
+            let n = i + 500;
+            while (i < n && i < res.length && searchTerm === latestSearchTerm) {
+                resultsDiv.insertAdjacentHTML('beforeend', getCourseResultHTML(res[i]));
+                i++;
+            }
+            if (searchTerm === latestSearchTerm) {
+                if (i !== res.length)
+                    setTimeout(add, 0);
+                else
+                    addListeners();
+            }
         }
-        classes_by_id[course.id] = course;
-        course_result.addEventListener('click', courseResultOnClickFunction(course));
-    });
+        add();
+    }
+
+    function addListeners() {
+        res.forEach(function(course) {
+            const course_result = document.getElementById('button'+course.id);
+            if (my_courses_ids.has(course.id)) {
+                course_result.setAttribute("kind", "remove");
+                course_result.innerHTML = "Remove";
+            }
+            classes_by_id[course.id] = course;
+            course_result.addEventListener('click', courseResultOnClickFunction(course));
+        });
+    }
 }
 
 function getCourseResultHTML(course) {
@@ -98,7 +121,11 @@ function getSearchBoxContents() {
 
 var getSearchResults = function(clearResultsIfNoResults) {
     var searchTerm = getSearchBoxContents();
-    if (searchTerm.length === 0)
+    console.log(searchTerm);
+    if (searchTerm === latestSearchTerm || searchTerm.length === 0)
+        return;
+    latestSearchTerm = searchTerm;
+    if (searchTerm === latestSearchTermWithResults)
         return;
     $.ajax({
         url: `/search?query=${searchTerm}&term=${document.getElementById('term-select').value}`
@@ -106,8 +133,12 @@ var getSearchResults = function(clearResultsIfNoResults) {
         // Only render if the contents of the search bar is the search term.
         // There is a delay so sometimes the results of something that was typed
         // earlier gets sent back later. This fixes that.
-        if (getSearchBoxContents() === searchTerm)
+        if (getSearchBoxContents() === searchTerm) {
+            if (res.length !== 0)
+                latestSearchTermWithResults = searchTerm;
+            // latestSearchTerm = searchTerm;
             renderSearchResults(res, clearResultsIfNoResults);
+        }
     }).fail(function(err) {
       console.error('Error: ' + err.status);
     });
