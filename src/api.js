@@ -17,13 +17,10 @@ function get_classes_by_subject(subject, term) {
 
 // https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
 function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
 function get_search_results(query, term) {
-    // easter egg I guess
-    if (query === '.*')
-        return models.courses[term];
     query = query.trim().toUpperCase();
     const course_num_match = course_num_regex.exec(query);
     if (course_num_match) {

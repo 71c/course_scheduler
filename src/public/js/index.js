@@ -121,7 +121,6 @@ function getSearchBoxContents() {
 
 var getSearchResults = function(clearResultsIfNoResults) {
     var searchTerm = getSearchBoxContents();
-    console.log(searchTerm);
     if (searchTerm === latestSearchTerm || searchTerm.length === 0)
         return;
     latestSearchTerm = searchTerm;
@@ -136,7 +135,6 @@ var getSearchResults = function(clearResultsIfNoResults) {
         if (getSearchBoxContents() === searchTerm) {
             if (res.length !== 0)
                 latestSearchTermWithResults = searchTerm;
-            // latestSearchTerm = searchTerm;
             renderSearchResults(res, clearResultsIfNoResults);
         }
     }).fail(function(err) {
