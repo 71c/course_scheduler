@@ -13,28 +13,28 @@ const express = require('express');
 
 const app = express();
 
-// var session = require('express-session');
-// var pgSession = require('connect-pg-simple')(session);
-// var sess = {
-//   secret: 'keyboard cat',
-//   resave: false,
-//   saveUninitialized: true,
-//   cookie: { secure: false, maxAge: null },
-//   store: new pgSession({
-//     conString: process.env.DATABASE_URL,
-//     pruneSessionInterval: false
-//   }),
-// }
-// if (app.get('env') === 'production') {
-//   app.set('trust proxy', 1) // trust first proxy
-//   sess.cookie.secure = true // serve secure cookies
-// }
-// app.use(session(sess))
-// app.use(function (req, res, next) {
-//     // test
-//     console.log(req.sessionID, req.headers['x-forwarded-for'] || req.connection.remoteAddress)
-//     next()
-// })
+var session = require('express-session');
+var pgSession = require('connect-pg-simple')(session);
+var sess = {
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false, maxAge: null },
+  store: new pgSession({
+    conString: process.env.DATABASE_URL,
+    pruneSessionInterval: false
+  }),
+}
+if (app.get('env') === 'production') {
+  app.set('trust proxy', 1) // trust first proxy
+  sess.cookie.secure = true // serve secure cookies
+}
+app.use(session(sess))
+app.use(function (req, res, next) {
+    // test
+    console.log(req.sessionID, req.headers['x-forwarded-for'] || req.connection.remoteAddress)
+    next()
+})
 
 
 const PORT = process.env.PORT || 5000;
