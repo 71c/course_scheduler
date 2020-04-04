@@ -1,5 +1,9 @@
 const express = require('express');
 
+const aws = require('aws-sdk');
+const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
+aws.config.region = 'us-east-1';
+
 const app = express();
 
 const PORT = process.env.PORT || 5000;
