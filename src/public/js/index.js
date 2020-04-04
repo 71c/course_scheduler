@@ -182,7 +182,12 @@ function setItem(key, value) {
     localStorage.setItem(key, value);
 }
 
+let socket;
+
 document.addEventListener('DOMContentLoaded', function() {
+    console.log(`${location.protocol}//${document.domain}:${location.port}`)
+    socket = io.connect(`${location.protocol}//${document.domain}:7777`);
+
     // set up time range slider
     $("#time_range_slider").slider({
         range: true,

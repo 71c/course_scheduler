@@ -1,10 +1,41 @@
 const express = require('express');
 
-const aws = require('aws-sdk');
-const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
-aws.config.region = 'us-east-1';
+// const aws = require('aws-sdk');
+// const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
+// aws.config.region = 'us-east-1';
+
+// const { Client } = require('pg');
+// const client = new Client({
+//   connectionString: process.env.DATABASE_URL,
+//   ssl: true,
+// });
+// client.connect();
 
 const app = express();
+
+var session = require('express-session');
+var pgSession = require('connect-pg-simple')(session);
+var sess = {
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false, maxAge: null },
+  store: new pgSession({
+    conString: process.env.DATABASE_URL,
+    pruneSessionInterval: false
+  }),
+}
+if (app.get('env') === 'production') {
+  app.set('trust proxy', 1) // trust first proxy
+  sess.cookie.secure = true // serve secure cookies
+}
+app.use(session(sess))
+app.use(function (req, res, next) {
+    // test
+    console.log(req.sessionID, req.headers['x-forwarded-for'] || req.connection.remoteAddress)
+    next()
+})
+
 
 const PORT = process.env.PORT || 5000;
 const UPDATE_INTERVAL = 30; // every UPDATE_INTERVAL minutes it updates all the course data
@@ -12,6 +43,21 @@ const OFFLINE_MODE = false; // I use offline mode when I don't have WiFi
 const USE_CDN = process.env.NODE_ENV === 'production' || !OFFLINE_MODE;
 
 let RESOURCES_STRINGS;
+
+
+// var io = require('socket.io').listen(7777);
+// var count = 0
+//
+// io.on('connection', function(socket) {
+//     count++;
+//     console.log('n users:', count)
+//
+//     socket.on('disconnect', function(){
+//         count--;
+//         console.log('n users:', count)
+//     })
+// });
+
 
 app.set('view engine', 'ejs');
 app.set('views', 'src/public/views');

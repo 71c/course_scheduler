@@ -91,6 +91,9 @@ const URLS = {
         },
         'schedule': {
             local: './schedule.js'
+        },
+        'socket.io': {
+            cdn: 'https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js'
         }
     }
 }
@@ -198,7 +201,8 @@ function getResources(useCDN, resolve, reject) {
                     const options = resources[kind][name];
                     if (options === undefined) {
                         const err = new Error(`${kind} resource named ${name} is not included in resources`);
-                        throw err;
+                        reject(err);
+                        return;
                     }
                     if (useCDN) {
                         if ('cdn' in options)
