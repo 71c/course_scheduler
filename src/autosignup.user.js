@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tufts Course Scheduler Auto-Sign-Up
 // @namespace    71c
-// @version      0.4.3
+// @version      0.4.4
 // @description  To be used with tuftscoursescheduler.com; automatically signs up for classes at Tufts
 // @homepageURL  https://github.com/71c/course_scheduler
 // @author       71c
@@ -295,7 +295,7 @@ function whenOnMyWebsite() {
 
     const p = document.createElement('p');
     p.className = "hide-in-small-screen";
-    p.appendChild(setClassesButton);
+    // p.appendChild(setClassesButton); // not having this button anymore because it doesn't work now
     p.appendChild(addClassesButton);
     left.appendChild(p);
 

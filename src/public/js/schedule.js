@@ -119,7 +119,7 @@ function makeSectionSelects() {
             const labelText = `${current_course.course_num} ${section.component}: `;
 
             const row = document.createElement("tr");
-            
+
             const sectionTypeCell = document.createElement("td");
             sectionTypeCell.innerHTML = labelText;
             row.appendChild(sectionTypeCell);
@@ -146,7 +146,7 @@ function resizeHeading() {
 
 function setSchedule() {
     var schedule = top_schedules[scheduleIndex].schedule;
-    
+
     calendar.batchRendering(function() {
         for (const event of calendar.getEvents())
             event.remove();
@@ -254,18 +254,10 @@ document.addEventListener('DOMContentLoaded', function() {
             'To add these sections to your cart, you need to get the Tampermonkey extension and install the ' + userscriptLink + '. This is available on non-mobile devices on Chrome and Firefox.'
             : 'To add these sections to your cart, you need to get the Tampermonkey extension and install the ' + userscriptLink + '. I don\'t know what browser you are using but Tampermonkey is available in Chrome and Firefox.';
 
+            var b = document.createElement('b')
+            b.innerText = 'To automatically sign up on SIS with a script:';
+            left.appendChild(b);
             left.appendChild(nouserscript);
-
-            nouserscript.style.display = "none";
-
-            var button = document.createElement('button');
-            button.className = "btn btn-primary";
-            button.innerText = 'Automatically sign me up on SIS';
-            button.onclick = function() {
-                nouserscript.style.display = "";
-                button.style.display = "none";
-            }
-            left.appendChild(button);
         }
 
         $(window).resize(resizeHeading);
