@@ -221,6 +221,7 @@ function startServer() {
 
     app.get('/tell-if-mobile', function(req, res) {
         console.log(req.query.ismobile, req.sessionID, req.headers['x-forwarded-for'] || req.connection.remoteAddress)
+        res.send('')
     });
 
     http.listen(PORT, function() {
