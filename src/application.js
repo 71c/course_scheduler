@@ -21,7 +21,7 @@ var sess = {
   saveUninitialized: true,
   cookie: { secure: false, maxAge: null },
   store: new pgSession({
-    conString: process.env.DATABASE_URL,
+    conString: process.env.DATABASE_URL || 'postgresql://localhost/tuftscoursescheduler',
     pruneSessionInterval: false
   }),
 }
@@ -106,6 +106,7 @@ function toc(name) {
 
 const {all, groupBy} = require('./utils');
 
+
 tic('load the data');
 tic('get resources');
 all([
@@ -127,6 +128,7 @@ all([
     }
 ], function() {
     startServer();
+
     // const instructorSets = [];
     // for (const section of models.sections['Fall 2019']) {
     //     const instructors = new Set();
@@ -138,6 +140,7 @@ all([
     // }
     // console.log(instructorSets);
 }, console.error);
+
 
 function startServer() {
     // update all data every so often
@@ -214,6 +217,10 @@ function startServer() {
                 id: course.id
         }));
         res.send(search_results_json);
+    });
+
+    app.get('/tell-if-mobile', function(req, res) {
+        console.log(req.query.ismobile, req.sessionID, req.headers['x-forwarded-for'] || req.connection.remoteAddress)
     });
 
     http.listen(PORT, function() {
