@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Tufts Course Scheduler Auto-Sign-Up
 // @namespace    71c
-// @version      0.4.2
+// @version      0.4.3
 // @description  To be used with tuftscoursescheduler.com; automatically signs up for classes at Tufts
 // @homepageURL  https://github.com/71c/course_scheduler
 // @author       71c
@@ -40,6 +40,7 @@ const searchSearch = "?tab=TFP_CLASS_SEARCH";
 var whenOnSIS = function() {
     unsafeWindow.addClassesToCart = function() {
         const info = JSON.parse(GM_getValue('classes', '{}'));
+        console.log(window.location.href);
         whenOnSIS.addClasses(info);
     };
 
@@ -224,7 +225,7 @@ whenOnSIS.deleteClassesFromCart = function() {
         GM_setValue('setClassesImmediately', false);
         if (GM_getValue('clearClasses', false)) {
             GM_setValue('clearClasses', false);
-            if (window.parent.location.hash.indexOf('#cart') === 0) { // this should always be the case                    
+            if (window.parent.location.hash.indexOf('#cart') === 0) { // this should always be the case
                 whenOnSIS.waitFor(function() {
                     return document.querySelector('th.PSLEVEL1GRIDCOLUMNHDR') !== null;
                 }, whenOnSIS.deleteCourse);
