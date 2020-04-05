@@ -1,6 +1,8 @@
 const models = require('./models');
 const course_scheduler = require('./course_scheduler');
-const course_num_regex = /^([A-Za-z]{2,4})(?:-|\s*)([A-Za-z]{0,2})(\d{1,4})([A-Za-z]{0,2})$/;
+// const course_num_regex = /^([A-Za-z]{2,4})(?:-|\s*)([A-Za-z]{0,2})(\d{1,4})([A-Za-z]{0,2})$/;
+// const course_num_regex = /^([A-Za-z]{2,})(?:-|\s*)([A-Za-z]{0,2})(\d{1,4})([A-Za-z]{0,2})/;
+const course_num_regex = /([A-Za-z]{2,})(?:-|\s*)([A-Za-z]{0,3})(\d{1,4})([A-Za-z]{0,2})/;
 const {default_compare} = require('./partial_sort');
 
 function get_classes_by_course_num(course_num, term) {
@@ -22,25 +24,30 @@ function escapeRegExp(string) {
 
 function get_search_results(query, term) {
     query = query.trim().toUpperCase();
-    const course_num_match = course_num_regex.exec(query);
-    if (course_num_match) {
-        const subject = course_num_match[1];
-        const before_num = course_num_match[2];
-        const num = before_num === '' ?
-            course_num_match[3].padStart(4, '0') :
-            course_num_match[3];
-        const after_num = course_num_match[4];
-        const course_num = `${subject}-${before_num}${num}${after_num}`;
-        const results = get_classes_by_course_num(course_num, term);
-        if (results.length !== 0)
-            return results;
-    }
+    // const course_num_match = course_num_regex.exec(query);
+    // if (course_num_match) {
+    //     let subject = course_num_match[1];
+    //     if (! (subject in models.short_subject_to_long_subject[term])) {
+    //         if (subject in models.long_subject_to_short_subject[term]) {
+    //             subject = models.long_subject_to_short_subject[term][subject];
+    //         }
+    //     }
+    //     const before_num = course_num_match[2];
+    //     const num = before_num === '' ?
+    //         course_num_match[3].padStart(4, '0') :
+    //         course_num_match[3];
+    //     const after_num = course_num_match[4];
+    //     const course_num = `${subject}-${before_num}${num}${after_num}`;
+    //     const results = get_classes_by_course_num(course_num, term);
+    //     if (results.length !== 0)
+    //         return results;
+    // }
 
     const sortedCourses = [];
     const searchRankingFunction = getSearchRankingFunction(query);
     for (const course of models.courses[term]) {
         const score = searchRankingFunction(course);
-        if (score[0] !== 0 || score[1] !== 0 || score[2] !== 0) {
+        if (score[0] !== 0 || score[1] !== 0 || score[2] !== 0 || score[3] !== 0) {
             sortedCourses.push({
                 score: score,
                 course: course
@@ -53,26 +60,51 @@ function get_search_results(query, term) {
 
 function getSearchRankingFunction(query) {
     const escapedQuery = escapeRegExp(query);
-    const word_regex = new RegExp(`\\b${escapedQuery}\\b`, 'i');
-    const first_regex = new RegExp(`^${escapedQuery}\\b`, 'i');
+    const includes_query_words = new RegExp(`\\b${escapedQuery}\\b`, 'i');
+    const begins_with_query_words = new RegExp(`^${escapedQuery}\\b`, 'i');
     return function(course) {
         if (course.subject === query) {
             return [1, 0, 0];
         }
+
+        if (course.isIncludedInString(query)) {
+            return [2, 0, 0];
+        }
+
+        const subject_long = (course.subject_long || '').toUpperCase();
+        const title = course.title.toUpperCase();
+
+        const begins_with_long_subject_words = new RegExp(`\\b${subject_long}\\b`, 'i');
+        const includes_long_subject_words = new RegExp(`^${subject_long}\\b`, 'i');
+        const begins_with_subject_words = new RegExp(`^${course.subject}\\b`, 'i');
+        const includes_subject_words = new RegExp(`\\b${course.subject}\\b`, 'i');
         return [
             0,
 
-            course.title.toUpperCase() === query ? 4 :
-            first_regex.test(course.title) ? 3 :
-            word_regex.test(course.title) ? 2 :
-            course.title.toUpperCase().indexOf(query) !== -1 ? 1 :
+
+            title === query ? 4 : // course title equals query
+            begins_with_query_words.test(title) ? 3 : // course title begins with query as word(s)
+            includes_query_words.test(title) ? 2 : // course title includes query, as word(s)
+            title.indexOf(query) !== -1 ? 1 : // course title includes query
             0,
 
-            (course.subject_long || '').toUpperCase() === query ? 4 :
-            first_regex.test(course.subject_long) ? 3 :
-            word_regex.test(course.subject_long) ? 2 :
-            (course.subject_long || '').toUpperCase().indexOf(query) !== -1 ? 1 :
-            0
+
+            subject_long === query ? 7 : // long subject equals query
+
+            // long subject contained in query
+            begins_with_long_subject_words.test(query) ? 6 : // query begins with long subject words
+            includes_long_subject_words.test(query) ? 5 : // query contains long subject words
+            query.indexOf(subject_long) !== -1 ? 4 : // query contains long subject
+
+            // query in contained in long subject
+            begins_with_query_words.test(subject_long) ? 3 : // long subject begins with query words
+            includes_query_words.test(subject_long) ? 2 : // long subject includes with query words
+            subject_long.indexOf(query) !== -1 ? 1 : // long subject includes query
+            0,
+
+
+            begins_with_subject_words.test(query) ? 2 :
+            includes_subject_words.test(query) ? 1 : 0
         ];
     };
 }

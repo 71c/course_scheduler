@@ -129,6 +129,8 @@ all([
 ], function() {
     startServer();
 
+    // console.log(models.long_subject_to_short_subject)
+
     // const instructorSets = [];
     // for (const section of models.sections['Fall 2019']) {
     //     const instructors = new Set();

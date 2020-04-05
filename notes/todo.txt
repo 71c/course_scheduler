@@ -6,3 +6,5 @@ To Do & Potential Features:
 - classes history
 - groups of courses (example: one these courses, two of those courses, this course, and that course)
 - make the data perisistent (not on the server)
+- improve search
+- debug userscript

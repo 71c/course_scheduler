@@ -35,12 +35,12 @@ function get_course_subjects_url(term, career='ALL') {
     return `${COURSE_SUBJECTS_URL}?term=${get_term_number(term)}&career=${career}`;
 }
 
-function save_data(term, courses, long_subject_dict) {
+function save_data(term, courses, subjects_short_to_long) {
     models.reset(term);
     const subject_finder = /^[A-Z]+/;
     for (const course_data of courses) {
         const subject = subject_finder.exec(course_data.course_num)[0];
-        const subject_long = long_subject_dict[subject];
+        const subject_long = subjects_short_to_long[subject] || subject;
         const course = new models.Course(course_data.course_num, subject,
             subject_long, course_data.course_title, course_data.desc_long, term);
         for (const section of course_data.sections) {
@@ -58,6 +58,12 @@ function save_data(term, courses, long_subject_dict) {
             }
         }
         models.courses[term].push(course);
+    }
+
+    models.short_subject_to_long_subject[term] = subjects_short_to_long;
+    for (const short_subject in subjects_short_to_long) {
+        const long_subject = subjects_short_to_long[short_subject].toUpperCase();
+        models.long_subject_to_short_subject[term][long_subject] = short_subject;
     }
 }
 
@@ -181,7 +187,7 @@ function load_course_data(terms, resolve, reject, refresh=false, do_refresh_term
                 }, reject);
             }
         });
-        
+
         // wait for them all to finish
         all(functions_to_execute, resolve, reject);
     }

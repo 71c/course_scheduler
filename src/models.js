@@ -1,3 +1,12 @@
+const assert = require('assert').strict;
+
+const course_num_regex = /^([A-Za-z]{2,4})(?:-|\s*)([A-Za-z]{0,3})(\d{1,4})([A-Za-z]{0,2})$/;
+
+// https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
 class Course {
     constructor(course_num, subject, subject_long, title, desc_long, term) {
         this.id = Course.currIds[term]++;
@@ -8,6 +17,25 @@ class Course {
         this.desc_long = desc_long;
         this.sections = [];
         this.term = term;
+
+        const course_num_match = course_num_regex.exec(course_num);
+        if (course_num_match) {
+            assert.equal(course_num_match[1], subject);
+            const before_num = course_num_match[2];
+            const num_no_padding = parseInt(course_num_match[3], 10) + '';
+            const after_num = course_num_match[4];
+            const regexString = `\\b(${subject}|${escapeRegExp(subject_long)})(?:-|\\s*)${before_num}0*${num_no_padding}${after_num}\\b`;
+            this.includes_regex = new RegExp(regexString, 'i');
+        } else {
+            const parts = course_num.split('-');
+            assert.equal(parts.length, 2);
+            this.includes_regex = new RegExp(`\\b(${parts[0]}|${escapeRegExp(subject_long)})(?:-|\\s+)${parts[1]}\\b`, 'i');
+            console.log(course_num, this.includes_regex, term)
+        }
+    }
+
+    isIncludedInString(s) {
+        return this.includes_regex.test(s);
     }
 
     add_section(section) {
@@ -70,5 +98,9 @@ module.exports = {
         this.sections[term] = [];
         Course.currIds[term] = 0;
         Section.currIds[term] = 0;
-    }
+        this.long_subject_to_short_subject[term] = {};
+        this.short_subject_to_long_subject[term] = {};
+    },
+    long_subject_to_short_subject: {},
+    short_subject_to_long_subject: {}
 };
