@@ -104,7 +104,7 @@ class PartialSorter {
                 return;
             this.numPassed++;
             if (this.compare_function(result.value, this.heap[0]) < 0)
-                this.maxSiftDown(0, result.value);   
+                this.maxSiftDown(0, result.value);
         }
     }
 

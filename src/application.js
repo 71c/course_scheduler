@@ -160,7 +160,11 @@ function startServer() {
     });
 
     app.get('/schedule', function(req, res) {
-        if (!/^((\d+-)+\d+|\d*)$/.test(req.query.ids)) {
+        if (!/^((\d+-)+\d+|\d*)$/.test(req.query.ids)
+        || req.query.pref_morning === undefined
+        || req.query.pref_night === undefined
+        || req.query.pref_consecutive === undefined
+        || req.query.accepted_statuses === undefined) {
             res.send("Wrong format!");
             return;
         }

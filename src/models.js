@@ -1,6 +1,6 @@
 const assert = require('assert').strict;
 
-const course_num_regex = /^([A-Za-z]{2,4})(?:-|\s*)([A-Za-z]{0,3})(\d{1,4})([A-Za-z]{0,2})$/;
+const course_num_regex = /^([A-Z]{2,4})(?:-|\s*)([A-Z]{0,3})(\d{3,4})([A-Z]{0,2})$/;
 
 // https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
 function escapeRegExp(string) {
@@ -22,20 +22,26 @@ class Course {
         if (course_num_match) {
             assert.equal(course_num_match[1], subject);
             const before_num = course_num_match[2];
-            const num_no_padding = parseInt(course_num_match[3], 10) + '';
+
+            const num = course_num_match[3];
+            const num_no_padding = parseInt(num, 10) + '';
             const after_num = course_num_match[4];
             const regexString = `\\b(${subject}|${escapeRegExp(subject_long)})(?:-|\\s*)${before_num}0*${num_no_padding}${after_num}\\b`;
-            this.includes_regex = new RegExp(regexString, 'i');
+            this.includes_course_num_variant_regex = new RegExp(regexString, 'i');
         } else {
             const parts = course_num.split('-');
             assert.equal(parts.length, 2);
-            this.includes_regex = new RegExp(`\\b(${parts[0]}|${escapeRegExp(subject_long)})(?:-|\\s+)${parts[1]}\\b`, 'i');
-            console.log(course_num, this.includes_regex, term)
+            this.includes_course_num_variant_regex = new RegExp(`\\b(${parts[0]}|${escapeRegExp(subject_long)})(?:-|\\s+)${parts[1]}\\b`, 'i');
         }
+
+        this.begins_with_long_subject_words_regex = new RegExp(`^${subject_long}\\b`, 'i');
+        this.includes_long_subject_words_regex = new RegExp(`\\b${subject_long}\\b`, 'i');
+        this.begins_with_subject_words_regex = new RegExp(`^${subject}\\b`, 'i');
+        this.includes_subject_words_regex = new RegExp(`\\b${subject}(\\b|\\d)`, 'i');
     }
 
-    isIncludedInString(s) {
-        return this.includes_regex.test(s);
+    courseNumVariantIncludedInString(s) {
+        return this.includes_course_num_variant_regex.test(s);
     }
 
     add_section(section) {

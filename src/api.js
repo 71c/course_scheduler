@@ -1,9 +1,10 @@
 const models = require('./models');
 const course_scheduler = require('./course_scheduler');
-// const course_num_regex = /^([A-Za-z]{2,4})(?:-|\s*)([A-Za-z]{0,2})(\d{1,4})([A-Za-z]{0,2})$/;
-// const course_num_regex = /^([A-Za-z]{2,})(?:-|\s*)([A-Za-z]{0,2})(\d{1,4})([A-Za-z]{0,2})/;
-const course_num_regex = /([A-Za-z]{2,})(?:-|\s*)([A-Za-z]{0,3})(\d{1,4})([A-Za-z]{0,2})/;
 const {default_compare} = require('./partial_sort');
+
+const course_num_regex = /\b([A-Z]{2,})(?:-|\s*)([A-Z]{0,3})(\d{1,4})([A-Z]{0,2})\b/i;
+const course_num_regex_2 = /\b([A-Z]{2,})(?:-|\s*)(\d\d\/\d|[A-Z]{3,6})\b/i;
+
 
 function get_classes_by_course_num(course_num, term) {
     return models.courses[term].filter(course => course.course_num === course_num);
@@ -24,76 +25,72 @@ function escapeRegExp(string) {
 
 function get_search_results(query, term) {
     query = query.trim().toUpperCase();
-    // const course_num_match = course_num_regex.exec(query);
-    // if (course_num_match) {
-    //     let subject = course_num_match[1];
-    //     if (! (subject in models.short_subject_to_long_subject[term])) {
-    //         if (subject in models.long_subject_to_short_subject[term]) {
-    //             subject = models.long_subject_to_short_subject[term][subject];
-    //         }
-    //     }
-    //     const before_num = course_num_match[2];
-    //     const num = before_num === '' ?
-    //         course_num_match[3].padStart(4, '0') :
-    //         course_num_match[3];
-    //     const after_num = course_num_match[4];
-    //     const course_num = `${subject}-${before_num}${num}${after_num}`;
-    //     const results = get_classes_by_course_num(course_num, term);
-    //     if (results.length !== 0)
-    //         return results;
-    // }
-
-    const sortedCourses = [];
-    const searchRankingFunction = getSearchRankingFunction(query);
+    let sortedCourses = [];
+    const searchRankingFunction = getSearchRankingFunction(query, term);
+    let hasAnyCoursenums = false;
     for (const course of models.courses[term]) {
         const score = searchRankingFunction(course);
-        if (score[0] !== 0 || score[1] !== 0 || score[2] !== 0 || score[3] !== 0) {
-            sortedCourses.push({
-                score: score,
-                course: course
-            });
+        const info = {
+            score: score,
+            course: course
+        };
+        if (score[0] === 2) {
+            hasAnyCoursenums = true;
+            sortedCourses.push(info);
+        } else if (!hasAnyCoursenums && (score[0] !== 0 || score[1] !== 0 || score[2] !== 0 || score[3] !== 0 || score[4] !== 0 || score[5] !== 0)) {
+            sortedCourses.push(info);
         }
     }
+    if (hasAnyCoursenums)
+        sortedCourses = sortedCourses.filter(x => x.score[0] === 2);
     sortedCourses.sort((a, b) => default_compare(b.score, a.score));
+    // console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(0,10));
+    // console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(sortedCourses.length-10));
+    // console.log(sortedCourses.length, models.courses[term].length)
     return sortedCourses.map(x => x.course);
 }
 
-function getSearchRankingFunction(query) {
+function getSearchRankingFunction(query, term) {
     const escapedQuery = escapeRegExp(query);
     const includes_query_words = new RegExp(`\\b${escapedQuery}\\b`, 'i');
     const begins_with_query_words = new RegExp(`^${escapedQuery}\\b`, 'i');
+    const query_is_course_num = getCorrectCourseNum(query, term);
+    if (query_is_course_num) {
+        var is_corrected_coursenum_regex = query_is_course_num.regex;
+        var query_subject = query_is_course_num.subject;
+    }
     return function(course) {
+        // if the subject equals, i want them in alphabetical order
         if (course.subject === query) {
-            return [1, 0, 0];
+            return [1, 0, 0, 0, 0, 0];
         }
 
-        if (course.isIncludedInString(query)) {
-            return [2, 0, 0];
+        if (course.courseNumVariantIncludedInString(query)) {
+            return [2, 0, 0, 0, 0, 0];
         }
 
-        const subject_long = (course.subject_long || '').toUpperCase();
+        const subject_long = course.subject_long.toUpperCase();
         const title = course.title.toUpperCase();
 
-        const begins_with_long_subject_words = new RegExp(`\\b${subject_long}\\b`, 'i');
-        const includes_long_subject_words = new RegExp(`^${subject_long}\\b`, 'i');
-        const begins_with_subject_words = new RegExp(`^${course.subject}\\b`, 'i');
-        const includes_subject_words = new RegExp(`\\b${course.subject}\\b`, 'i');
-        return [
+        const score = [
             0,
 
 
-            title === query ? 4 : // course title equals query
-            begins_with_query_words.test(title) ? 3 : // course title begins with query as word(s)
-            includes_query_words.test(title) ? 2 : // course title includes query, as word(s)
+            title === query ? 5 : // course title equals query
+            begins_with_query_words.test(title) ? 4 : // course title begins with query as word(s)
+            includes_query_words.test(title) ? 3 : // course title includes query, as word(s)
+            title.startsWith(query) ? 2 :
             title.indexOf(query) !== -1 ? 1 : // course title includes query
             0,
 
 
+            // query_is_course_num ? 0 :
+
             subject_long === query ? 7 : // long subject equals query
 
             // long subject contained in query
-            begins_with_long_subject_words.test(query) ? 6 : // query begins with long subject words
-            includes_long_subject_words.test(query) ? 5 : // query contains long subject words
+            course.begins_with_long_subject_words_regex.test(query) ? 6 : // query begins with long subject words
+            course.includes_long_subject_words_regex.test(query) ? 5 : // query contains long subject words
             query.indexOf(subject_long) !== -1 ? 4 : // query contains long subject
 
             // query in contained in long subject
@@ -103,10 +100,146 @@ function getSearchRankingFunction(query) {
             0,
 
 
-            begins_with_subject_words.test(query) ? 2 :
-            includes_subject_words.test(query) ? 1 : 0
+            course.begins_with_subject_words_regex.test(query) ? 2 :
+            course.includes_subject_words_regex.test(query) ? 1 : 0,
+
+
+            query_is_course_num ? (is_corrected_coursenum_regex.test(course.course_num) ? 1 : 0) : 0,
+
+            0
         ];
+
+
+        if (! query_is_course_num) { // not course num type query
+            score[5] = mySimilarity(query, title)
+        } else if (query_subject === course.subject) {
+            score[5] = mySimilarity(query, course.course_num)
+        }
+
+        return score;
     };
+}
+
+function getCorrectCourseNum(query, term) {
+    const course_num_match = course_num_regex.exec(query);
+    if (course_num_match) {
+        let subject = course_num_match[1];
+        if (! (subject in models.short_subject_to_long_subject[term])) {
+            if (subject in models.long_subject_to_short_subject[term]) {
+                subject = models.long_subject_to_short_subject[term][subject];
+            } else {
+                return false;
+            }
+        }
+        const before_num = course_num_match[2];
+        let num = course_num_match[3];
+        num = before_num === '' ? `0*${num}` : num;
+        const after_num = course_num_match[4];
+        return {
+            subject: subject,
+            regex: new RegExp(`^${subject}-${before_num}${num}${after_num}.*`)
+        };
+    }
+    const course_num_match_2 = course_num_regex_2.exec(query);
+    if (course_num_match_2) {
+        let subject = course_num_match_2[1];
+        if (! (subject in models.short_subject_to_long_subject[term])) {
+            if (subject in models.long_subject_to_short_subject[term]) {
+                subject = models.long_subject_to_short_subject[term][subject];
+            } else {
+                return false;
+            }
+        }
+        return {
+            subject: subject,
+            regex: new RegExp(`^${subject}-${course_num_match_2[2]}`)
+        };
+    }
+    return false;
+}
+
+const splitter_regex = /[\s/&,.:-]+|(?<=[A-Za-z])(?=\d)/;
+
+function mySimilarity(a, b) {
+    var aList = a.split(splitter_regex)
+    var bList = b.split(splitter_regex)
+
+    var score = aList.reduce(function(currVal, wordA) {
+        var maximum = 0;
+        for (var i = 0; i < bList.length; i++) {
+            var sim = myWordSimilarity(wordA, bList[i]);
+            if (sim > maximum)
+                maximum = sim;
+        }
+        return currVal + maximum;
+    }, 0) / aList.length;
+
+    return score > 0.7 ? score : 0;
+}
+
+function myWordSimilarity(a, b) {
+    var minLength = Math.min(a.length, b.length)
+    var maxLeft = 0
+    while (maxLeft < minLength && a[maxLeft] === b[maxLeft])
+        maxLeft++;
+    var maxRight = 0
+    while (maxRight < minLength - maxLeft && a[a.length - 1 - maxRight] === b[b.length - 1 - maxRight])
+        maxRight++;
+
+    if (maxLeft > maxRight) {
+        return maxLeft / (a.length + b.length) + 0.5;
+    } else {
+        return maxRight / (a.length + b.length);
+    }
+}
+
+// function myWordSimilarity(a, b) {
+//     var [length, [start_a, end_a], [start_b, end_b]] = longestCommonSubstringPositions(a, b);
+//
+//     var both_start_at_beginning = start_a === 0 && start_b === 0;
+//     var both_end_at_end = end_a === a.length && end_b === b.length;
+//
+//     if (both_start_at_beginning) {
+//         return length / (a.length + b.length) + 0.5;
+//     } else if (both_end_at_end) {
+//         return length / (a.length + b.length);
+//     } else {
+//         return length / (a.length + b.length);
+//     }
+// }
+
+
+function longestCommonSubstringPositions(X, Y) {
+    var m = X.length
+    var n = Y.length
+
+    var lCSuff = new Array(m+1);
+
+    for (var i = 0; i < lCSuff.length; i++) {
+        lCSuff[i] = new Array(n+1);
+    }
+
+    var length = 0;
+    var x_end = -1;
+    var y_end = -1;
+
+    for (var i = 0; i <= m; i++) {
+        for (var j = 0; j <= n; j++) {
+            if (i === 0 || j === 0) {
+                lCSuff[i][j] = 0;
+            } else if (X[i-1] === Y[j-1]) {
+                lCSuff[i][j] = lCSuff[i-1][j-1] + 1
+                if (lCSuff[i][j] > length) {
+                    length = lCSuff[i][j]
+                    x_end = i;
+                    y_end = j;
+                }
+            } else {
+                lCSuff[i][j] = 0;
+            }
+        }
+    }
+    return [length, [x_end - length, x_end], [y_end - length, y_end]]
 }
 
 function course_object_to_period_group(course, exclude_classes_with_no_days, accepted_statuses, cache, give_ids, section_accept_function, term) {
