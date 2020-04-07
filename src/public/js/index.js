@@ -119,12 +119,12 @@ function getSearchBoxContents() {
     return document.getElementById('search_bar').value.trim();
 }
 
-var getSearchResults = function(clearResultsIfNoResults) {
+var getSearchResults = function(clearResultsIfNoResults, refresh) {
     var searchTerm = getSearchBoxContents();
-    if (searchTerm === latestSearchTerm || searchTerm.length === 0)
+    if (!refresh && (searchTerm === latestSearchTerm || searchTerm.length === 0))
         return;
     latestSearchTerm = searchTerm;
-    if (searchTerm === latestSearchTermWithResults)
+    if (!refresh && searchTerm === latestSearchTermWithResults)
         return;
     $.ajax({
         url: `/search?query=${searchTerm}&term=${document.getElementById('term-select').value}`
@@ -246,13 +246,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     resultsDiv = document.getElementById('results');
     $("#search_bar").on('input', function() {
-        getSearchResults(false);
+        getSearchResults(true, false);
     });
 
     $('#term-select').change(function() {
         my_courses_ids = new Set();
         update_courses_display();
-        getSearchResults(true);
+        getSearchResults(true, true);
         console.log(document.getElementById('term-select').value);
         setItem("term", document.getElementById('term-select').value);
     });
