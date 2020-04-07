@@ -209,6 +209,24 @@ function isOpera() {
 // https://github.com/kaimallea/isMobile
 (function () {var a={};var g=/iPhone/i,p=/iPod/i,i=/iPad/i,f=/\bAndroid(?:.+)Mobile\b/i,h=/Android/i,d=/(?:SD4930UR|\bSilk(?:.+)Mobile\b)/i,e=/Silk/i,c=/Windows Phone/i,j=/\bWindows(?:.+)ARM\b/i,k=/BlackBerry/i,l=/BB10/i,m=/Opera Mini/i,n=/\b(CriOS|Chrome)(?:.+)Mobile/i,o=/Mobile(?:.+)Firefox\b/i;function b($,a){return $.test(a)}function q($){var a=($=$||("undefined"!=typeof navigator?navigator.userAgent:"")).split("[FBAN");void 0!==a[1]&&($=a[0]),void 0!==(a=$.split("Twitter"))[1]&&($=a[0]);var r={apple:{phone:b(g,$)&&!b(c,$),ipod:b(p,$),tablet:!b(g,$)&&b(i,$)&&!b(c,$),device:(b(g,$)||b(p,$)||b(i,$))&&!b(c,$)},amazon:{phone:b(d,$),tablet:!b(d,$)&&b(e,$),device:b(d,$)||b(e,$)},android:{phone:!b(c,$)&&b(d,$)||!b(c,$)&&b(f,$),tablet:!b(c,$)&&!b(d,$)&&!b(f,$)&&(b(e,$)||b(h,$)),device:!b(c,$)&&(b(d,$)||b(e,$)||b(f,$)||b(h,$))||b(/\bokhttp\b/i,$)},windows:{phone:b(c,$),tablet:b(j,$),device:b(c,$)||b(j,$)},other:{blackberry:b(k,$),blackberry10:b(l,$),opera:b(m,$),firefox:b(o,$),chrome:b(n,$),device:b(k,$)||b(l,$)||b(m,$)||b(o,$)||b(n,$)},any:!1,phone:!1,tablet:!1};return r.any=r.apple.device||r.android.device||r.windows.device||r.other.device,r.phone=r.apple.phone||r.android.phone||r.windows.phone,r.tablet=r.apple.tablet||r.android.tablet||r.windows.tablet,r}a=q();if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=a}else if(typeof define==="function"&&define.amd){define(function(){return a})}else{this["isMobile"]=a}})();
 
+// https://stackoverflow.com/a/38080051/9911203
+navigator.browserSpecs = (function(){
+    var ua = navigator.userAgent, tem,
+        M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+    if(/trident/i.test(M[1])){
+        tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
+        return {name:'IE',version:(tem[1] || '')};
+    }
+    if(M[1]=== 'Chrome'){
+        tem = ua.match(/\b(OPR|Edge)\/(\d+)/);
+        if(tem != null) return {name:tem[1].replace('OPR', 'Opera'),version:tem[2]};
+    }
+    M = M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+    if((tem = ua.match(/version\/(\d+)/i))!= null)
+        M.splice(1, 1, tem[1]);
+    return {name:M[0], version:M[1]};
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
     if (!window.hasUserscript) {
         window.hasUserscript = false;
@@ -241,13 +259,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
             var userscriptLink = '<a href="https://openuserjs.org/scripts/71c/Tufts_Course_Scheduler_Auto-Sign-Up" target="_blank" rel="noopener noreferrer">userscript</a>';
             nouserscript.innerHTML = isOpera() ?
-            '<br>To add these sections to your cart, you need to get the Tampermonkey extension and install the userscript. <br><br>It looks like you\'re using <b>Opera</b>; it is not as easy as in Chrome and Firefox to get Tampermonkey and the userscript running in Opera but if you want to you can follow these steps: <ol><li>Install the <a href="https://addons.opera.com/en/extensions/details/install-chrome-extensions/" rel="external noreferrer noopener nofollow" target="_blank">Opera Add-on for Installing Chrome Extensions</a><li><b>Install Tampermonkey BETA.</b> It seems that Opera blacklisted Tampermonkey so you can\'t use regular Tampermonkey but you can <a href="https://chrome.google.com/webstore/detail/tampermonkey-beta/gcalenpjmijncebpfijmoaglllgpjagf" target="_blank" rel="external noopener noreferrer nofollow">get Tampermonkey BETA here</a> which does work.<li><b>Get the userscript.</b><ol><li>Go to the Tampermonkey dashboard<li>Go to the Utilities tab<li>type <span class="text-monospace">https://openuserjs.org/install/71c/Tufts_Course_Scheduler_Auto-Sign-Up.user.js</span> into the input next to where it says "Install from URL" and click "install".<li>Click "install".</ol></ol>'
+`<br>To add these sections to your cart, you need to get the Tampermonkey extension and install the userscript. <br><br>
+It looks like you\'re using <b>Opera</b>; it is not as easy as in Chrome and Firefox to get Tampermonkey and the userscript running in Opera but if you want to you can follow these steps:
+<ol><li>Install the <a href="https://addons.opera.com/en/extensions/details/install-chrome-extensions/" rel="external noreferrer noopener nofollow" target="_blank">Opera Add-on for Installing Chrome Extensions</a>
+<li><b>Install Tampermonkey BETA.</b> It seems that Opera blacklisted Tampermonkey so you can\'t use regular Tampermonkey but you can <a href="https://chrome.google.com/webstore/detail/tampermonkey-beta/gcalenpjmijncebpfijmoaglllgpjagf" target="_blank" rel="external noopener noreferrer nofollow">get Tampermonkey BETA here</a> which does work.
+<li><b>Get the userscript.</b>
+<ol><li>Go to the Tampermonkey dashboard
+<li>Go to the Utilities tab
+<li>type <span class="text-monospace">https://openuserjs.org/install/71c/Tufts_Course_Scheduler_Auto-Sign-Up.user.js</span> into the input next to where it says "Install from URL" and click "install".
+<li>Click "install".</ol></ol>`
             : isChrome() ?
             'Automatically add these sections to your cart by getting the <a href="https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank" rel="noopener noreferrer">Tampermonkey</a> extension and installing the ' + userscriptLink + '.'
             : isFirefox() ?
             'Automatically add these sections to your cart by getting the <a href="https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/" target="_blank" rel="noopener noreferrer">Tampermonkey</a> extension and installing the ' + userscriptLink + '.'
             : isSafari() ?
-            '<br>Automatically add these sections to your cart by getting the Tampermonkey extension and installing the ' + userscriptLink + '.<br><br> It looks like you\'re using Safari, and I don\'t think you can get Tampermonkey for Safari now: <a href="https://openuserjs.org/about/Tampermonkey-for-Safari" rel="noopener noreferrer nofollow" target="_blank">See here</a><br>You can get Tampermonkey in <b>Chrome</b> and <b>Firefox</b> though. Switch to one of these browsers.'
+`<br>To be able to automatically add these sections to your cart,
+<ol>
+<li><a href="https://www.tampermonkey.net/?browser=safari" target="_blank" rel="external noopener noreferrer nofollow">Download the Tampermonkey extension${isNaN(parseInt(navigator.browserSpecs.version, 10)) ? '' : navigator.browserSpecs.version < 13 ? ' for Safari 6-12' : ' for Safari 12+'}</a></li>
+<li>Install the ${userscriptLink}</li>
+</ol>`
             : isEdge() ?
             'Automatically add these sections to your cart by getting the <a href="https://www.microsoft.com/store/apps/9NBLGGH5162S" target="_blank" rel="noopener noreferrer nofollow">Tampermonkey</a> extension and installing the ' + userscriptLink + '.'
             : isMobile.any ?
