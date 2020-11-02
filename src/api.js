@@ -44,7 +44,7 @@ function get_search_results(query, term) {
     if (hasAnyCoursenums)
         sortedCourses = sortedCourses.filter(x => x.score[0] === 2);
     sortedCourses.sort((a, b) => default_compare(b.score, a.score));
-    // console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(0,10));
+    console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(0,30));
     // console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(sortedCourses.length-10));
     // console.log(sortedCourses.length, models.courses[term].length)
     return sortedCourses.map(x => x.course);
@@ -53,7 +53,8 @@ function get_search_results(query, term) {
 function getSearchRankingFunction(query, term) {
     const escapedQuery = escapeRegExp(query);
     const includes_query_words = new RegExp(`\\b${escapedQuery}\\b`, 'i');
-    const begins_with_query_words = new RegExp(`^${escapedQuery}\\b`, 'i');
+    const begins_with_query_words = new RegExp(`(^|: )${escapedQuery}\\b`, 'i');
+    const ends_with_query_words = new RegExp(`\\b${escapedQuery}$`, 'i');
     const query_is_course_num = getCorrectCourseNum(query, term);
     if (query_is_course_num) {
         var is_corrected_coursenum_regex = query_is_course_num.regex;
@@ -76,8 +77,9 @@ function getSearchRankingFunction(query, term) {
             0,
 
 
-            title === query ? 5 : // course title equals query
-            begins_with_query_words.test(title) ? 4 : // course title begins with query as word(s)
+            title === query ? 6 : // course title equals query
+            begins_with_query_words.test(title) ? 5 : // course title begins with query as word(s)
+            ends_with_query_words.test(title) ? 4 : // course title ends with query as word(s)
             includes_query_words.test(title) ? 3 : // course title includes query, as word(s)
             title.startsWith(query) ? 2 :
             title.indexOf(query) !== -1 ? 1 : // course title includes query
@@ -89,15 +91,16 @@ function getSearchRankingFunction(query, term) {
             subject_long === query ? 7 : // long subject equals query
 
             // long subject contained in query
-            course.begins_with_long_subject_words_regex.test(query) ? 6 : // query begins with long subject words
-            course.includes_long_subject_words_regex.test(query) ? 5 : // query contains long subject words
-            query.indexOf(subject_long) !== -1 ? 4 : // query contains long subject
+            course.begins_with_long_subject_words_regex.test(query) ? 7 : // query begins with long subject words
+            course.includes_long_subject_words_regex.test(query) ? 6 : // query contains long subject words
+            query.indexOf(subject_long) !== -1 ? 5 : // query contains long subject
 
             // query in contained in long subject
-            begins_with_query_words.test(subject_long) ? 3 : // long subject begins with query words
-            includes_query_words.test(subject_long) ? 2 : // long subject includes with query words
+            begins_with_query_words.test(subject_long) ? 4 : // long subject begins with query words
+            includes_query_words.test(subject_long) ? 3 : // long subject includes with query words
+            subject_long.indexOf(query) === 0 ? 2 : // long subject starts with query
             subject_long.indexOf(query) !== -1 ? 1 : // long subject includes query
-            0,
+            mySimilarity(query, subject_long),
 
 
             course.begins_with_subject_words_regex.test(query) ? 2 :
@@ -108,7 +111,6 @@ function getSearchRankingFunction(query, term) {
 
             0
         ];
-
 
         if (! query_is_course_num) { // not course num type query
             score[5] = mySimilarity(query, title)
