@@ -17,7 +17,9 @@ const EVENING_BIAS = 0.429; // eveningness score when time = EVENING_CLASS_THRES
 
 // maximum time between two classes such that those classes are considered consecutive
 // (though the scoring function gives no points for gaps of this length)
-const MAX_SHORT_GAP_TIME = 60;
+const SHORT_GAP_TIME_THRESHOLD = 100;
+const SHORT_GAP_TIME_BIAS = 33/206;
+const SHORT_GAP_TIME_SLOPE = 1/133;
 // this number is always multiplied by the consecutiveness score to compensate for it being too low compared to other values
 const CONSECUTIVENESS_WEIGHT = 2.0;
 
@@ -53,7 +55,7 @@ function get_mean_mad(periods, time_range) {
         (a) For each point in time in an interval of the day that contains all the classes in a schedule, find
         whether a class meets at that time for all the days that ever have classes in the schedule (usually M-F).
         For a given point in time, for each day that there are ever classes in the schedule, represent whether any
-        classes meet at that time with a 1 or a 0, with 1 meaning there is a class and 0 meaning there is no class. 
+        classes meet at that time with a 1 or a 0, with 1 meaning there is a class and 0 meaning there is no class.
         For example, if
             1. the schedule in question has classes that meet on Monday, Tuesday, Wednesday, and Friday,
             2. the time to check is 12:00, and a class happens at 12:00 on Mondays and Wednesdays
@@ -90,7 +92,7 @@ function get_mean_mad(periods, time_range) {
     start_and_end_times.sort((a, b) => a.time < b.time ? -1 : a.time > b.time ? 1 : 0);
     // number of days
     const n = days_set.size;
-    
+
     const beginning_time = start_and_end_times[0].time;
     var current_time = beginning_time;
     var n_classes_at_once = 1;
@@ -154,10 +156,10 @@ function get_schedule_by_day(schedule, term) {
 
 function get_score(schedule, term, weights) {
     const schedule_by_day = get_schedule_by_day(schedule, term);
-    
+
     let morningness = 0;
     let eveningness = 0;
-    
+
     // let total_class_time = 0;
 
     for (const day in schedule_by_day) {
@@ -180,13 +182,12 @@ function get_score(schedule, term, weights) {
         // day_lengths[day] = day_periods[day_periods.length - 1].end - day_periods[0].start;
         for (let i = 0; i < day_periods.length - 1; i++) {
             const gap_time = day_periods[i + 1].start - day_periods[i].end;
-            if (gap_time <= MAX_SHORT_GAP_TIME) {
+            if (gap_time <= SHORT_GAP_TIME_THRESHOLD) {
                 // total_consecutiveness += 1 - gap_time / MAX_SHORT_GAP_TIME;
-                // total_consecutiveness += MAX_SHORT_GAP_TIME - gap_time;
-                total_consecutiveness += 1 - gap_time / MAX_SHORT_GAP_TIME;
+                total_consecutiveness += SHORT_GAP_TIME_SLOPE * (SHORT_GAP_TIME_THRESHOLD - gap_time) + SHORT_GAP_TIME_BIAS;
             }
             if (gap_time <= MAX_TOO_SHORT_GAP_TIME) {
-                total_too_short_gapness += 1 - gap_time / MAX_SHORT_GAP_TIME;
+                total_too_short_gapness += 1;
             }
         }
     }
