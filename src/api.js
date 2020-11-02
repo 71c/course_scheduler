@@ -44,7 +44,7 @@ function get_search_results(query, term) {
     if (hasAnyCoursenums)
         sortedCourses = sortedCourses.filter(x => x.score[0] === 2);
     sortedCourses.sort((a, b) => default_compare(b.score, a.score));
-    console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(0,30));
+    // console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(0,30));
     // console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(sortedCourses.length-10));
     // console.log(sortedCourses.length, models.courses[term].length)
     return sortedCourses.map(x => x.course);
