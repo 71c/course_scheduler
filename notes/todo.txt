@@ -8,3 +8,5 @@ To Do & Potential Features:
 - make the data perisistent (not on the server)
 - improve search
 - debug userscript
+- show additional info about classes in search page, e.g. number of shus
+- bug: when i reload schedule webpage and i have tampermonkey thing, it thinks i don't have it

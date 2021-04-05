@@ -13,6 +13,7 @@ const express = require('express');
 
 const app = express();
 
+if (app.get('env') === 'production') {
 var session = require('express-session');
 var pgSession = require('connect-pg-simple')(session);
 var sess = {
@@ -25,16 +26,15 @@ var sess = {
     pruneSessionInterval: false
   }),
 }
-if (app.get('env') === 'production') {
-  app.set('trust proxy', 1) // trust first proxy
-  sess.cookie.secure = true // serve secure cookies
-}
+app.set('trust proxy', 1) // trust first proxy
+sess.cookie.secure = true // serve secure cookies
 app.use(session(sess))
 app.use(function (req, res, next) {
     // test
     console.log(req.sessionID, req.headers['x-forwarded-for'] || req.connection.remoteAddress)
     next()
 })
+}
 
 
 const PORT = process.env.PORT || 5000;
@@ -226,7 +226,7 @@ function startServer() {
     });
 
     app.get('/tell-if-mobile', function(req, res) {
-        console.log(req.query.ismobile, req.sessionID, req.headers['x-forwarded-for'] || req.connection.remoteAddress)
+        console.log('is mobile:', req.query.ismobile, req.sessionID, req.headers['x-forwarded-for'] || req.connection.remoteAddress)
         res.send('')
     });
 
