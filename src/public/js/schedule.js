@@ -286,8 +286,12 @@ It looks like you\'re using <b>Opera</b>; it is not as easy as in Chrome and Fir
 
             var b = document.createElement('b')
             b.innerText = 'To automatically sign up on SIS with a script:';
-            left.appendChild(b);
-            left.appendChild(nouserscript);
+
+            var e = document.createElement("div");
+            e.id = "no-userscript";
+            e.appendChild(b);
+            e.appendChild(nouserscript);
+            left.appendChild(e);
         }
 
         $(window).resize(resizeHeading);

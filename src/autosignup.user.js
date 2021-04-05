@@ -22,6 +22,7 @@
 
 'use strict';
 
+
 // http://mths.be/unsafewindow
 window.unsafeWindow || (
     unsafeWindow = (function() {
@@ -32,6 +33,20 @@ window.unsafeWindow || (
 );
 
 var jQuery;
+
+
+if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.origin === "https://siscs.uit.tufts.edu") {
+    // we're at one of the SIS sites
+    document.addEventListener('DOMContentLoaded', function() {
+        jQuery = unsafeWindow.jQuery;
+        whenOnSIS();
+    });
+} else {
+    // we're at my website
+    unsafeWindow.hasUserscript = true;
+    
+    document.addEventListener('startUserscript', whenOnMyWebsite);
+}
 
 const getEnrollmentCartURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/PSFT_SA/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_GoToCart";
 const baseURL = "https://sis.uit.tufts.edu/psp/paprd/EMPLOYEE/EMPL/h/";
@@ -274,6 +289,11 @@ function whenOnMyWebsite() {
     const left = document.getElementById('left');
     // left.appendChild(scriptBox);
 
+    let e = document.getElementById("no-userscript");
+    if (e !== null) {
+        e.remove();
+    }
+
     const setClassesButton = document.createElement('button');
     setClassesButton.className = "btn btn-primary mr-2";
     setClassesButton.innerHTML = 'replace cart with these';
@@ -329,14 +349,4 @@ function whenOnMyWebsite() {
     }
 }
 
-if (window.location.origin === "https://sis.uit.tufts.edu" || window.location.origin === "https://siscs.uit.tufts.edu") {
-    // we're at one of the SIS sites
-    document.addEventListener('DOMContentLoaded', function() {
-        jQuery = unsafeWindow.jQuery;
-        whenOnSIS();
-    });
-} else {
-    // we're at my website
-    unsafeWindow.hasUserscript = true;
-    document.addEventListener('startUserscript', whenOnMyWebsite);
-}
+
