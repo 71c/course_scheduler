@@ -13,28 +13,28 @@ const express = require('express');
 
 const app = express();
 
+// To keep track of usage
 // if (app.get('env') === 'production') {
-var session = require('express-session');
-var pgSession = require('connect-pg-simple')(session);
-var sess = {
-  secret: 'keyboard cat',
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false, maxAge: null },
-  store: new pgSession({
-    conString: process.env.DATABASE_URL || 'postgresql://localhost/tuftscoursescheduler',
-    pruneSessionInterval: false
-  }),
-  secure: true
-}
-app.set('trust proxy', 1) // trust first proxy
-sess.cookie.secure = true // serve secure cookies
-app.use(session(sess))
-app.use(function (req, res, next) {
-    // test
-    console.log(req.sessionID, req.headers['x-forwarded-for'] || req.socket.remoteAddress)
-    next()
-})
+// var session = require('express-session');
+// var pgSession = require('connect-pg-simple')(session);
+// var sess = {
+//   secret: 'keyboard cat',
+//   resave: false,
+//   saveUninitialized: true,
+//   cookie: { secure: false, maxAge: null },
+//   store: new pgSession({
+//     conString: process.env.DATABASE_URL || 'postgresql://localhost/tuftscoursescheduler',
+//     pruneSessionInterval: false
+//   })
+// }
+// app.set('trust proxy', 1) // trust first proxy
+// sess.cookie.secure = true // serve secure cookies
+// app.use(session(sess))
+// // app.use(function (req, res, next) {
+// //     // test
+// //     console.log(req.sessionID, req.headers['x-forwarded-for'] || req.socket.remoteAddress)
+// //     next()
+// // })
 // }
 
 
