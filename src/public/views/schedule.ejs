@@ -56,6 +56,7 @@
                 <h3 id="heading"><%= n_possibilities %> Schedule<%= n_possibilities==1?"":"s" %> Generated</h3>
                 <% if (k < n_possibilities) { %><div>(Showing first <%= k %>)</div><% } %>
                 <% if (n_possibilities !== 0) { %><div class="hide-in-small-screen"><h5>Sections:</h5><table id="sections-table"></table></div><% } %>
+                <% if (n_possibilities === 0) { %><div>There are no possible schedules of all your selected classes without conflicts. Try removing a class.</div><% } %>
             </div>
             <div id="right">
                 <div id="calendar"></div>
