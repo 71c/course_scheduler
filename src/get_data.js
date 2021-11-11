@@ -1,6 +1,7 @@
 const request = require('request').defaults({jar: true});
 const fs = require('fs');
 const models = require('./models');
+const assert = require('assert').strict;
 
 const GET_SESSION_URL = 'https://sis.uit.tufts.edu/psc/paprd/EMPLOYEE/EMPL/s/WEBLIB_TFP_PG.ISCRIPT2.FieldFormula.IScript_AutoLogOut';
 const SEARCH_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getSearchresultsAll3';
@@ -13,7 +14,7 @@ const get_courses_path = term => `${COURSES_DATA_DIR}/courses_${term}.json`;
 const get_subjects_path = term => `${COURSES_DATA_DIR}/subjects_${term}.json`;
 const TERMS_PATH = `${COURSES_DATA_DIR}/terms.json`;
 
-const {all} = require('./utils');
+const {all, allEqual} = require('./utils');
 
 if (!fs.existsSync(COURSES_DATA_DIR)) {
     fs.mkdirSync(COURSES_DATA_DIR);
@@ -35,21 +36,60 @@ function get_course_subjects_url(term, career='ALL') {
     return `${COURSE_SUBJECTS_URL}?term=${get_term_number(term)}&career=${career}`;
 }
 
+
+
+function intersection(arrs) {
+    assert(arrs.length >= 1);
+    if (arrs.length === 1) return arrs[0];
+
+    const ret = [];
+    const others = arrs.slice(1);
+    for (const item of arrs[0]) {
+        if (others.every(a => a.includes(item))) {
+            ret.push(item);
+        }
+    }
+    return ret;
+}
+
+function union(arrs) {
+    assert(arrs.length >= 1);
+    if (arrs.length === 1) return arrs[0];
+
+    const ret = [];
+    for (const arr of arrs) {
+        for (const item of arr) {
+            if (!ret.includes(item))
+                ret.push(item);
+        }
+    }
+    return ret;
+}
+
 function save_data(term, courses, subjects_short_to_long) {
     models.reset(term);
     const subject_finder = /^[A-Z]+/;
     for (const course_data of courses) {
         const subject = subject_finder.exec(course_data.course_num)[0];
         const subject_long = subjects_short_to_long[subject] || subject;
+
+        // Make a course
         const course = new models.Course(course_data.course_num, subject,
             subject_long, course_data.course_title, course_data.desc_long, term);
+        
+        // Add all its sections
         for (const section of course_data.sections) {
             const comp_desc = section.comp_desc;
             for (const component_data of section.components) {
                 const component_short = component_data.ssr_comp;
                 const section = new models.Section(component_data.class_num,
                     component_data.section_num, component_data.assoc_class,
-                    comp_desc, component_short, component_data.status, term);
+                    comp_desc, component_short, component_data.status, term,
+                    component_data.class_attr, component_data.unit_min);
+                // if (component_data.unit_selected !== component_data.unit_min) {
+                //     assert(component_data.unit_selected === "");
+                // }
+                // assert(typeof component_data.unit_min === "number");
                 add_periods(section, component_data);
                 // sort section's periods by start time
                 section.periods.sort((a, b) => a.start < b.start ? -1 : a.start > b.start ? 1 : 0);
@@ -57,6 +97,23 @@ function save_data(term, courses, subjects_short_to_long) {
                 models.sections[term].push(section);
             }
         }
+
+        const section_class_attrs = course.sections.map(section => section.class_attr);
+        const section_class_attrs_strings = section_class_attrs.map(x => x.join('|'));
+        if (section_class_attrs.length === 0) {
+            course.class_attr = [];
+        } else {
+            if (allEqual(section_class_attrs_strings)) {
+                course.class_attr = section_class_attrs[0];
+            } else {
+                course.class_attr = {
+                    intersection: intersection(section_class_attrs),
+                    union: union(section_class_attrs)
+                };
+            }
+        }
+
+        // Add the course to a list of all the courses
         models.courses[term].push(course);
     }
 

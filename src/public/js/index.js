@@ -85,6 +85,19 @@ var renderSearchResults = function(res, clearResultsIfNoResults) {
 }
 
 function getCourseResultHTML(course) {
+    const class_attr = course.class_attr;
+
+    function attributesArrToString(attrs) {
+        if (attrs.length === 0) return "None";
+        if (attrs.length === 1 && attrs[0] === "") {
+            return "None";
+        }
+        return attrs.join(", ");
+    }
+    const class_attr_text = class_attr instanceof Array ?
+            `<span class="font-weight-bold">Attributes:</span> ${attributesArrToString(class_attr)}` :
+            `<span class="font-weight-bold">Attributes:</span> <span class="font-weight-bold">Union:</span> ${attributesArrToString(class_attr.union)}, <span class="font-weight-bold">Intersection:</span> ${attributesArrToString(class_attr.intersection)}`
+
     // The onmousedown="event.preventDefault()" part prevents the buttons from staying focused https://stackoverflow.com/a/45851915
     return`<div class="card">
     <div class="card-header d-flex py-0" role="tab" id="header${course.id}">
@@ -95,6 +108,7 @@ function getCourseResultHTML(course) {
     <div class="card-body">
         <!-- <h5 class="card-title">${course.title}</h5> -->
         <p class="card-text">${course.desc_long?course.desc_long:"[No course description]"}</p>
+        <p class="card-text"> ${class_attr_text}</p>
     </div>
     </div>
     </div>`;

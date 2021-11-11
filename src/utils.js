@@ -33,6 +33,12 @@ function groupBy(items, groupFunction) {
     return [...map.values()];
 }
 
+function allEqual(arr) {
+    if (arr.length === 0) return true;
+    const item = arr[0];
+    return arr.every(x => x === item);
+}
+
 function* combinations(pool, r) {
     var n = pool.length;
     if (r > n)
@@ -104,4 +110,4 @@ function get_class_options(spec) {
 // const options = get_class_options(spec)
 // console.log(options)
 
-module.exports = {all, groupBy, get_class_options};
+module.exports = {all, groupBy, get_class_options, allEqual};

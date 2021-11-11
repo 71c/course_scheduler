@@ -51,7 +51,7 @@ class Course {
 Course.currIds = {};
 
 class Section {
-    constructor(class_num, section_num, assoc_class, component, component_short, status, term, periods=[]) {
+    constructor(class_num, section_num, assoc_class, component, component_short, status, term, class_attr, SHUs, periods=[]) {
         this.id = Section.currIds[term]++;
         this.class_num = class_num;
         this.section_num = section_num;
@@ -62,6 +62,8 @@ class Section {
         this.periods = periods;
         this.term = term;
         this.instructors = [];
+        this.class_attr = class_attr.split('|');
+        this.SHUs = SHUs;
     }
 
     add_period(day, start_minutes, end_minutes, instructor) {

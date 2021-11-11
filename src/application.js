@@ -105,7 +105,7 @@ function toc(name) {
     return dt;
 }
 
-const {all, groupBy} = require('./utils');
+const {all, groupBy, allEqual} = require('./utils');
 
 
 tic('load the data');
@@ -117,7 +117,7 @@ all([
             console.log("Done loading the data");
             resolve(vals);
         }, reject,
-        false // whether to refresh terms
+        true // whether to refresh terms
         );
     },
     function(resolve, reject) {
@@ -128,6 +128,60 @@ all([
         }, reject);
     }
 ], function() {
+    // console.log(Object.keys(models.sections));
+
+    // models.sections['Spring 2022'] // type: Array
+
+    // console.log(models.courses['Spring 2022'] instanceof Array);
+    // console.log(models.courses['Spring 2022'].filter(x => x.course_num === 'CS-0170')[1])
+
+
+
+    //        Investigate whether class attributes are consistent
+    // function allEqual(arr, func) {
+    //     if (arr.length === 0) return true;
+    //     const item = arr[0];
+    //     return arr.every(x => x === item);
+    // }
+    // for (const course of models.courses['Spring 2022']) {
+    //     if (! allEqual(course.sections.map(sec => sec.class_attr))) {
+    //         console.log(course);
+    //     }
+    // }
+
+
+    //      Verify that class_attr is ALWAYS already sorted alphabetically
+    // function arraysEqual(arr1, arr2) {
+    //     if (arr1.length !== arr2.length) return false;
+    //     for (let i = 0; i < arr1.length; i++) {
+    //         if (arr1[i] !== arr2[i])
+    //             return false;
+    //     }
+    //     return true;
+    // }
+    // for (const year of Object.keys(models.sections)) {
+    //     for (const section of models.sections[year]) {
+    //         const class_attr = section.class_attr;
+    //         const class_attr_sorted = [...class_attr];
+    //         class_attr_sorted.sort();
+    //         if (!arraysEqual(class_attr, class_attr_sorted)) {
+    //             console.log("NOT SORTED");
+    //         }
+    //     }
+    // }
+
+    // for (const year of Object.keys(models.courses)) {
+    //     for (const course of models.courses[year]) {
+    //         const sections = course.sections;
+    //         const sectionsByType = groupBy(sections, section => section.component_short);
+    //         const tmp = sectionsByType.map(x => x.map(y => y.SHUs));
+    //         if (!tmp.every(allEqual)) {
+    //             console.log(year, course.course_num, sectionsByType.map(x => [x[0].component_short, x.map(y => y.SHUs)]))
+    //         }
+    //     }
+    // }
+
+    
     startServer();
 
     // console.log(models.long_subject_to_short_subject)
@@ -221,7 +275,8 @@ function startServer() {
                 course_num: course.course_num,
                 title: course.title,
                 desc_long: course.desc_long,
-                id: course.id
+                id: course.id,
+                class_attr: course.class_attr
         }));
         res.send(search_results_json);
     });
