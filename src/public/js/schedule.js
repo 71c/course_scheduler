@@ -30,6 +30,7 @@ var sectionSelectDiv;
 
 var rankHolder;
 var scoreHolder;
+var SHUsHolder;
 
 function minutesToTimeString(minutes) {
     var minutePart = minutes % 60;
@@ -58,6 +59,7 @@ function newCalendar(element, events) {
         plugins: ['timeGrid'],
         header: {
             left: 'left,right',
+            center: '',
             right: ''
         },
         customButtons: {
@@ -96,7 +98,7 @@ function newCalendar(element, events) {
                 'data-toggle': 'tooltip',
                 'data-placement': 'bottom',
                 'data-html': true,
-                'title': `${info.event.extendedProps.course_title}<br>${info.event.extendedProps.timeString}<br>Instructor: ${info.event.extendedProps.instructor}<br>Status: ${info.event.extendedProps.status}`
+                'title': `${info.event.extendedProps.course_title}<br>${info.event.extendedProps.timeString}<br>Instructor: ${info.event.extendedProps.instructor}<br>Status: ${info.event.extendedProps.status}<br>SHUs: ${info.event.extendedProps.SHUs}`
             });
         },
         minTime: "07:00",
@@ -110,7 +112,7 @@ function makeSectionSelects() {
         sectionSelectDiv.removeChild(sectionSelectDiv.firstChild);
     var schedule = top_schedules[scheduleIndex].schedule;
     const firstRow = document.createElement("tr");
-    firstRow.innerHTML = '<th>Section Type</th><th>Section</th><th>Instructor(s)</th>';
+    firstRow.innerHTML = '<th>Section Type</th><th>Section</th><th>Instructor(s)</th><th>SHUs</th>';
     sectionSelectDiv.appendChild(firstRow);
     for (let i = 0; i < schedule.length; i++) {
         const current_course = courses[i];
@@ -132,6 +134,10 @@ function makeSectionSelects() {
             instructorCell.innerText = section.instructors.join(' & ');
             row.appendChild(instructorCell);
 
+            const SHUsCell = document.createElement("td");
+            SHUsCell.innerText = section.SHUs;
+            row.appendChild(SHUsCell);
+
             sectionSelectDiv.appendChild(row);
         }
     }
@@ -150,10 +156,12 @@ function setSchedule() {
     calendar.batchRendering(function() {
         for (const event of calendar.getEvents())
             event.remove();
+        let numSHUs = 0;
         for (let i = 0; i < schedule.length; i++) {
             const current_course = courses[i];
             for (const section_id of schedule[i]) {
                 const section = sections_by_id[section_id];
+                numSHUs += section.SHUs;
                 for (const period of section.periods) {
                     const date = dayToDate[period.day];
                     const startString = minutesToTimeString(period.start);
@@ -167,10 +175,12 @@ function setSchedule() {
                         timeString: `${minutesToTimeString12hr(period.start)} - ${minutesToTimeString12hr(period.end)}`,
                         instructor: period.instructor,
                         status: statusDict[section.status],
+                        SHUs: section.SHUs
                     });
                 }
             }
         }
+        SHUsHolder.innerHTML = `SHUs: ${numSHUs}`;
     });
     $('[data-toggle="tooltip"]').tooltip();
     scoreHolder.innerHTML = `Score: ${Math.round(top_schedules[scheduleIndex].score * 100) / 100}`;
@@ -238,13 +248,62 @@ document.addEventListener('DOMContentLoaded', function() {
 
         sectionSelectDiv = document.getElementById('sections-table');
 
-        scoreHolder = document.createElement('h5');
-        scoreHolder.style = "width: 120px;";
-        document.querySelector('.fc-right').appendChild(scoreHolder);
 
+//         var holder = document.createElement("div");
+//         holder.className = "row row-cols-auto";
+//         document.querySelector('.fc-center').appendChild(holder);
+
+// // /        var holder = document.querySelector('.fc-center');
+
+//         scoreHolder = document.createElement('h5');
+//         scoreHolder.style = "width: 120px;";
+//         document.querySelector('.fc-right').appendChild(scoreHolder);
+
+//         var rankDiv = document.createElement('span');
+//         rankDiv.className = "col-sm-6";
+//         rankHolder = document.createElement('h5');
+//         rankHolder.innerHTML = 'rank: 1';
+//         rankDiv.appendChild(rankHolder);
+//         holder.appendChild(rankDiv);
+
+//         var SHUsDiv = document.createElement('span');
+//         SHUsDiv.className = "col-sm-6";
+//         SHUsHolder = document.createElement('h5');
+//         SHUsDiv.appendChild(SHUsHolder);
+//         holder.appendChild(SHUsDiv);
+
+
+        var headerElt = document.querySelector(".fc-header-toolbar")
+        headerElt.className = "row";
+
+        document.querySelector(".fc-left").className = "col"; // L/R buttons
+
+
+        var SHUsDiv = document.querySelector(".fc-center");
+        SHUsDiv.className = "col text-center";
+
+        var rankDiv = document.querySelector(".fc-right");
+        rankDiv.className = "col text-center";
+        
         rankHolder = document.createElement('h5');
-        rankHolder.innerHTML = 'rank: 1';
-        document.querySelector('.fc-center').appendChild(rankHolder);
+        rankDiv.className = "col text-center";
+        rankDiv.appendChild(rankHolder);
+
+        scoreHolder = document.createElement('h5');
+        var scoreDiv = document.createElement('div');
+        scoreDiv.className = "col text-right";
+        scoreDiv.appendChild(scoreHolder);
+
+        SHUsHolder = document.createElement('h5');
+        SHUsDiv.appendChild(SHUsHolder);
+
+        headerElt.appendChild(scoreDiv);
+
+
+
+
+
+
 
         setSchedule();
         leftButton = document.querySelector('.fc-left-button');
