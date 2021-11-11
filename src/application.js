@@ -77,6 +77,9 @@ app.use(express.static('src/public/js', {
 app.use(express.static('src/public/css', {
     maxAge: process.env.NODE_ENV === 'production' ? threeHours : 0
 }));
+app.use(express.static('src/public/icons', {
+    maxAge: process.env.NODE_ENV === 'production' ? threeHours : 0
+}));
 app.use(express.static('src/public/vendor', {
     maxAge: oneYear
 }));
@@ -276,7 +279,8 @@ function startServer() {
                 title: course.title,
                 desc_long: course.desc_long,
                 id: course.id,
-                class_attr: course.class_attr
+                class_attr: course.class_attr,
+                sections: course.sections
         }));
         res.send(search_results_json);
     });

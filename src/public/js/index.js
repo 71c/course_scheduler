@@ -84,6 +84,31 @@ var renderSearchResults = function(res, clearResultsIfNoResults) {
     }
 }
 
+function groupBy(items, groupFunction) {
+    const map = {};
+    for (const item of items) {
+        const value = groupFunction(item);
+        if (value in map) {
+            map[value].push(item);
+        } else {
+            map[value] = [item];
+        }
+    }
+    return map;
+}
+
+function periodsToString(periods) {
+    const periodsFormatted = periods.map(period => ({
+        day: period.day,
+        timeString: minutesToTimeString12hr(period.start) + " - " + minutesToTimeString12hr(period.end)
+    }));
+    const periodsFormattedByTimeString = groupBy(periodsFormatted, period => period.timeString);
+    return Object.keys(periodsFormattedByTimeString).map(timeString =>
+            periodsFormattedByTimeString[timeString].map(period => period.day).join(", ")
+        + " " + timeString
+    ).join("<br>");
+}
+
 function getCourseResultHTML(course) {
     const class_attr = course.class_attr;
 
@@ -98,6 +123,54 @@ function getCourseResultHTML(course) {
             `<span class="font-weight-bold">Attributes:</span> ${attributesArrToString(class_attr)}` :
             `<span class="font-weight-bold">Attributes:</span> <span class="font-weight-bold">Union:</span> ${attributesArrToString(class_attr.union)}, <span class="font-weight-bold">Intersection:</span> ${attributesArrToString(class_attr.intersection)}`
 
+    let card_body = `<p class="card-text">${course.desc_long?course.desc_long:"[No course description]"}</p>
+                       <p class="card-text"> ${class_attr_text}</p>`;
+    
+    const sections_by_component = groupBy(course.sections, section => section.component_short);
+
+    for (const key of Object.keys(sections_by_component)) {
+        const sections = sections_by_component[key];
+        card_body += `<p class="font-weight-bold">${sections[0].component}</p>`;
+        card_body +=
+        `<table class="table">
+            <thead>
+                <tr>
+                    <td scope="col">Section</td>
+                    <td scope="col">Class No.</td>
+                    <td scope="col">Day, Times and Locations</td>
+                    <td scope="col">Faculty</td>
+                    <td scope="col">Credit</td>
+                    <td scope="col">Status</td>
+                </tr>
+            </thead>
+            <tbody>`;
+        
+        for (const section of sections) {
+            card_body +=
+            `<tr>
+                <td>${section.section_num}</td>
+                <td>${section.class_num}</td>
+                <td>${periodsToString(section.periods)}</td>
+                <td>${section.instructors.join(", ")}</td>
+                <td>${section.SHUs}</td>
+                <td>
+                ${
+                    section.status === "O" ? `<img src="/TFP_CLS_SRCH_KEY_OPEN_IMG_1.png" alt="open status image">` :
+                    section.status === "C" ? `<img src="/TFP_CLS_SRCH_KEY_CLOSED_IMG_1.png" alt="closed status image">` :
+                    section.status === "C" ? `<img src="/TFP_CLS_SRCH_KEY_WAITLIST_IMG_1.png" alt="waitlist status image">` :
+                    "?"
+                }
+                </td>
+            </tr>`;
+        }
+        card_body += `</tbody></table>`
+
+    
+    }
+
+    
+
+
     // The onmousedown="event.preventDefault()" part prevents the buttons from staying focused https://stackoverflow.com/a/45851915
     return`<div class="card">
     <div class="card-header d-flex py-0" role="tab" id="header${course.id}">
@@ -106,9 +179,7 @@ function getCourseResultHTML(course) {
     </div>
     <div class="collapse" aria-labelledby="header${course.id}" id="collapser${course.id}">
     <div class="card-body">
-        <!-- <h5 class="card-title">${course.title}</h5> -->
-        <p class="card-text">${course.desc_long?course.desc_long:"[No course description]"}</p>
-        <p class="card-text"> ${class_attr_text}</p>
+        ${card_body}
     </div>
     </div>
     </div>`;
