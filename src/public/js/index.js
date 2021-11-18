@@ -155,9 +155,9 @@ function getCourseResultHTML(course) {
                 <td>${section.SHUs}</td>
                 <td>
                 ${
-                    section.status === "O" ? `<img src="/TFP_CLS_SRCH_KEY_OPEN_IMG_1.png" alt="open status image">` :
-                    section.status === "C" ? `<img src="/TFP_CLS_SRCH_KEY_CLOSED_IMG_1.png" alt="closed status image">` :
-                    section.status === "W" ? `<img src="/TFP_CLS_SRCH_KEY_WAITLIST_IMG_1.png" alt="waitlist status image">` :
+                    section.status === "O" ? `<img src="/TFP_CLS_SRCH_KEY_OPEN_IMG_1.png" alt="open status image" title="open">` :
+                    section.status === "C" ? `<img src="/TFP_CLS_SRCH_KEY_CLOSED_IMG_1.png" alt="closed status image" title="closed">` :
+                    section.status === "W" ? `<img src="/TFP_CLS_SRCH_KEY_WAITLIST_IMG_1.png" alt="waitlist status image" title="waitlist">` :
                     section.status
                 }
                 </td>

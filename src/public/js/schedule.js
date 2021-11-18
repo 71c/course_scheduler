@@ -356,5 +356,13 @@ It looks like you\'re using <b>Opera</b>; it is not as easy as in Chrome and Fir
         $(window).resize(resizeHeading);
 
         document.dispatchEvent(new Event('startUserscript'));
+        // make extra sure that it works!
+        if (!hasUserscript) {
+            var interval = setInterval(function() {
+                if (hasUserscript) clearInterval(interval);
+                document.dispatchEvent(new Event('startUserscript'))
+            }, 500);
+        }
+        
     }
 });
