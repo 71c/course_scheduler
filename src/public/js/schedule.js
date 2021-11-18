@@ -361,7 +361,7 @@ It looks like you\'re using <b>Opera</b>; it is not as easy as in Chrome and Fir
             var interval = setInterval(function() {
                 if (hasUserscript) clearInterval(interval);
                 document.dispatchEvent(new Event('startUserscript'))
-            }, 500);
+            }, 42);
         }
         
     }
