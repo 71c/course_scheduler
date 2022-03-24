@@ -329,7 +329,7 @@ function get_top_schedules_list(course_ids, accepted_statuses, score_function, k
 
 function get_schedules(courses, accepted_statuses, section_accept_function, term) {
     const reduced_pgs = courses.map(course => {
-        const ev_pg = api.course_object_to_period_group(course, true, accepted_statuses, false, true, section_accept_function, term).evaluate();
+        const ev_pg = api.course_object_to_period_group(course, false, accepted_statuses, false, true, section_accept_function, term).evaluate();
         const section_id_to_periods_string = {};
         const grouped = groupBy(ev_pg, section_ids =>
             section_ids.map(section_id => {
