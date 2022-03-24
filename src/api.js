@@ -37,20 +37,21 @@ function get_search_results(query, term) {
         if (score[0] === 2) {
             hasAnyCoursenums = true;
             sortedCourses.push(info);
-        } else if (!hasAnyCoursenums && (score[0] !== 0 || score[1] !== 0 || score[2] !== 0 || score[3] !== 0 || score[4] !== 0 || score[5] !== 0)) {
+        } else if (!hasAnyCoursenums && (score[0] !== 0 || score[1] !== 0 || score[2] !== 0 || score[3] !== 0 || score[4] !== 0 || score[5] !== 0 || score[6] !== 0)) {
             sortedCourses.push(info);
         }
     }
     if (hasAnyCoursenums)
         sortedCourses = sortedCourses.filter(x => x.score[0] === 2);
     sortedCourses.sort((a, b) => default_compare(b.score, a.score));
-    // console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(0,30));
+    console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(0,30));
     // console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(sortedCourses.length-10));
     // console.log(sortedCourses.length, models.courses[term].length)
     return sortedCourses.map(x => x.course);
 }
 
 function getSearchRankingFunction(query, term) {
+    query = query.split(/\s+/).join(' ');
     const escapedQuery = escapeRegExp(query);
     const includes_query_words = new RegExp(`\\b${escapedQuery}\\b`, 'i');
     const begins_with_query_words = new RegExp(`(^|: )${escapedQuery}\\b`, 'i');
@@ -63,19 +64,26 @@ function getSearchRankingFunction(query, term) {
     return function(course) {
         // if the subject equals, i want them in alphabetical order
         if (course.subject === query) {
-            return [1, 0, 0, 0, 0, 0];
+            return [1, 0, 0, 0, 0, 0, 0];
         }
 
         if (course.courseNumVariantIncludedInString(query)) {
-            return [2, 0, 0, 0, 0, 0];
+            return [2, 0, 0, 0, 0, 0, 0];
         }
 
         const subject_long = course.subject_long.toUpperCase();
+        const subject = course.subject.toUpperCase();
         const title = course.title.toUpperCase();
+
 
         const score = [
             0,
 
+            (
+                longestCommonSubstringPositions(query, subject_long)[0] +
+                longestCommonSubstringPositions(query, subject)[0] +
+                longestCommonSubstringPositions(query, title)[0]
+            ),
 
             title === query ? 6 : // course title equals query
             begins_with_query_words.test(title) ? 5 : // course title begins with query as word(s)
