@@ -52,6 +52,18 @@ function get_search_results(query, term) {
     return sortedCourses.map(x => x.course);
 }
 
+/*
+Queries to test:
+
+- "numerical"
+- "senior honors thesis math"
+- "math senior honors thesis"
+- "math senior honors"
+- "senior honors math"
+- "mat senior honors"
+- "logic"
+*/
+
 function getSearchRankingFunction(query, term) {
     query = query.split(/\s+/).join(' ');
     const escapedQuery = escapeRegExp(query);
@@ -77,14 +89,14 @@ function getSearchRankingFunction(query, term) {
         const subject = course.subject.toUpperCase();
         const title = course.title.toUpperCase();
 
-
+        const factor = 2.7;
         const score = [
             0,
 
             (
-                mySimilarity2(query, subject_long) +
-                mySimilarity2(query, subject) +
-                mySimilarity2(query, title)
+                mySimilarity(query, title) * factor * factor
+                + mySimilarity(query, subject_long) * factor
+                + mySimilarity(query, subject)
             ),
 
             title === query ? 6 : // course title equals query
@@ -93,7 +105,7 @@ function getSearchRankingFunction(query, term) {
             includes_query_words.test(title) ? 3 : // course title includes query, as word(s)
             title.startsWith(query) ? 2 :
             title.indexOf(query) !== -1 ? 1 : // course title includes query
-            0,
+            mySimilarity(query, title),
 
 
             // query_is_course_num ? 0 :
@@ -114,13 +126,19 @@ function getSearchRankingFunction(query, term) {
 
 
             course.begins_with_subject_words_regex.test(query) ? 2 :
-            course.includes_subject_words_regex.test(query) ? 1 : 0,
+            course.includes_subject_words_regex.test(query) ? 1 : mySimilarity(query, subject),
 
 
             query_is_course_num ? (is_corrected_coursenum_regex.test(course.course_num) ? 1 : 0) : 0,
 
             0
         ];
+
+
+        // DEBUG:
+        // score[2] = mySimilarity(query, title);
+        // score[3] = mySimilarity(query, subject_long);
+        // score[4] = mySimilarity(query, subject);
 
         if (! query_is_course_num) { // not course num type query
             score[5] = mySimilarity(query, title)
@@ -130,12 +148,6 @@ function getSearchRankingFunction(query, term) {
 
         return score;
     };
-}
-
-function mySimilarity2(a, b) {
-    if (a.length === 0 && b.length === 0) return 0;
-    let lcs = longestCommonSubstringPositions(a, b)[0];
-    return lcs / Math.max(a.length, b.length);
 }
 
 function getCorrectCourseNum(query, term) {
@@ -182,17 +194,29 @@ function mySimilarity(a, b) {
     var aList = a.split(splitter_regex)
     var bList = b.split(splitter_regex)
 
-    var score = aList.reduce(function(currVal, wordA) {
+    const expectedMaxSimilarityAssumingUniformDistribution = bList.length / (bList.length + 1);
+
+    var score = aList.reduce(function(currVal, wordA, index) {
         var maximum = 0;
+        var indexAtMaximum = -1;
+        var maximumHasStartBoth = false;
         for (var i = 0; i < bList.length; i++) {
-            var sim = myWordSimilarity(wordA, bList[i]);
-            if (sim > maximum)
+            var [sim, startA, startB] = myWordSimilarity2(wordA, bList[i]);
+            if (sim > maximum) {
                 maximum = sim;
+                indexAtMaximum = i;
+                maximumHasStartBoth = startA === 0 && startB === 0;
+            }
+        }
+        // if (maximum < 0.5) maximum = 0;
+        if (indexAtMaximum === 0 && index === 0 && maximumHasStartBoth) {
+            maximum *= 1 + maximum;
         }
         return currVal + maximum;
-    }, 0) / aList.length;
+    }, 0) / (aList.length * expectedMaxSimilarityAssumingUniformDistribution);
 
-    return score > 0.7 ? score : 0;
+    // return score > 0.7 ? score : 0;
+    return score;
 }
 
 function myWordSimilarity(a, b) {
@@ -209,6 +233,12 @@ function myWordSimilarity(a, b) {
     } else {
         return maxRight / (a.length + b.length);
     }
+}
+
+function myWordSimilarity2(a, b) {
+    if (a.length === 0 && b.length === 0) return 0;
+    let [lcs, start_a, start_b] = longestCommonSubstringPositions(a, b);
+    return [lcs / (a.length + b.length), start_a, start_b];
 }
 
 // function myWordSimilarity(a, b) {
@@ -257,7 +287,7 @@ function longestCommonSubstringPositions(X, Y) {
             }
         }
     }
-    return [length, [x_end - length, x_end], [y_end - length, y_end]]
+    return [length, x_end - length, y_end - length];
 }
 
 function course_object_to_period_group(course, exclude_classes_with_no_days, accepted_statuses, cache, give_ids, section_accept_function, term) {
