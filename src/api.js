@@ -44,9 +44,11 @@ function get_search_results(query, term) {
     if (hasAnyCoursenums)
         sortedCourses = sortedCourses.filter(x => x.score[0] === 2);
     sortedCourses.sort((a, b) => default_compare(b.score, a.score));
-    console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(0,30));
-    // console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(sortedCourses.length-10));
-    // console.log(sortedCourses.length, models.courses[term].length)
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(0,30));
+        // console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(sortedCourses.length-10));
+        // console.log(sortedCourses.length, models.courses[term].length)
+    }
     return sortedCourses.map(x => x.course);
 }
 
@@ -80,9 +82,9 @@ function getSearchRankingFunction(query, term) {
             0,
 
             (
-                longestCommonSubstringPositions(query, subject_long)[0] +
-                longestCommonSubstringPositions(query, subject)[0] +
-                longestCommonSubstringPositions(query, title)[0]
+                mySimilarity2(query, subject_long) +
+                mySimilarity2(query, subject) +
+                mySimilarity2(query, title)
             ),
 
             title === query ? 6 : // course title equals query
@@ -128,6 +130,12 @@ function getSearchRankingFunction(query, term) {
 
         return score;
     };
+}
+
+function mySimilarity2(a, b) {
+    if (a.length === 0 && b.length === 0) return 0;
+    let lcs = longestCommonSubstringPositions(a, b)[0];
+    return lcs / Math.max(a.length, b.length);
 }
 
 function getCorrectCourseNum(query, term) {

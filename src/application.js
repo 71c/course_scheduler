@@ -13,6 +13,7 @@ const express = require('express');
 
 const app = express();
 
+
 // To keep track of usage
 // if (app.get('env') === 'production') {
 // var session = require('express-session');
@@ -38,7 +39,7 @@ const app = express();
 // }
 
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 1337;
 const UPDATE_INTERVAL = 30; // every UPDATE_INTERVAL minutes it updates all the course data
 const OFFLINE_MODE = false; // I use offline mode when I don't have WiFi
 const USE_CDN = process.env.NODE_ENV === 'production' || !OFFLINE_MODE;
