@@ -47,6 +47,17 @@ class Course {
     add_section(section) {
         this.sections.push(section);
     }
+
+    get_data() {
+        return {
+            course_num: this.course_num,
+            title: this.title,
+            desc_long: this.desc_long,
+            id: this.id,
+            class_attr: this.class_attr,
+            sections: this.sections
+        };
+    }
 }
 Course.currIds = {};
 

@@ -23,6 +23,10 @@ function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
+function get_courses_info_from_ids(ids, term) {
+    return ids.map(id => models.courses[term][id].get_data());
+}
+
 function get_search_results(query, term) {
     query = query.trim().toUpperCase();
     let sortedCourses = [];
@@ -236,7 +240,7 @@ function myWordSimilarity(a, b) {
 }
 
 function myWordSimilarity2(a, b) {
-    if (a.length === 0 && b.length === 0) return 0;
+    if (a.length === 0 && b.length === 0) return [0, 0, 0];
     let [lcs, start_a, start_b] = longestCommonSubstringPositions(a, b);
     return [lcs / (a.length + b.length), start_a, start_b];
 }
@@ -339,5 +343,6 @@ module.exports = {
     get_classes_by_title: get_classes_by_title,
     get_classes_by_subject: get_classes_by_subject,
     get_search_results: get_search_results,
-    course_object_to_period_group: course_object_to_period_group
+    course_object_to_period_group: course_object_to_period_group,
+    get_courses_info_from_ids: get_courses_info_from_ids,
 };

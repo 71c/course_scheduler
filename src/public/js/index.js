@@ -1,6 +1,78 @@
 "use strict";
-let my_courses_ids = new Set();
-const classes_by_id = {};
+
+
+
+// https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#supplying_request_options
+async function postData(url = '', data = {}) {
+// Default options are marked with *
+const response = await fetch(url, {
+    method: 'POST', // *GET, POST, PUT, DELETE, etc.
+    mode: 'cors', // no-cors, *cors, same-origin
+    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: 'same-origin', // include, *same-origin, omit
+    headers: {
+    'Content-Type': 'application/json'
+    // 'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    redirect: 'follow', // manual, *follow, error
+    referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+    body: JSON.stringify(data) // body data type must match "Content-Type" header
+});
+return response.json(); // parses JSON response into native JavaScript objects
+}
+
+
+
+/* ------------ Helper functions -------------- */
+
+function getItem(key, defaultValue) {
+    const val = localStorage.getItem(key);
+    if (val === null) {
+        if (defaultValue === undefined) {
+            return null;
+        }
+        else {
+            localStorage.setItem(key, defaultValue);
+            return localStorage.getItem(key);
+        }
+    }
+    return val;
+}
+
+function getItemInt(key, defaultValue) {
+    return parseInt(getItem(key, defaultValue), 10);
+}
+
+function getItemJSON(key, defaultValue) {
+    return JSON.parse(getItem(key, defaultValue));
+}
+
+function setItem(key, value) {
+    localStorage.setItem(key, value);
+}
+
+
+let currTerm;
+function saveTerm() {
+    currTerm = document.getElementById('term-select').value;
+    setItem("term", currTerm);
+}
+
+
+let my_courses_ids;
+
+function loadCourseIds() {
+    let keyName = "courseIds_" + currTerm;
+    my_courses_ids = new Set(getItemJSON(keyName, "[]"));
+}
+
+function saveCourseIds() {
+    const courseIdsList = [...my_courses_ids.values()];
+    setItem("courseIds_" + currTerm, JSON.stringify(courseIdsList));
+}
+
+
+let classes_by_id = {};
 const minMaxTimes = [450, 1290];
 let resultsDiv;
 let latestSearchTermWithResults;
@@ -24,6 +96,7 @@ function update_courses_display() {
             }
             else {
                 my_courses_ids.delete(course_id);
+                saveCourseIds();
                 update_courses_display();
             }
         };
@@ -168,9 +241,6 @@ function getCourseResultHTML(course) {
     
     }
 
-    
-
-
     // The onmousedown="event.preventDefault()" part prevents the buttons from staying focused https://stackoverflow.com/a/45851915
     return`<div class="card">
     <div class="card-header d-flex py-0" role="tab" id="header${course.id}">
@@ -196,6 +266,7 @@ function courseResultOnClickFunction(course) {
             this.setAttribute("kind", "add");
             this.innerHTML = "Add";
         }
+        saveCourseIds();
         update_courses_display();
     }
 }
@@ -206,6 +277,9 @@ function getSearchBoxContents() {
 
 var getSearchResults = function(clearResultsIfNoResults, refresh) {
     var searchTerm = getSearchBoxContents();
+    if (searchTerm === "") {
+        return;
+    }
     if (!refresh && (searchTerm === latestSearchTerm || searchTerm.length === 0))
         return;
     latestSearchTerm = searchTerm;
@@ -239,32 +313,6 @@ function minutesToTimeString12hr(minutes) {
     var hourPartString = hourPart.toString();
     var minutePartString = minutePart > 9 ? minutePart.toString() : "0" + minutePart.toString();
     return hourPartString + ":" + minutePartString + amPm;
-}
-
-function getItem(key, defaultValue) {
-    const val = localStorage.getItem(key);
-    if (val === null) {
-        if (defaultValue === undefined) {
-            return null;
-        }
-        else {
-            localStorage.setItem(key, defaultValue);
-            return localStorage.getItem(key);
-        }
-    }
-    return val;
-}
-
-function getItemInt(key, defaultValue) {
-    return parseInt(getItem(key, defaultValue), 10);
-}
-
-function getItemJSON(key, defaultValue) {
-    return JSON.parse(getItem(key, defaultValue));
-}
-
-function setItem(key, value) {
-    localStorage.setItem(key, value);
 }
 
 // https://github.com/kaimallea/isMobile
@@ -334,16 +382,36 @@ document.addEventListener('DOMContentLoaded', function() {
         getSearchResults(true, false);
     });
 
+    function updateCoursesCart() {
+        loadCourseIds();
+        postData("/get_courses_info_from_ids", {
+            ids: JSON.stringify([...my_courses_ids.values()]),
+            term: currTerm
+        }).then(data => {
+            for (const course of data) {
+                classes_by_id[course.id] = course;
+            }
+            update_courses_display();
+        });
+    }
+
     $('#term-select').change(function() {
         my_courses_ids = new Set();
-        update_courses_display();
         getSearchResults(true, true);
         console.log(document.getElementById('term-select').value);
-        setItem("term", document.getElementById('term-select').value);
+        saveTerm();
+        updateCoursesCart();
     });
-    if (getItem("term") !== null) {
-        document.querySelector("[value='" + getItem("term") + "']").selected = true;
+    
+    if (getItem("term") === null) {
+        saveTerm();
+    } else {
+        currTerm = getItem("term");
+        document.querySelector("[value='" + currTerm + "']").selected = true;
     }
+
+    updateCoursesCart();
+    
 
     var scheduleForm = document.getElementById('create schedule');
     scheduleForm.onsubmit = function() {

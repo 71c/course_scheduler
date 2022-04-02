@@ -13,7 +13,6 @@ const express = require('express');
 
 const app = express();
 
-
 // To keep track of usage
 // if (app.get('env') === 'production') {
 // var session = require('express-session');
@@ -84,6 +83,9 @@ app.use(express.static('src/public/icons', {
 app.use(express.static('src/public/vendor', {
     maxAge: oneYear
 }));
+
+// must use express.json middleware so that we can have req.body  with post
+app.use(express.json());
 
 if (!USE_CDN)
     app.use(express.static('node_modules'));
@@ -275,15 +277,15 @@ function startServer() {
         tic('get search results');
         const search_results = api.get_search_results(req.query.query, req.query.term);
         toc('get search results');
-        const search_results_json = search_results.map(course => ({
-                course_num: course.course_num,
-                title: course.title,
-                desc_long: course.desc_long,
-                id: course.id,
-                class_attr: course.class_attr,
-                sections: course.sections
-        }));
+        const search_results_json = search_results.map(course => course.get_data());
         res.send(search_results_json);
+    });
+
+    app.post('/get_courses_info_from_ids', function(req, res) {
+        const ids = JSON.parse(req.body.ids);
+        const term = req.body.term;
+        const courses_info = api.get_courses_info_from_ids(ids, term);
+        res.json(courses_info);
     });
 
     app.get('/tell-if-mobile', function(req, res) {
