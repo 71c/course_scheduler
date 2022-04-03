@@ -5,6 +5,8 @@ const {default_compare} = require('./partial_sort');
 const course_num_regex = /\b([A-Z]{2,})(?:-|\s*)([A-Z]{0,3})(\d{1,4})([A-Z]{0,2})\b/i;
 const course_num_regex_2 = /\b([A-Z]{2,})(?:-|\s*)(\d\d\/\d|[A-Z]{3,6})\b/i;
 
+const SEARCH_RESULTS_LIMIT = 200;
+
 
 function get_classes_by_course_num(course_num, term) {
     return models.courses[term].filter(course => course.course_num === course_num);
@@ -28,7 +30,6 @@ function get_courses_info_from_ids(ids, term) {
 }
 
 function get_search_results(query, term) {
-    query = query.trim().toUpperCase();
     let sortedCourses = [];
     const searchRankingFunction = getSearchRankingFunction(query, term);
     let hasAnyCoursenums = false;
@@ -53,7 +54,8 @@ function get_search_results(query, term) {
         // console.log(sortedCourses.map(x=>[x.score,x.course.course_num,x.course.title]).slice(sortedCourses.length-10));
         // console.log(sortedCourses.length, models.courses[term].length)
     }
-    return sortedCourses.map(x => x.course);
+    ret = sortedCourses.map(x => x.course).slice(0, SEARCH_RESULTS_LIMIT);
+    return ret;
 }
 
 /*
@@ -68,8 +70,25 @@ Queries to test:
 - "logic"
 */
 
-function getSearchRankingFunction(query, term) {
-    query = query.split(/\s+/).join(' ');
+function getSearchRankingFunction(query, term, isComp) {
+    query = query.trim().toUpperCase().split(/\s+/).join(' ');
+
+    if (isComp === undefined) {
+        isComp = false;
+    }
+
+    // Fix for COMP vs CS switch, people still might search for COMP
+    if (!isComp && query.startsWith("COMP")) {
+        const non_comp_part = query.substring(4);
+        const ranking_function_cs = getSearchRankingFunction("CS" + non_comp_part, term);
+        const ranking_function_comp = getSearchRankingFunction(query, term, true);
+        return (course) => {
+            const cs_score = ranking_function_cs(course);
+            const comp_score = ranking_function_comp(course);
+            return cs_score.map((x, i) => Math.max(x, comp_score[i]));
+        };
+    }
+
     const escapedQuery = escapeRegExp(query);
     const includes_query_words = new RegExp(`\\b${escapedQuery}\\b`, 'i');
     const begins_with_query_words = new RegExp(`(^|: )${escapedQuery}\\b`, 'i');
@@ -79,6 +98,18 @@ function getSearchRankingFunction(query, term) {
         var is_corrected_coursenum_regex = query_is_course_num.regex;
         var query_subject = query_is_course_num.subject;
     }
+
+    // If the query is a exactly a course short subject, then we have the search
+    // results be the courses with that subject.
+    const short_subj_idx = Object.keys(models.short_subject_to_long_subject[term]).indexOf(query);
+    if (short_subj_idx !== -1) {
+        return function(course) {
+            if (course.subject === query) return [2, 0, 0, 0, 0, 0, 0];
+            return [0, 0, 0, 0, 0, 0, 0];
+        };
+    }
+
+
     return function(course) {
         // if the subject equals, i want them in alphabetical order
         if (course.subject === query) {
