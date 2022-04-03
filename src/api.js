@@ -67,6 +67,8 @@ Queries to test:
 - "math senior honors"
 - "senior honors math"
 - "mat senior honors"
+- "senior thesis math"
+- "math senior thesis"
 - "logic"
 */
 
@@ -101,14 +103,14 @@ function getSearchRankingFunction(query, term, isComp) {
 
     // If the query is a exactly a course short subject, then we have the search
     // results be the courses with that subject.
-    const short_subj_idx = Object.keys(models.short_subject_to_long_subject[term]).indexOf(query);
+    const short_subjects = Object.keys(models.short_subject_to_long_subject[term]);
+    const short_subj_idx = short_subjects.indexOf(query);
     if (short_subj_idx !== -1) {
         return function(course) {
             if (course.subject === query) return [2, 0, 0, 0, 0, 0, 0];
             return [0, 0, 0, 0, 0, 0, 0];
         };
     }
-
 
     return function(course) {
         // if the subject equals, i want them in alphabetical order
@@ -120,66 +122,98 @@ function getSearchRankingFunction(query, term, isComp) {
             return [2, 0, 0, 0, 0, 0, 0];
         }
 
+        
+        if (query_is_course_num && query_subject === course.subject) {
+            return [mySimilarity(query, course.course_num)[0], 0, 0, 0, 0, 0, 0];
+        }
+
         const subject_long = course.subject_long.toUpperCase();
         const subject = course.subject.toUpperCase();
         const title = course.title.toUpperCase();
 
-        const factor = 2.7;
+        const factor = 2.5;
+        // const score = [
+        //     0,
+
+        //     (
+        //         mySimilarity(query, title) * factor
+        //         + mySimilarity(query, subject_long)
+        //         + mySimilarity(query, subject)
+        //     ),
+
+        //     title === query ? 6 : // course title equals query
+        //     begins_with_query_words.test(title) ? 5 : // course title begins with query as word(s)
+        //     ends_with_query_words.test(title) ? 4 : // course title ends with query as word(s)
+        //     includes_query_words.test(title) ? 3 : // course title includes query, as word(s)
+        //     title.startsWith(query) ? 2 :
+        //     title.indexOf(query) !== -1 ? 1 : // course title includes query
+        //     mySimilarity(query, title),
+
+
+        //     // query_is_course_num ? 0 :
+
+        //     subject_long === query ? 7 : // long subject equals query
+
+        //     // long subject contained in query
+        //     course.begins_with_long_subject_words_regex.test(query) ? 7 : // query begins with long subject words
+        //     course.includes_long_subject_words_regex.test(query) ? 6 : // query contains long subject words
+        //     query.indexOf(subject_long) !== -1 ? 5 : // query contains long subject
+
+        //     // query in contained in long subject
+        //     begins_with_query_words.test(subject_long) ? 4 : // long subject begins with query words
+        //     includes_query_words.test(subject_long) ? 3 : // long subject includes with query words
+        //     subject_long.indexOf(query) === 0 ? 2 : // long subject starts with query
+        //     subject_long.indexOf(query) !== -1 ? 1 : // long subject includes query
+        //     mySimilarity(query, subject_long),
+
+
+        //     course.begins_with_subject_words_regex.test(query) ? 2 :
+        //     course.includes_subject_words_regex.test(query) ? 1 : mySimilarity(query, subject),
+
+        //     query_is_course_num ? (is_corrected_coursenum_regex.test(course.course_num) ? 1 : 0) : 0,
+
+        //     0
+        // ];
+
+        const [simTitle, simBeginTitle] = mySimilarity(query, title);
+        const [simSubjLong, simBeginSubjLong] = mySimilarity(query, subject_long);
+        const [simSubject, simBeginSubject] = mySimilarity(query, subject);
+
         const score = [
             0,
 
             (
-                mySimilarity(query, title) * factor * factor
-                + mySimilarity(query, subject_long) * factor
-                + mySimilarity(query, subject)
+                simTitle * factor
+                + simSubjLong
+                + simSubject
+
+                + Math.max(simBeginTitle, simBeginSubjLong, simBeginSubject)
             ),
 
-            title === query ? 6 : // course title equals query
-            begins_with_query_words.test(title) ? 5 : // course title begins with query as word(s)
-            ends_with_query_words.test(title) ? 4 : // course title ends with query as word(s)
-            includes_query_words.test(title) ? 3 : // course title includes query, as word(s)
-            title.startsWith(query) ? 2 :
-            title.indexOf(query) !== -1 ? 1 : // course title includes query
-            mySimilarity(query, title),
+            0,
 
 
-            // query_is_course_num ? 0 :
-
-            subject_long === query ? 7 : // long subject equals query
-
-            // long subject contained in query
-            course.begins_with_long_subject_words_regex.test(query) ? 7 : // query begins with long subject words
-            course.includes_long_subject_words_regex.test(query) ? 6 : // query contains long subject words
-            query.indexOf(subject_long) !== -1 ? 5 : // query contains long subject
-
-            // query in contained in long subject
-            begins_with_query_words.test(subject_long) ? 4 : // long subject begins with query words
-            includes_query_words.test(subject_long) ? 3 : // long subject includes with query words
-            subject_long.indexOf(query) === 0 ? 2 : // long subject starts with query
-            subject_long.indexOf(query) !== -1 ? 1 : // long subject includes query
-            mySimilarity(query, subject_long),
+            0,
 
 
-            course.begins_with_subject_words_regex.test(query) ? 2 :
-            course.includes_subject_words_regex.test(query) ? 1 : mySimilarity(query, subject),
+            0,
 
-
-            query_is_course_num ? (is_corrected_coursenum_regex.test(course.course_num) ? 1 : 0) : 0,
+            0,
 
             0
         ];
 
 
         // DEBUG:
-        // score[2] = mySimilarity(query, title);
-        // score[3] = mySimilarity(query, subject_long);
-        // score[4] = mySimilarity(query, subject);
+        score[2] = simBeginTitle;
+        score[3] = simBeginSubjLong;
+        score[4] = simBeginSubject;
 
-        if (! query_is_course_num) { // not course num type query
-            score[5] = mySimilarity(query, title)
-        } else if (query_subject === course.subject) {
-            score[5] = mySimilarity(query, course.course_num)
-        }
+        // if (! query_is_course_num) { // not course num type query
+        //     score[5] = mySimilarity(query, title)
+        // } else if (query_subject === course.subject) {
+        //     score[5] = mySimilarity(query, course.course_num)
+        // }
 
         return score;
     };
@@ -231,27 +265,30 @@ function mySimilarity(a, b) {
 
     const expectedMaxSimilarityAssumingUniformDistribution = bList.length / (bList.length + 1);
 
+    var beginsWithScore = 0.0;
+
     var score = aList.reduce(function(currVal, wordA, index) {
         var maximum = 0;
         var indexAtMaximum = -1;
         var maximumHasStartBoth = false;
+        var maximumLCS = 0;
         for (var i = 0; i < bList.length; i++) {
-            var [sim, startA, startB] = myWordSimilarity2(wordA, bList[i]);
+            var [sim, lcs, startA, startB] = myWordSimilarity2(wordA, bList[i]);
             if (sim > maximum) {
                 maximum = sim;
                 indexAtMaximum = i;
                 maximumHasStartBoth = startA === 0 && startB === 0;
+                maximumLCS = lcs;
             }
         }
-        // if (maximum < 0.5) maximum = 0;
-        if (indexAtMaximum === 0 && index === 0 && maximumHasStartBoth) {
-            maximum *= 1 + maximum;
+        if (indexAtMaximum === 0 && index === 0 && maximumHasStartBoth && maximumLCS >= 3) {
+            beginsWithScore = maximumLCS / (bList[0].length + 1);
         }
         return currVal + maximum;
     }, 0) / (aList.length * expectedMaxSimilarityAssumingUniformDistribution);
 
     // return score > 0.7 ? score : 0;
-    return score;
+    return [score, beginsWithScore];
 }
 
 function myWordSimilarity(a, b) {
@@ -273,7 +310,7 @@ function myWordSimilarity(a, b) {
 function myWordSimilarity2(a, b) {
     if (a.length === 0 && b.length === 0) return [0, 0, 0];
     let [lcs, start_a, start_b] = longestCommonSubstringPositions(a, b);
-    return [lcs / (a.length + b.length), start_a, start_b];
+    return [lcs / (a.length + b.length), lcs, start_a, start_b];
 }
 
 // function myWordSimilarity(a, b) {
