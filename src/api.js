@@ -308,7 +308,7 @@ function myWordSimilarity(a, b) {
 }
 
 function myWordSimilarity2(a, b) {
-    if (a.length === 0 && b.length === 0) return [0, 0, 0];
+    if (a.length === 0 && b.length === 0) return [0, 0, 0, 0];
     let [lcs, start_a, start_b] = longestCommonSubstringPositions(a, b);
     return [lcs / (a.length + b.length), lcs, start_a, start_b];
 }
