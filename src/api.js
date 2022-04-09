@@ -123,7 +123,7 @@ function getSearchRankingFunction(query, term, isComp) {
         }
 
         
-        if (query_is_course_num && query_subject === course.subject) {
+        if (query_is_course_num && query_is_course_num.variant === "1" && query_subject === course.subject) {
             return [mySimilarity(query, course.course_num)[0], 0, 0, 0, 0, 0, 0];
         }
 
@@ -132,48 +132,6 @@ function getSearchRankingFunction(query, term, isComp) {
         const title = course.title.toUpperCase();
 
         const factor = 2.5;
-        // const score = [
-        //     0,
-
-        //     (
-        //         mySimilarity(query, title) * factor
-        //         + mySimilarity(query, subject_long)
-        //         + mySimilarity(query, subject)
-        //     ),
-
-        //     title === query ? 6 : // course title equals query
-        //     begins_with_query_words.test(title) ? 5 : // course title begins with query as word(s)
-        //     ends_with_query_words.test(title) ? 4 : // course title ends with query as word(s)
-        //     includes_query_words.test(title) ? 3 : // course title includes query, as word(s)
-        //     title.startsWith(query) ? 2 :
-        //     title.indexOf(query) !== -1 ? 1 : // course title includes query
-        //     mySimilarity(query, title),
-
-
-        //     // query_is_course_num ? 0 :
-
-        //     subject_long === query ? 7 : // long subject equals query
-
-        //     // long subject contained in query
-        //     course.begins_with_long_subject_words_regex.test(query) ? 7 : // query begins with long subject words
-        //     course.includes_long_subject_words_regex.test(query) ? 6 : // query contains long subject words
-        //     query.indexOf(subject_long) !== -1 ? 5 : // query contains long subject
-
-        //     // query in contained in long subject
-        //     begins_with_query_words.test(subject_long) ? 4 : // long subject begins with query words
-        //     includes_query_words.test(subject_long) ? 3 : // long subject includes with query words
-        //     subject_long.indexOf(query) === 0 ? 2 : // long subject starts with query
-        //     subject_long.indexOf(query) !== -1 ? 1 : // long subject includes query
-        //     mySimilarity(query, subject_long),
-
-
-        //     course.begins_with_subject_words_regex.test(query) ? 2 :
-        //     course.includes_subject_words_regex.test(query) ? 1 : mySimilarity(query, subject),
-
-        //     query_is_course_num ? (is_corrected_coursenum_regex.test(course.course_num) ? 1 : 0) : 0,
-
-        //     0
-        // ];
 
         const [simTitle, simBeginTitle] = mySimilarity(query, title);
         const [simSubjLong, simBeginSubjLong] = mySimilarity(query, subject_long);
@@ -205,9 +163,9 @@ function getSearchRankingFunction(query, term, isComp) {
 
 
         // DEBUG:
-        score[2] = simBeginTitle;
-        score[3] = simBeginSubjLong;
-        score[4] = simBeginSubject;
+        // score[2] = simBeginTitle;
+        // score[3] = simBeginSubjLong;
+        // score[4] = simBeginSubject;
 
         // if (! query_is_course_num) { // not course num type query
         //     score[5] = mySimilarity(query, title)
@@ -236,7 +194,8 @@ function getCorrectCourseNum(query, term) {
         const after_num = course_num_match[4];
         return {
             subject: subject,
-            regex: new RegExp(`^${subject}-${before_num}${num}${after_num}.*`)
+            regex: new RegExp(`^${subject}-${before_num}${num}${after_num}.*`),
+            variant: "1"
         };
     }
     const course_num_match_2 = course_num_regex_2.exec(query);
@@ -251,7 +210,8 @@ function getCorrectCourseNum(query, term) {
         }
         return {
             subject: subject,
-            regex: new RegExp(`^${subject}-${course_num_match_2[2]}`)
+            regex: new RegExp(`^${subject}-${course_num_match_2[2]}`),
+            variant: "2"
         };
     }
     return false;
