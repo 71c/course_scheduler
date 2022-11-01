@@ -3,11 +3,15 @@ const fs = require('fs');
 const models = require('./models');
 const assert = require('assert').strict;
 
-const GET_SESSION_URL = 'https://sis.uit.tufts.edu/psc/paprd/EMPLOYEE/EMPL/s/WEBLIB_TFP_PG.ISCRIPT2.FieldFormula.IScript_AutoLogOut';
-const SEARCH_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getSearchresultsAll3';
-const DETAILS_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getResultsDetails';
-const COURSE_SUBJECTS_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getSubjects';
-const TERMS_URL = 'https://siscs.uit.tufts.edu/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getCareers';
+// Used to be "uit.tufts.edu"
+// Now it's "it.tufts.edu"
+const MAIN_DOMAIN = 'it.tufts.edu';
+
+const GET_SESSION_URL = `https://sis.${MAIN_DOMAIN}/psc/paprd/EMPLOYEE/EMPL/s/WEBLIB_TFP_PG.ISCRIPT2.FieldFormula.IScript_AutoLogOut`;
+const SEARCH_URL = `https://siscs.${MAIN_DOMAIN}/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getSearchresultsAll3`;
+const DETAILS_URL = `https://siscs.${MAIN_DOMAIN}/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getResultsDetails`;
+const COURSE_SUBJECTS_URL = `https://siscs.${MAIN_DOMAIN}/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getSubjects`;
+const TERMS_URL = `https://siscs.${MAIN_DOMAIN}/psc/csprd/EMPLOYEE/HRMS/s/WEBLIB_CLS_SRCH.ISCRIPT1.FieldFormula.IScript_getCareers`;
 
 const COURSES_DATA_DIR = 'courses_data';
 const get_courses_path = term => `${COURSES_DATA_DIR}/courses_${term}.json`;
