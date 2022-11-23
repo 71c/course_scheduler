@@ -26,7 +26,7 @@
     "regression": "^2.0.1",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.8",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.5.0",
     "sri-toolbox": "^0.2.0",
     "underscore": "^1.9.1"
   },
