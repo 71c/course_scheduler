@@ -9,3 +9,5 @@ cd course_scheduler
 npm install
 ```
 then enter `node .`.
+
+Unfortunately, I'm not hosting this on the web anymore.
