@@ -15,7 +15,7 @@
     "connect-pg-simple": "^6.1.0",
     "distributions": "^2.1.0",
     "ejs": "^3.0.1",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-session": "^1.17.0",
     "heroku-ssl-redirect": "0.0.4",
     "jquery": "^3.4.1",
